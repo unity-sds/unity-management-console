@@ -3,9 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 )
@@ -42,10 +44,18 @@ func main() {
 
 	cplanecmd.PersistentFlags().StringVar(&bootstrapApplication, "application", "", "An application to be deployed alongside the controlplane")
 	rootCmd.Execute()
+	r := gin.Default()
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
+	})
+	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+
 }
 
 func initConfig() {
-	if cfgFile != "" {
+	if cfgFile != "" { //
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
