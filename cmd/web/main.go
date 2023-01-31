@@ -79,12 +79,13 @@ func initConfig() {
 func appLauncher(appname string) {
 	//Lookup app from marketplace
 
+	token := os.Getenv("GHTOKEN")
 	//Deploy app via act
 	prg := "/home/ubuntu/bin/act"
 	arg4 := "-W"
 	arg45 := ".github/workflows/test-action.yml"
 	arg5 := "--input"
-	arg55 := `METADATA='{"metadataVersion":"unity-cs-0.1","deploymentName":"some name for the deployment of services","ghtoken":"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", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"testclustertomtues2","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`
+	arg55 := fmt.Sprintf(`METADATA='{"metadataVersion":"unity-cs-0.1","deploymentName":"some name for the deployment of services","ghtoken":"%s", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"testclustertomtues2","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`, token)
 	arg6 := "--env"
 	arg65 := "WORKFLOWPATH=/home/ubuntu/unity-cs/.github/workflows"
 	cmd := exec.Command(prg, arg4, arg45, arg5, arg55, arg6, arg65)
