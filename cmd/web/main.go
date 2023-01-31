@@ -85,7 +85,7 @@ func appLauncher(appname string) {
 	arg4 := "-W"
 	arg45 := ".github/workflows/test-action.yml"
 	arg5 := "--input"
-	arg55 := fmt.Sprintf(`METADATA={"metadataVersion":"unity-cs-0.1","deploymentName":"deployment","ghtoken":"%s", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"testclustertomtues2","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`, token)
+	arg55 := fmt.Sprintf(`METADATA={"metadataVersion":"unity-cs-0.1","deploymentName":"deployment","ghtoken":"%s", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"testclustertomtues4","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`, token)
 	arg6 := "--env"
 	arg65 := "WORKFLOWPATH=/home/ubuntu/unity-cs/.github/workflows"
 	cmd := exec.Command(prg, arg4, arg45, arg5, arg55, arg6, arg65)
