@@ -81,17 +81,13 @@ func appLauncher(appname string) {
 
 	//Deploy app via act
 	prg := "/home/ubuntu/bin/act"
-	arg1 := "-s"
-	arg15 := "EKSINSTANCEROLEARN=arn:aws:iam::237868187491:role/U-CS-AmazonEKSNodeRole"
-	arg2 := "-s"
-	arg25 := "EKSSERVICEARN=arn:aws:iam::237868187491:role/Unity-UCS-Development-EKSClusterS3-Role"
-	arg3 := "workflow_dispatch"
 	arg4 := "-W"
-	arg45 := ".github/workflows/deploy_eks.yml"
-	arg5 := "-e"
-	arg55 := "/home/ubuntu/unity-cs/payload.json"
-	arg6 := "-v"
-	cmd := exec.Command(prg, arg1, arg15, arg2, arg25, arg3, arg4, arg45, arg5, arg55, arg6)
+	arg45 := ".github/workflows/test-action.yml"
+	arg5 := "--input"
+	arg55 := `METADATA='{"metadataVersion":"unity-cs-0.1","deploymentName":"some name for the deployment of services","ghtoken":"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", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"testclustertomtues2","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`
+	arg6 := "--env"
+	arg65 := "WORKFLOWPATH=/home/ubuntu/unity-cs/.github/workflows"
+	cmd := exec.Command(prg, arg4, arg45, arg5, arg55, arg6, arg65)
 	cmd.Dir = "/home/ubuntu/unity-cs"
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
