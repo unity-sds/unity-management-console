@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	  "math/rand"
+  "time"
 )
 
 var (
@@ -79,13 +81,14 @@ func initConfig() {
 func appLauncher(appname string) {
 	//Lookup app from marketplace
 
+	clustername := String(10)
 	token := os.Getenv("GHTOKEN")
 	//Deploy app via act
 	prg := "/home/ubuntu/bin/act"
 	arg4 := "-W"
 	arg45 := ".github/workflows/test-action.yml"
 	arg5 := "--input"
-	arg55 := fmt.Sprintf(`METADATA={"metadataVersion":"unity-cs-0.1","deploymentName":"deployment","ghtoken":"%s", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"testclustertomtues4","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`, token)
+	arg55 := fmt.Sprintf(`METADATA={"metadataVersion":"unity-cs-0.1","deploymentName":"deployment","ghtoken":"%s", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"%s","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`, token, clustername)
 	arg6 := "--env"
 	arg65 := "WORKFLOWPATH=/home/ubuntu/unity-cs/.github/workflows"
 	cmd := exec.Command(prg, arg4, arg45, arg5, arg55, arg6, arg65)
@@ -101,4 +104,22 @@ func appLauncher(appname string) {
 		fmt.Println(m)
 	}
 	_ = cmd.Wait()
+}
+
+const charset = "abcdefghijklmnopqrstuvwxyz" +
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+var seededRand *rand.Rand = rand.New(
+  rand.NewSource(time.Now().UnixNano()))
+
+func StringWithCharset(length int, charset string) string {
+  b := make([]byte, length)
+  for i := range b {
+    b[i] = charset[seededRand.Intn(len(charset))]
+  }
+  return string(b)
+}
+
+func String(length int) string {
+  return StringWithCharset(length, charset)
 }
