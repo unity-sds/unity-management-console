@@ -1,0 +1,19 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: Unity Common Services Control Plane
+  description: |
+    The Unity Common Services Control Plane repository houses the Golang webservices for the end user control plane to manage Unity deployments 
+    for end users in a production environment.
+  links:
+    - title: Github
+      url: https://github.com/unity-sds
+    - title: Documentation
+      url: https://unity-sds.gitbook.io/docs/developer-docs/common-services
+  annotations:
+    github.com/project-slug: unity-sds/unity-control-plane
+    backstage.io/techdocs-ref: dir:.
+spec:
+  type: service
+  owner: guests
+  lifecycle: experimental
