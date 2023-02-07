@@ -56,7 +56,7 @@ func main() {
 	r.LoadHTMLGlob("web/templates/*")
 	r.GET("/index", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl.html", gin.H{
-			"title": "Main website",
+			"title": "Unity Repository",
 		})
 	})
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
