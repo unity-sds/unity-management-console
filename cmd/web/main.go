@@ -87,7 +87,7 @@ func appLauncher(appname string) {
 	//Deploy app via act
 	prg := "/home/ubuntu/bin/act"
 	arg4 := "-W"
-	arg45 := ".github/workflows/test-action.yml"
+	arg45 := ".github/workflows/development-action-not-for-long-term-use-only-use-if-you-know-what-you-are-doing.yml"
 	arg5 := "--input"
 	arg55 := fmt.Sprintf(`METADATA={"metadataVersion":"unity-cs-0.1","deploymentName":"deployment","ghtoken":"%s", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"%s","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`, token, clustername)
 	arg6 := "--env"
