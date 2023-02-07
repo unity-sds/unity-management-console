@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"net/http"
 	"os"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/thomaspoignant/go-feature-flag/ffuser"
@@ -45,14 +47,20 @@ func main() {
 	} else { // flag "test-flag" is false for the user
 		fmt.Println("flag false")
 	}
-	/*r := gin.Default()
+	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
 	})
+	r.LoadHTMLGlob("web/templates/*")
+	r.GET("/index", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.tmpl.html", gin.H{
+			"title": "Main website",
+		})
+	})
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
-	*/
+
 }
 
 func initConfig() {

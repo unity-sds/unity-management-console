@@ -1,0 +1,58 @@
+<html>
+	  <h1>
+		    {{ .title }}
+	  </h1>
+
+    <div>
+        <h2>Unity SPS</h2>
+        <h5>Version: 0.1-beta</h5>
+        <h5>Channel: Beta</h5>
+        <h5>Owner: Drew Meyers</h5>
+        <h5>Repository: <a href="https://github.com/unity-sds/unity-sps-prototype">https://github.com/unity-sds/unity-sps-prototype</a></h5>
+        <p>The Unity SPS Prototype package</p>
+        <h4>Information</h4>
+        <h5>Minimum IAM Roles
+            <pre>
+        <code>
+  "IamRoles": {
+    "Statement": [
+      {
+        "Effect": "Allow",
+        "Action": [
+          "iam:CreateInstanceProfile"
+        ],
+        "Resource": [
+          "arn:aws:iam::{account_id}:instance-profile/eksctl*"
+            ]
+            }
+            ]
+            }
+
+        </code>
+          </pre>
+        <h5>Dependencies</h5>
+        <table>
+            <tr>
+                <th>
+                    Dependency
+                </th>
+                <th>
+                    Min Version
+                </th>
+                <th>
+                    Max Version
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    EKS
+                </td>
+                <td>
+                    1.21
+                </td>
+                <td>
+                </td>
+            </tr>
+        </table>
+        <button>Install</button>
+</html>
