@@ -1,18 +1,17 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/http"
 	"os"
-	"os/exec"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/thomaspoignant/go-feature-flag/ffuser"
+	"github.com/unity-sds/unity-control-plane/internal/application/config"
 )
 
 var (
@@ -25,7 +24,7 @@ var (
 		Long:  `Control plane startup configuration commands`,
 		Run: func(cmd *cobra.Command, args []string) {
 			if bootstrapApplication != "" {
-				appLauncher(bootstrapApplication)
+				//appLauncher(bootstrapApplication)
 
 			}
 		},
@@ -33,13 +32,7 @@ var (
 )
 
 func main() {
-	// r := gin.Default()
-	// r.GET("/ping", func(c *gin.Context) {
-	//   c.JSON(http.StatusOK, gin.H{
-	//     "message": "pong",
-	//   })
-	// })
-	// r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	ffclient := config.InitApplication()
 
 	cobra.OnInitialize(initConfig)
 
@@ -47,10 +40,23 @@ func main() {
 
 	cplanecmd.PersistentFlags().StringVar(&bootstrapApplication, "application", "", "An application to be deployed alongside the controlplane")
 	rootCmd.Execute()
+	user := ffuser.NewUser(String(10))
+	hasFlag, _ := ffclient.BoolVariation("test-flag", user, false)
+	if hasFlag { // flag "test-flag" is true for the user
+		fmt.Println("Flag true")
+	} else { // flag "test-flag" is false for the user
+		fmt.Println("flag false")
+	}
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
+		})
+	})
+	r.LoadHTMLGlob("web/templates/*")
+	r.GET("/index", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.tmpl.html", gin.H{
+			"title": "Unity Repository",
 		})
 	})
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
@@ -69,30 +75,37 @@ func initConfig() {
 		// Search config in home directory with name ".cobra" (without extension).
 		viper.AddConfigPath(home)
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".cobra")
+		viper.SetConfigName(".unitycp")
+		viper.SetDefault("GithubToken", "unset")
+		viper.SetDefault("MarketplaceURL", "unset")
+
 	}
 
 	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; ignore error if desired
+		} else {
+			// Config file was found but another error was produced
+		}
 	}
 }
 
-func appLauncher(appname string) {
+/*func appLauncher(appname string) {
 	//Lookup app from marketplace
 
 	clustername := String(10)
 	token := os.Getenv("GHTOKEN")
 	//Deploy app via act
 	prg := "/home/ubuntu/bin/act"
-	arg4 := "-W"
-	arg45 := ".github/workflows/development-action-not-for-long-term-use-only-use-if-you-know-what-you-are-doing.yml"
-	arg5 := "--input"
-	arg55 := fmt.Sprintf(`METADATA={"metadataVersion":"unity-cs-0.1","deploymentName":"deployment","ghtoken":"%s", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"%s","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`, token, clustername)
-	arg6 := "--env"
-	arg65 := "WORKFLOWPATH=/home/ubuntu/unity-cs/.github/workflows"
-	cmd := exec.Command(prg, arg4, arg45, arg5, arg55, arg6, arg65)
+	arg1 := "-W"
+	arg2 := ".github/workflows/test-action.yml"
+	arg3 := "--input"
+	arg4 := fmt.Sprintf(`METADATA={"metadataVersion":"unity-cs-0.1","deploymentName":"deployment","ghtoken":"%s", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"%s","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`, token, clustername)
+	arg5 := "--env"
+	arg6 := "WORKFLOWPATH=/home/ubuntu/unity-cs/.github/workflows"
+	cmd := exec.Command(prg, arg1, arg2, arg3, arg4, arg5, arg6)
 	cmd.Dir = "/home/ubuntu/unity-cs"
 	stdout, _ := cmd.StdoutPipe()
 	stderr, _ := cmd.StderrPipe()
@@ -106,7 +119,7 @@ func appLauncher(appname string) {
 	}
 	_ = cmd.Wait()
 }
-
+*/
 const charset = "abcdefghijklmnopqrstuvwxyz" +
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
