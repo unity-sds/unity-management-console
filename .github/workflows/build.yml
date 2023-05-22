@@ -23,7 +23,7 @@ jobs:
       run: npm ci
 
     - name: Build package
-      run: npm run pacakage
+      run: npm run package
 
     - name: Publish package
       uses: actions/upload-artifact@v2
