@@ -63,12 +63,12 @@ func main() {
 			"message": "pong",
 		})
 	})
-	router.LoadHTMLGlob("backend/web/templates/*")
+/*	router.LoadHTMLGlob("backend/web/templates/*")
 	router.GET("/index", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl.html", gin.H{
 			"title": "Unity Repository",
 		})
-	})
+	})*/
 
 	router.GET("/ws", func(c *gin.Context) {
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
