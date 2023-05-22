@@ -11,3 +11,5 @@ export const venueStore = writable('');
 export const privateSubnetsStore = writable<string[]>([]);
 export const publicSubnetsStore = writable<string[]>([]);
 export const listStore = writable<{ key: string; value: string }[]>([]);
+
+export const messageStore = writable<string>('')

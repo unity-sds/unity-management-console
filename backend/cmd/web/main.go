@@ -9,9 +9,11 @@ import (
 
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/thomaspoignant/go-feature-flag/ffuser"
+	"github.com/unity-sds/unity-control-plane/backend/internal/act"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 )
 
@@ -31,6 +33,13 @@ var (
 		},
 	}
 )
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true // or check the origin if you want to add more security
+	},
+}
 
 func main() {
 	ffclient := config.InitApplication()
@@ -54,11 +63,21 @@ func main() {
 			"message": "pong",
 		})
 	})
-	router.LoadHTMLGlob("backend/web/templates/*")
+/*	router.LoadHTMLGlob("backend/web/templates/*")
 	router.GET("/index", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl.html", gin.H{
 			"title": "Unity Repository",
 		})
+	})*/
+
+	router.GET("/ws", func(c *gin.Context) {
+		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+		if err != nil {
+			//log.Print("upgrade:", err)
+			fmt.Printf("upgrade:", err)
+			return
+		}
+		act.RunAct(conn)
 	})
 	router.Use(static.Serve("/", static.LocalFile("./build", true)))
 	router.NoRoute(func(c *gin.Context) { // fallback

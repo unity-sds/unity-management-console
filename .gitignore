@@ -9,3 +9,5 @@ node_modules
 main
 main.exe
 _out/
+management-console/
+managementconsole.zip

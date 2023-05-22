@@ -33,7 +33,7 @@ $: cardData = [
 <div class="container">
     <div class="row text-center mt-5">
         {#each cardData as card (card.title)}
-            <ApplicationPanelItem title={card.title} description={card.description} link={card.link} disabled={card.disabled} />
+            <ApplicationPanelItem title={card.title} description={card.description} link={card.link} />
         {/each}
     </div>
 </div>
