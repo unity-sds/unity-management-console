@@ -1,17 +1,15 @@
 package main
 
 import (
-	"fmt"
+	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"math/rand"
 	"os"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/thomaspoignant/go-feature-flag/ffuser"
-	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/web"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -33,7 +31,6 @@ var (
 
 func main() {
 	log.Info("Launching Unity Management Console")
-	ffclient := config.InitApplication()
 
 	cobra.OnInitialize(initConfig)
 
@@ -46,14 +43,8 @@ func main() {
 		return
 	}
 
-	user := ffuser.NewUser(String(10))
 
-	hasFlag, _ := ffclient.BoolVariation("test-flag", user, false)
-	if hasFlag { // flag "test-flag" is true for the user
-		fmt.Println("Flag true")
-	} else { // flag "test-flag" is false for the user
-		fmt.Println("flag false")
-	}
+	database.ConnectDatabase()
 
 	router := web.DefineRoutes()
 

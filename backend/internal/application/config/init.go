@@ -1,10 +1,10 @@
 package config
 
 import (
-	"time"
 	log "github.com/sirupsen/logrus"
 	ffclient "github.com/thomaspoignant/go-feature-flag"
 	"github.com/thomaspoignant/go-feature-flag/retriever/githubretriever"
+	"time"
 )
 
 func InitApplication() (f *ffclient.GoFeatureFlag) {
