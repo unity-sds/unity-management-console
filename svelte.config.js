@@ -14,7 +14,11 @@ const config = {
 			fallback: 'index.html',
 			precompress: true,
 			strict: true
-		})
+		}),
+paths: {
+			// base path on the server
+			base: '/ui'
+		}
 	}
 };
 

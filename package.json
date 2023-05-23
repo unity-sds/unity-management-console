@@ -14,7 +14,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
-		"build": "npm run check && npx vite build",
+		"build": "npm run check && npx vite build --base=/ui/",
 		"build-all": "npm run build && echo \"Building Golang binary...\" && go build -buildvcs=false -o ./main ./backend/cmd/web",
 		"serve": "open-cli http://localhost:8080 && ./main",
 		"serve-win": "open-cli http://localhost:8080 && main",

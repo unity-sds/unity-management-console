@@ -19,5 +19,5 @@
 			{displayText2}
 		</span>
 	{/key}
-	<a href="/" class="st-button large m-1"> Home </a>
+	<a href="/ui" class="st-button large m-1"> Home </a>
 </div>

@@ -24,9 +24,9 @@ $: {
     }
 }
 $: cardData = [
-    {title: 'Core Management', description: 'Manage your core settings and features.', link: '/setup', disabled: false},
-    {title: 'Unity Marketplace', description: 'Explore the Unity Marketplace.', link: '/marketplace', disabled: setuprun},
-    {title: 'Application Management', description: 'Manage your applications.', link: '/applications', disabled: setuprun},
+    {title: 'Core Management', description: 'Manage your core settings and features.', link: '/ui/setup', disabled: false},
+    {title: 'Unity Marketplace', description: 'Explore the Unity Marketplace.', link: '/ui/marketplace', disabled: setuprun},
+    {title: 'Application Management', description: 'Manage your applications.', link: '/ui/applications', disabled: setuprun},
     {title: 'Extension Management', description: 'Manage your hosted extensions.', link: '#', disabled: setuprun}
 ]
 </script>

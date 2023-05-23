@@ -46,7 +46,7 @@ import { goto } from '$app/navigation';
 		const httpHandler = new HttpHandler();
 		const id = await httpHandler.installSoftware($install);
 		console.log(id);
-      goto('/progress', { replaceState: true });
+      goto('/ui/progress', { replaceState: true });
 
 	};
 	interface NodeGroupType {

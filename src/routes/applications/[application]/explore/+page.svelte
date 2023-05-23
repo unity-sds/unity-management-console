@@ -68,7 +68,7 @@ import { goto } from "$app/navigation";
                       <p class="card-text">SPS uses the Kubernetes extension.</p>
                   </div>
                   <div class="card-footer">
-                      <button class="btn btn-primary" on:click={() => goto('/extension/kubernetes/cluster')}>Manage</button>
+                      <button class="btn btn-primary" on:click={() => goto('/ui/extension/kubernetes/cluster')}>Manage</button>
                   </div>
               </div>
           </div>

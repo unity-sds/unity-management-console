@@ -35,7 +35,7 @@ function handleSubmit() {
     // After saving, navigate to /saved
     projectStore.set(project);
     venueStore.set(venue);
-    goto('/saved', { replaceState: true });
+    goto('/ui/saved', { replaceState: true });
 }
 </script>
 
