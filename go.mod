@@ -3,15 +3,19 @@ module github.com/unity-sds/unity-control-plane
 go 1.20
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/gin-gonic/gin v1.9.0
 	github.com/gorilla/websocket v1.5.0
 	github.com/nektos/act v0.2.45
 	github.com/nishanths/exhaustive v0.9.5
 	github.com/sirupsen/logrus v1.9.0
+	github.com/smartystreets/goconvey v1.8.0
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
+	github.com/stretchr/testify v1.8.2
 	github.com/thomaspoignant/go-feature-flag v1.10.2
 	golang.org/x/tools v0.7.0
+	gorm.io/driver/postgres v1.5.2
 	gorm.io/driver/sqlite v1.5.1
 	gorm.io/gorm v1.25.1
 	honnef.co/go/tools v0.3.3
@@ -31,6 +35,7 @@ require (
 	github.com/cloudflare/circl v1.1.0 // indirect
 	github.com/containerd/containerd v1.6.20 // indirect
 	github.com/creack/pty v1.1.18 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/cli v23.0.4+incompatible // indirect
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/docker/docker v23.0.4+incompatible // indirect
@@ -51,14 +56,19 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
+	github.com/gopherjs/gopherjs v1.17.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/pgx/v5 v5.3.1 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/jtolds/gls v4.20.0+incompatible // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
 	github.com/klauspost/compress v1.15.12 // indirect
@@ -83,11 +93,13 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.7 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rhysd/actionlint v1.6.24 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
+	github.com/smartystreets/assertions v1.13.1 // indirect
 	github.com/spf13/afero v1.9.5 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect

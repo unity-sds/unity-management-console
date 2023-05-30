@@ -3,15 +3,24 @@ package config
 import (
 	log "github.com/sirupsen/logrus"
 	ffclient "github.com/thomaspoignant/go-feature-flag"
+	"github.com/thomaspoignant/go-feature-flag/ffuser"
 	"github.com/thomaspoignant/go-feature-flag/retriever/githubretriever"
 	"time"
 )
 
-func InitApplication() (f *ffclient.GoFeatureFlag) {
-	return initFeatureFlags()
+type FeatureFlagClient interface {
+	Close()
+	BoolVariation(s string, u ffuser.User, f bool) (bool, error)
+	// Add other methods as required
 }
 
-func initFeatureFlags() (f *ffclient.GoFeatureFlag) {
+func InitApplication() {
+	FFClient = initFeatureFlags()
+}
+
+var FFClient FeatureFlagClient
+
+func initFeatureFlags() (f FeatureFlagClient) {
 	ff, err := ffclient.New(ffclient.Config{
 		PollingInterval: 3 * time.Second,
 		Retriever: &githubretriever.Retriever{
@@ -21,11 +30,10 @@ func initFeatureFlags() (f *ffclient.GoFeatureFlag) {
 			Timeout:        2 * time.Second,
 		},
 	})
-	defer ffclient.Close()
 
 	if err != nil {
 		log.Errorf("Error launching feature flag client. %v", err)
 	}
-
-	return ff
+	var client FeatureFlagClient = ff
+	return client
 }

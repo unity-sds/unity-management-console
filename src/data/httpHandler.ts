@@ -48,6 +48,20 @@ export class HttpHandler {
             this.websocket.onclose = () => {
                 this.message += 'WebSocket connection closed\n';
             };
+            console.log("Sending message")
+            const message = {
+                action: "config upgrade",
+                payload: [{ "key": "abc", "value": "def" }]
+            };
+
+            this.websocket.onopen = () => {
+                if (this.websocket!=null){
+                    this.websocket.send(JSON.stringify(message));
+                    console.log("Message sent")
+                }
+            }
+
+
         } else {
             const interval2 = setInterval(() => {
                 lines++;

@@ -8,18 +8,32 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDatabase() {
+type GormDatastore struct {
+	db *gorm.DB
+}
 
-	database, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+func (g GormDatastore) FetchCoreParams() ([]models.CoreConfig, error) {
+	var config []models.CoreConfig
+	result := g.db.Find(&config)
 
-	if err != nil {
-		panic("Failed to connect to database!")
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	err = database.AutoMigrate(&models.CoreConfig{})
+	return config, nil
+}
+
+func NewGormDatastore() (*GormDatastore, error) {
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	DB = database
+	return &GormDatastore{
+		db: db,
+	}, nil
+}
+
+type Datastore interface {
+	FetchCoreParams() ([]models.CoreConfig, error)
 }

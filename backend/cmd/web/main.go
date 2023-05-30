@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"math/rand"
 	"os"
 	"time"
@@ -43,15 +42,12 @@ func main() {
 		return
 	}
 
-
-	database.ConnectDatabase()
-
 	router := web.DefineRoutes()
 
 	err = router.Run()
 	if err != nil {
 		log.Errorf("Failed to launch API. %v", err)
-		return 
+		return
 	}
 
 }

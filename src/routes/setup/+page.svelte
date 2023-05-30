@@ -1,6 +1,7 @@
 <script lang="ts">
 import { goto } from '$app/navigation';
 import { projectStore, venueStore } from '../../store/stores';
+import ProgressFeedback from "../../components/ProgressFeedback.svelte";
 let project = '';
 let venue = '';
   let privateSubnets: string[] = [];
@@ -35,7 +36,7 @@ function handleSubmit() {
     // After saving, navigate to /saved
     projectStore.set(project);
     venueStore.set(venue);
-    goto('/ui/saved', { replaceState: true });
+    //goto('/ui/saved', { replaceState: true });
 }
 </script>
 
@@ -51,6 +52,7 @@ function handleSubmit() {
             <p>By investing time and attention in properly configuring these mandatory values through the setup wizard, you can establish a robust foundation for your Unity platform, guaranteeing its reliability, scalability, and ability to handle the demands of your applications and users effectively.</p>
         </div>
         <div class="col">
+          {#if $projectStore === ""}
   <form>
     <div class="form-group">
       <label for="project">Project Name</label>
@@ -134,6 +136,9 @@ function handleSubmit() {
     </div>
     <button type="submit" on:click|preventDefault={handleSubmit} class="st-button large mt-5">Save</button>
   </form>
+            {:else}
+            <ProgressFeedback/>
+            {/if}
         </div>
     </div>
 </div>
