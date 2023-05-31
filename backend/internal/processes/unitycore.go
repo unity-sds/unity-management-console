@@ -5,7 +5,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-control-plane/backend/internal/act"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
-	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
 	"os"
 )
 
@@ -20,14 +19,7 @@ type ActRunnerImpl struct{}
 func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error {
 	return act.RunAct(path, inputs, env, secrets, conn)
 }
-func fetchCoreParams() ([]models.CoreConfig, error) {
-	config, err := database.FetchConfig()
-	if err != nil {
-		return []models.CoreConfig{}, nil
-	} else {
-		return config, nil
-	}
-}
+
 func UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, runner ActRunner) error {
 	inputs := map[string]string{
 		"deploymentProject": "SIPS",
