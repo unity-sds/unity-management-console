@@ -1,7 +1,36 @@
-# unity-control-plane
+# unity-management-console
 
-[`main.go`](https://github.com/unity-sds/unity-control-plane/blob/main/cmd/web/main.go)
- * is the entry point to the control plane.
- * uses [`gin`](https://github.com/gin-gonic/gin) framework to get a REST API, statically-driven website, etc..
- * serves up templates
- * support for Go feature flags a work in progress..
+This console is the core management portal for the Unity environment. It configures and customizes each environment with
+various specifics for running Unity software. It will also install the software requested by the user.
+
+## Environment Variables
+
+...
+
+## Running
+Grab a management console zip file from the [releases page](https://github.com/unity-sds/unity-management-console/releases)
+Unzip to your target destination.
+
+```shell
+
+unzip managementconsole.zip
+cd management-console
+./main
+```
+
+## Development
+
+```shell
+npm run dev
+```
+Run the development environment. This is a Svelte only environment it provides a fake backend and http responses.
+
+```shell
+npm run build-all
+```
+Build the frontend and the backend. This also runs various linters and other code quality checks.
+
+```shell
+npm run serve
+```
+Launch the frontend and the backend locally for testing.
