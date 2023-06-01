@@ -24,7 +24,7 @@ $: {
     }
 }
 $: cardData = [
-    {title: 'SPS', description: 'SPS Description.', link: '/applications/sps/explore', disabled:false},
+    {title: 'SPS', description: 'SPS Description.', link: '/ui/applications/sps/explore', disabled:false},
 ]
 </script>
 <header class="bg-primary text-white text-center py-5 mb-5">

@@ -21,5 +21,5 @@ onMount(() => {
 
 <div class="center-screen text-center">
     <h1 class="mb-4">{message}</h1>
-    <a href="/landing" class="btn btn-primary">{buttonText}</a>
+    <a href="/ui/landing" class="btn btn-primary">{buttonText}</a>
 </div>

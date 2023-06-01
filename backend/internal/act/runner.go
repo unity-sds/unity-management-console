@@ -4,61 +4,108 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"os"
-	"sync"
-
 	"github.com/gorilla/websocket"
 	"github.com/nektos/act/pkg/common"
 	"github.com/nektos/act/pkg/model"
 	"github.com/nektos/act/pkg/runner"
 	"github.com/sirupsen/logrus"
+	"io"
+	"os"
+	"sync"
 )
 
-type Config struct {
+type ActRunner struct {
+	Workflow       string
+	Inputs         map[string]string
+	Env            map[string]string
+	Secrets        map[string]string
+	Conn           *websocket.Conn
+	Workdir        string
+	RunnerConfig   *runner.Config
+	Plan           *model.Plan
+	LoggerFactory  runner.JobLoggerFactory
+	Logger         *logrus.Logger
+	StdoutBuffer   bytes.Buffer
+	StderrBuffer   bytes.Buffer
+	PlanExecutor   common.Executor
 }
-type Runner struct {
-	name string
 
-	cfg *Config
-
-	envs map[string]string
-
-	runningTasks sync.Map
-}
-
-// Define a struct
 type MyLogger struct {
 	Output bytes.Buffer
 }
 
-// Implement the JobLoggerFactory interface on the struct
+// WithJobLogger creates a new logrus Logger, sets an information level log
+// indicating the invocation of this method, and directs its output to the
+// buffer of the MyLogger instance. It then returns the newly created logger.
+// This method can be useful when you want to capture the logs in a buffer
+// for further processing or testing.
+//
+// Example usage:
+//
+//    myLogger := &MyLogger{}
+//    logger := myLogger.WithJobLogger()
+//    logger.Info("This log will be stored in myLogger's buffer.")
+//
+// Returns:
+//    *logrus.Logger : a pointer to the newly created logrus Logger instance
 func (m *MyLogger) WithJobLogger() *logrus.Logger {
 	logger := logrus.New()
 	logger.Info("MyLogger: WithJobLogger() invoked")
 	logger.SetOutput(&m.Output)
 	return logger
 }
-func RunAct(conn *websocket.Conn) {
-	var plan *model.Plan
-	planner, err := model.NewWorkflowPlanner("/home/barber/Projects/unity-cs-infra/.github/workflows/deploy_eks.yml", false)
+func NewActRunner(workflow string, inputs, env, secrets map[string]string, conn *websocket.Conn) *ActRunner {
+	// setup the default ActRunner here
+	return &ActRunner{Workflow: workflow, Inputs: inputs, Env: env, Secrets: secrets, Conn: conn}
+}
 
-	//plan, plannerErr := planner.PlanJob("deploy_eks")
-	plan, plannerErr := planner.PlanEvent("workflow_dispatch")
-	if plan == nil && plannerErr != nil {
-		fmt.Printf("%v", plannerErr)
+// CreateWorkflowPlan is a method of ActRunner that creates a workflow plan based
+// on the provided workflow in the ActRunner instance. It uses the model.NewWorkflowPlanner
+// function to initialize a workflow planner with the given workflow and a non-forked flag.
+// The planner is then used to generate a plan for the "workflow_dispatch" event.
+// The resulting plan is stored in the ActRunner's Plan field.
+//
+// This method will return an error if any errors are encountered during the
+// planning process. The errors may come from the model.NewWorkflowPlanner function or
+// from the planner.PlanEvent method, if they are unable to create the plan as expected.
+//
+// Returns:
+//    error : an error object if an error occurs during the planning process, otherwise nil
+func (ar *ActRunner) CreateWorkflowPlan() error {
+	planner, err := model.NewWorkflowPlanner(ar.Workflow, false)
+	if err != nil {
+		return err
 	}
-	runnerConfig := &runner.Config{
-		Workdir:     "/home/barber/Projects/unity-cs-infra",
-		BindWorkdir: false,
+	ar.Plan, err = planner.PlanEvent("workflow_dispatch")
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
+// CreateRunnerConfig is a method of ActRunner that creates a runner configuration
+// for the ActRunner instance. It sets various configuration options such as working
+// directory, GitHub token, environment variables, secrets, inputs and others. These
+// settings are based on the current ActRunner instance's values and constants.
+// The runner configuration is stored in the ActRunner's RunnerConfig field.
+//
+// Note: This function currently always returns nil as it does not contain any operations
+// that could cause an error. Future enhancements might change this behavior.
+//
+// Returns:
+//    error : an error object if an error occurs during the configuration setup, otherwise nil
+func (ar *ActRunner) CreateRunnerConfig() error {
+	ar.RunnerConfig = &runner.Config{
+		Workdir:          ar.Workdir,
+		BindWorkdir:      false,
+		Token:            os.Getenv("GITHUB_TOKEN"),
 		ReuseContainers:  false,
 		ForcePull:        false,
-		ForceRebuild:     false,
 		LogOutput:        true,
 		JSONLogger:       false,
-		Env:              map[string]string{},
-		Secrets:          map[string]string{},
+		Env:              ar.Env,
+		Secrets:          ar.Secrets,
+		Inputs:           ar.Inputs,
 		GitHubInstance:   "github.com",
 		AutoRemove:       true,
 		NoSkipCheckout:   true,
@@ -66,42 +113,50 @@ func RunAct(conn *websocket.Conn) {
 		Privileged:       false,
 		Platforms:        map[string]string{"ubuntu-latest": "catthehacker/ubuntu:act-latest"},
 	}
-	myLogger := &MyLogger{}
-	var loggerFactory runner.JobLoggerFactory
-	loggerFactory = myLogger
-	runner.WithJobLoggerFactory(context.Background(), loggerFactory)
-	var logBuffer bytes.Buffer
+	return nil
+}
 
-	// Create a new logger
-	logger := logrus.New()
+// SetupLogger is a method of ActRunner that sets up a logger for the ActRunner instance.
+// It initializes the LoggerFactory field with a new instance of MyLogger and sets
+// it as the job logger factory for the runner package.
+// A new instance of logrus.Logger is created and its output is set to the
+// ActRunner's StdoutBuffer to capture the log output. This Logger instance is set as
+// the logger for the common package. The method does not return any value.
+func (ar *ActRunner) SetupLogger() {
+	ar.LoggerFactory = &MyLogger{}
+	runner.WithJobLoggerFactory(context.Background(), ar.LoggerFactory)
+	ar.Logger = logrus.New()
+	ar.Logger.SetOutput(&ar.StdoutBuffer)
+	common.WithLogger(context.Background(), ar.Logger)
+}
 
-	// Set the logger output to the bytes.Buffer
-	logger.SetOutput(&logBuffer)
-	common.WithLogger(context.Background(), logger)
-	rr, err := runner.New(runnerConfig)
-
+// RunWorkflow is a method of ActRunner that executes the workflow using the ActRunner's RunnerConfig.
+// It initializes a new runner instance with the RunnerConfig, then creates a new plan executor from the
+// runner instance and the ActRunner's Plan. The Finally method of the plan executor is set up to ensure that
+// the executor is executed even if an error occurs. The workflow is executed by calling the PlanExecutor with the
+// background context. The method returns an error if there is an error during the execution.
+func (ar *ActRunner) RunWorkflow() error {
+	rr, err := runner.New(ar.RunnerConfig)
 	if err != nil {
-		//	fmt.Printf("err %v", err)
-	} else {
-		//	fmt.Printf("%v", rr)
-		fmt.Println("DONE")
-		fmt.Printf("%v", loggerFactory.WithJobLogger().Out)
+		return err
 	}
+	ar.PlanExecutor = rr.NewPlanExecutor(ar.Plan).Finally(func(ctx context.Context) error {
+		return nil
+	})
+	return ar.PlanExecutor(context.Background())
+}
 
-	//	executor := rr.NewPlanExecutor(plan).Finally(func(ctx context.Context) error {
-	//fmt.Printf("%v", "here")
-	//	return nil
-	//	})
-	//err = executor(context.Background())
-	//if err != nil {
-	//fmt.Printf("%v", err)
-	//	}
-
-	// Create a pipe for stdout and stderr
+// CaptureOutput is a method of ActRunner that captures the standard output and standard error streams during
+// the execution of the workflow. It creates pipe readers and writers for the standard output and standard error,
+// then replaces the original standard output and error streams with the writers to redirect the output. The method
+// launches three goroutines to read from the pipe readers and write the output to the corresponding buffers. If a
+// websocket connection is available, the captured output is also sent through the connection. After the workflow
+// execution, the original standard output and error streams are restored, and the pipe writers are closed. This
+// method blocks until all goroutines are finished.
+func (ar *ActRunner) CaptureOutput() {
 	stdoutReader, stdoutWriter, _ := os.Pipe()
 	stderrReader, stderrWriter, _ := os.Pipe()
 
-	// Replace os.Stdout and os.Stderr with the writer end of the pipe
 	oldStdout := os.Stdout
 	oldStderr := os.Stderr
 	os.Stdout = stdoutWriter
@@ -110,10 +165,6 @@ func RunAct(conn *websocket.Conn) {
 	var wg sync.WaitGroup
 	wg.Add(3)
 
-	// Create buffers to hold the output
-	var stdoutBuffer, stderrBuffer bytes.Buffer
-
-	// Start a goroutine to read from the pipe and write to the buffer
 	go func() {
 		defer wg.Done()
 		buf := make([]byte, 1024)
@@ -126,46 +177,61 @@ func RunAct(conn *websocket.Conn) {
 				break
 			}
 
-			if err := conn.WriteMessage(websocket.TextMessage, buf[:n]); err != nil {
-				//log.Println("write:", err)
+			if _, err := ar.StdoutBuffer.Write(buf[:n]); err != nil {
+				//log.Println("buffer write:", err)
 				return
+			}
+			if ar.Conn != nil {
+				if err := ar.Conn.WriteMessage(websocket.TextMessage, buf[:n]); err != nil {
+					//log.Println("write:", err)
+					return
+				}
 			}
 		}
 	}()
 	go func() {
 		defer wg.Done()
-		io.Copy(&stderrBuffer, stderrReader)
+		io.Copy(&ar.StderrBuffer, stderrReader)
 	}()
-
-	// Now you can run your code
 	go func() {
 		defer wg.Done()
-
-		// Your code goes here
-		executor := rr.NewPlanExecutor(plan).Finally(func(ctx context.Context) error {
-			//fmt.Printf("%v", "here")
-			return nil
-		})
-		err := executor(context.Background())
-		if err != nil {
-			//fmt.Printf("%v", err)
-		}
-
-		// Once done, close the writers and restore the original stdout and stderr
 		stdoutWriter.Close()
 		stderrWriter.Close()
 		os.Stdout = oldStdout
 		os.Stderr = oldStderr
 	}()
-
-	// Wait for all goroutines to finish
 	wg.Wait()
+}
 
-	// Now you can print the captured output
-	fmt.Println("stdout:", stdoutBuffer.String())
-	fmt.Println("stderr:", stderrBuffer.String())
-	fmt.Println("over done")
-	fmt.Printf("%v", myLogger.Output.String())
-	fmt.Printf("%v", logBuffer.String())
+// PrintOutput is a method of ActRunner that prints the captured standard output and standard error from the
+// workflow execution. It prints the contents of the ActRunner's StdoutBuffer and StderrBuffer to the console
+// using the fmt.Println function.
+func (ar *ActRunner) PrintOutput() {
+	fmt.Println("stdout:", ar.StdoutBuffer.String())
+	fmt.Println("stderr:", ar.StderrBuffer.String())
+}
 
+// RunAct is a function that executes an Act workflow with the provided parameters. It first creates a new
+// ActRunner instance using the provided workflow, inputs, environment variables, secrets, and WebSocket connection.
+// Then it creates the workflow plan, runner configuration, and sets up the logger for the ActRunner instance.
+// After this setup, it runs the workflow, captures the output and prints the captured output.
+// If an error occurs at any point during this process, it is returned.
+func RunAct(workflow string, inputs map[string]string, env map[string]string, secrets map[string]string, conn *websocket.Conn) error {
+	ar := NewActRunner(workflow, inputs, env, secrets, conn)
+
+	if err := ar.CreateWorkflowPlan(); err != nil {
+		return err
+	}
+	err := ar.CreateRunnerConfig()
+	if err != nil {
+		return err
+	}
+	ar.SetupLogger()
+	if err := ar.RunWorkflow(); err != nil {
+		return err
+	}
+	ar.CaptureOutput()
+	ar.PrintOutput()
+
+	return nil
 }

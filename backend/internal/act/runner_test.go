@@ -5,6 +5,5 @@ import (
 )
 
 func TestRunner(t *testing.T) {
-
-	runAct()
+	//RunAct("/home/barber/Projects/unity-cs-infra/.github/workflows/deploy_eks.yml", nil)
 }

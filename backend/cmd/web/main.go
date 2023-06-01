@@ -1,20 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/gin-contrib/static"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/thomaspoignant/go-feature-flag/ffuser"
-	"github.com/unity-sds/unity-control-plane/backend/internal/act"
-	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
+	"github.com/unity-sds/unity-control-plane/backend/internal/web"
 )
 
 var (
@@ -33,57 +27,28 @@ var (
 		},
 	}
 )
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true // or check the origin if you want to add more security
-	},
-}
 
 func main() {
-	ffclient := config.InitApplication()
+	log.Info("Launching Unity Management Console")
 
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.AddCommand(cplanecmd)
 
 	cplanecmd.PersistentFlags().StringVar(&bootstrapApplication, "application", "", "An application to be deployed alongside the controlplane")
-	rootCmd.Execute()
-	user := ffuser.NewUser(String(10))
-	hasFlag, _ := ffclient.BoolVariation("test-flag", user, false)
-	if hasFlag { // flag "test-flag" is true for the user
-		fmt.Println("Flag true")
-	} else { // flag "test-flag" is false for the user
-		fmt.Println("flag false")
+	err := rootCmd.Execute()
+	if err != nil {
+		log.Errorf("Failed to parse CLI. %v", err)
+		return
 	}
-	router := gin.Default()
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
-/*	router.LoadHTMLGlob("backend/web/templates/*")
-	router.GET("/index", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.tmpl.html", gin.H{
-			"title": "Unity Repository",
-		})
-	})*/
 
-	router.GET("/ws", func(c *gin.Context) {
-		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-		if err != nil {
-			//log.Print("upgrade:", err)
-			fmt.Printf("upgrade:", err)
-			return
-		}
-		act.RunAct(conn)
-	})
-	router.Use(static.Serve("/", static.LocalFile("./build", true)))
-	router.NoRoute(func(c *gin.Context) { // fallback
-		c.File("./build/index.html")
-	})
-	router.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	router := web.DefineRoutes()
+
+	err = router.Run()
+	if err != nil {
+		log.Errorf("Failed to launch API. %v", err)
+		return
+	}
 
 }
 

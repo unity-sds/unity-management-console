@@ -9,7 +9,7 @@ import { goto } from '$app/navigation';
 
 	const handleInstallApp = () => {
       localStorage.setItem('product', JSON.stringify(product));  // Store product in local storage
-      goto('/install', { replaceState: true });
+      goto('/ui/install', { replaceState: true });
 	};
 </script>
 

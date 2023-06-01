@@ -50,7 +50,7 @@
             </div>
             <div class="col-md-3"></div>
             {#if installationComplete}
-                <a href="/landing" class="btn btn-primary mt-3">Installation Complete</a>
+                <a href="/ui/landing" class="btn btn-primary mt-3">Installation Complete</a>
             {/if}
         </div>
     </div>
