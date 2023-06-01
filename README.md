@@ -3,6 +3,10 @@
 This console is the core management portal for the Unity environment. It configures and customizes each environment with
 various specifics for running Unity software. It will also install the software requested by the user.
 
+## Environment Variables
+
+...
+
 ## Running
 Grab a management console zip file from the [releases page](https://github.com/unity-sds/unity-management-console/releases)
 Unzip to your target destination.
