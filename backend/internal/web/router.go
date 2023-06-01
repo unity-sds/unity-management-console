@@ -46,6 +46,9 @@ func DefineRoutes() *gin.Engine {
 		"admin": "unity",
 		"user":  "unity",
 	}))
+	router.GET("/", func(c *gin.Context){
+		c.Redirect(http.StatusMovedPermanently, "/ui")
+	})
 	router.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
