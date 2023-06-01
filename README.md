@@ -5,7 +5,12 @@ various specifics for running Unity software. It will also install the software 
 
 ## Environment Variables
 
-...
+Local testing and development
+
+```AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+AWS_SESSION_TOKEN
+GITHUB_TOKEN```
 
 ## Running
 Grab a management console zip file from the [releases page](https://github.com/unity-sds/unity-management-console/releases)
