@@ -58,6 +58,5 @@ func UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, runner Act
 	}
 
 	secrets := map[string]string{}
-	//act.RunAct(basepath+".github/workflows/environment-provisioner.yml", inputs, env, secrets, conn)
 	return runner.RunAct(basepath+".github/workflows/environment-provisioner.yml", inputs, env, secrets, conn)
 }
