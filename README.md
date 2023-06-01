@@ -26,6 +26,11 @@ cd management-console
 ## Development
 
 ```shell
+npm install
+```
+Make sure dependencies are installed.
+
+```shell
 npm run dev
 ```
 Run the development environment. This is a Svelte only environment it provides a fake backend and http responses.
