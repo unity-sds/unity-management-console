@@ -21,7 +21,7 @@
 		"docker": "docker build . -t svelte-ts-go -f Dockerfile",
 		"docker-run": "open-cli http://localhost:8080 && docker run -p 8080:8080 --rm svelte-ts-go",
 		"commit": "npm run format && git pull origin main && git add . && git commit -m \"Updating\" && git push origin main",
-		"package": "npm run build-all && mkdir management-console &&  cp -rf build static main management-console && zip -r managementconsole.zip management-console"
+		"package": "npm run build-all && rm -rf management-console && mkdir management-console &&  cp -rf build static main management-console && zip -r managementconsole.zip management-console"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^2.0.2",
