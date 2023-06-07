@@ -1,32 +1,59 @@
 package main
 
 import (
-	"math/rand"
-	"os"
-	"time"
-
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
+	"github.com/unity-sds/unity-control-plane/backend/internal/aws"
+	"github.com/unity-sds/unity-control-plane/backend/internal/database"
+	"github.com/unity-sds/unity-control-plane/backend/internal/processes"
 	"github.com/unity-sds/unity-control-plane/backend/internal/web"
+	"os"
+	"path/filepath"
 )
 
 var (
+	conf config.AppConfig
+
 	cfgFile              string
-	bootstrapApplication string
+	bootstrap bool
 	rootCmd              = &cobra.Command{Use: "Unity", Short: "Unity Command Line Tool", Long: ""}
 	cplanecmd            = &cobra.Command{
-		Use:   "bootstrap",
-		Short: "Execute control plane commands",
-		Long:  `Control plane startup configuration commands`,
+		Use:   "webapp",
+		Short: "Execute management console commands",
+		Long:  `Management console startup configuration commands`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if bootstrapApplication != "" {
+			if bootstrap == true {
 				//appLauncher(bootstrapApplication)
+				provisionS3(conf)
+				installGateway(conf)
 
+			}
+			router := web.DefineRoutes(conf)
+
+			err := router.Run()
+			if err != nil {
+				log.Errorf("Failed to launch API. %v", err)
+				return
 			}
 		},
 	}
 )
+
+func provisionS3(appConfig config.AppConfig) {
+	aws.CreateBucket(appConfig)
+}
+
+func installGateway(appConfig config.AppConfig) {
+	runner := &processes.ActRunnerImpl{}
+	store := database.GormDatastore{}
+	meta := ""
+	err := runner.InstallMarketplaceApplication(nil, store, meta)
+	if err != nil {
+		return 
+	}
+}
 
 func main() {
 	log.Info("Launching Unity Management Console")
@@ -35,38 +62,45 @@ func main() {
 
 	rootCmd.AddCommand(cplanecmd)
 
-	cplanecmd.PersistentFlags().StringVar(&bootstrapApplication, "application", "", "An application to be deployed alongside the controlplane")
+	cplanecmd.PersistentFlags().BoolVar(&bootstrap, "bootstrap", false, "Provision an S3 bucket, Bootstrap an API Gateway for access to the management console")
 	err := rootCmd.Execute()
 	if err != nil {
 		log.Errorf("Failed to parse CLI. %v", err)
 		return
 	}
 
-	router := web.DefineRoutes()
-
-	err = router.Run()
-	if err != nil {
-		log.Errorf("Failed to launch API. %v", err)
-		return
-	}
+	config.InitApplication()
 
 }
 
 func initConfig() {
+	dir, err := os.UserHomeDir()
+	if err != nil {
+		log.Errorf("Error fetching home directory: %v", err)
+		return
+	}
+
+	configdir := filepath.Join(dir, ".unity")
+
+	if _, err := os.Stat(configdir); os.IsNotExist(err){
+		errDir := os.MkdirAll(configdir, 0755)
+		if errDir != nil {
+			log.Errorf("Error creating directory: %v", errDir)
+			return
+		}
+	}
+
 	if cfgFile != "" { //
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
-
 		// Search config in home directory with name ".cobra" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath(configdir)
 		viper.SetConfigType("yaml")
-		viper.SetConfigName(".unitycp")
+		viper.SetConfigName("unity")
 		viper.SetDefault("GithubToken", "unset")
 		viper.SetDefault("MarketplaceURL", "unset")
+		viper.SetDefault("WorkflowBasePath", "unset")
 
 	}
 
@@ -74,55 +108,19 @@ func initConfig() {
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Config file not found; ignore error if desired
+			file, createErr := os.Create(filepath.Join(configdir, "unity.yaml"))
+			if createErr != nil {
+				log.Fatalf("Failed to create config file: %v", createErr)
+			}
+			defer file.Close()
+			log.Infof("Created config file: %s", viper.ConfigFileUsed())
 		} else {
 			// Config file was found but another error was produced
+			log.Errorf("Failed to read config file: %v", err)
 		}
 	}
-}
-
-/*func appLauncher(appname string) {
-	//Lookup app from marketplace
-
-	clustername := String(10)
-	token := os.Getenv("GHTOKEN")
-	//Deploy app via act
-	prg := "/home/ubuntu/bin/act"
-	arg1 := "-W"
-	arg2 := ".github/workflows/test-action.yml"
-	arg3 := "--input"
-	arg4 := fmt.Sprintf(`METADATA={"metadataVersion":"unity-cs-0.1","deploymentName":"deployment","ghtoken":"%s", "services":[{"name":"unity-sps-prototype","source":"unity-sds/unity-sps-prototype","version":"xxx","branch":"main"}],"extensions":{"kubernetes":{"clustername":"%s","owner":"tom","projectname":"testproject","nodegroups":{"group1":{"instancetype":"m5.xlarge","nodecount":"1"}}}}}`, token, clustername)
-	arg5 := "--env"
-	arg6 := "WORKFLOWPATH=/home/ubuntu/unity-cs/.github/workflows"
-	cmd := exec.Command(prg, arg1, arg2, arg3, arg4, arg5, arg6)
-	cmd.Dir = "/home/ubuntu/unity-cs"
-	stdout, _ := cmd.StdoutPipe()
-	stderr, _ := cmd.StderrPipe()
-	_ = cmd.Start()
-
-	scanner := bufio.NewScanner(io.MultiReader(stdout, stderr))
-	scanner.Split(bufio.ScanWords)
-	for scanner.Scan() {
-		m := scanner.Text()
-		fmt.Println(m)
+	if err := viper.Unmarshal(&conf); err != nil {
+		log.Errorf("Unable to decode into struct, %v", err)
 	}
-	_ = cmd.Wait()
-}
-*/
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-var seededRand *rand.Rand = rand.New(
-	rand.NewSource(time.Now().UnixNano()))
-
-func StringWithCharset(length int, charset string) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[seededRand.Intn(len(charset))]
-	}
-	return string(b)
-}
-
-func String(length int) string {
-	return StringWithCharset(length, charset)
 }

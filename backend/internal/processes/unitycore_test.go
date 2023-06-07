@@ -3,6 +3,7 @@ package processes
 import (
 	"github.com/gorilla/websocket"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
 	"testing"
 )
@@ -25,11 +26,33 @@ func (db *mockDB) FetchConfig() ([]models.CoreConfig, error) {
 }
 
 type MockActRunner struct {
-	mockRunAct func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
+	//mockRunAct func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
+	RunActFn func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
+	UpdateCoreConfigFn func(conn *websocket.Conn, store database.Datastore) error
+	InstallMarketplaceAppFn func(conn *websocket.Conn, store database.Datastore, meta string) error
 }
 
 func (m *MockActRunner) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error {
-	return m.mockRunAct(path, inputs, env, secrets, conn)
+	if m.RunActFn != nil {
+		return m.RunActFn(path, inputs, env, secrets, conn)
+	}
+	return nil
+}
+
+func (m *MockActRunner) UpdateCoreConfig(conn *websocket.Conn, store database.Datastore) error {
+	if m.UpdateCoreConfigFn != nil {
+		return m.UpdateCoreConfigFn(conn, store)
+	}
+
+	return nil
+}
+
+func (m *MockActRunner) InstallMarketplaceApplication(conn *websocket.Conn, store database.Datastore, meta string) error {
+	if m.InstallMarketplaceAppFn != nil {
+		return m.InstallMarketplaceAppFn(conn, store, meta)
+	}
+
+	return nil
 }
 
 func TestUpdateCoreConfig(t *testing.T) {
@@ -41,12 +64,13 @@ func TestUpdateCoreConfig(t *testing.T) {
 				// temporarily point the global DB variable to our mock
 				mockStore := &MockStore{}
 				mockRunner := &MockActRunner{
-					mockRunAct: func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error {
+					RunActFn: func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error {
 						// Do something here to mock the act.RunAct behavior
 						return nil
 					},
 				}
-				err := UpdateCoreConfig(nil, mockStore, mockRunner)
+
+				err := mockRunner.UpdateCoreConfig(nil, mockStore)
 
 				Convey("Then the expectations should be met", func() {
 					So(err, ShouldBeNil)

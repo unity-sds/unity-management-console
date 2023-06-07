@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+type AppConfig struct {
+	GithubToken string
+	MarketplaceUrl string
+	WorkflowBasePath string
+	AWSRegion string
+	BucketName string
+}
+
 type FeatureFlagClient interface {
 	Close()
 	BoolVariation(s string, u ffuser.User, f bool) (bool, error)

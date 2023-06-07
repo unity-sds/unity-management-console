@@ -28,7 +28,6 @@ var upgrader = websocket.Upgrader{
 
 func setupFeatureFlags(c *gin.Context) {
 	log.Info("Setting up feature flags")
-	config.InitApplication()
 
 	username := c.MustGet(gin.AuthUserKey).(string)
 	user := ffuser.NewUser(username)
@@ -40,7 +39,7 @@ func setupFeatureFlags(c *gin.Context) {
 		log.Info("flag false")
 	}
 }
-func DefineRoutes() *gin.Engine {
+func DefineRoutes(conf config.AppConfig) *gin.Engine {
 	router := gin.Default()
 	authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
 		"admin": "unity",
@@ -75,14 +74,17 @@ func DefineRoutes() *gin.Engine {
 		c.JSON(http.StatusOK, gin.H{"data": configjson})
 
 		// Trigger environment update via act
-		processes.UpdateCoreConfig(nil, store, &processes.ActRunnerImpl{})
+		runner := &processes.ActRunnerImpl{}
+		err = runner.UpdateCoreConfig(nil, store)
+		if err != nil {
+			return
+		}
 	})
 
 	authorized.GET("/config", func(c *gin.Context) {
 
 	})
 	authorized.GET("/ws", func(c *gin.Context) {
-		setupFeatureFlags(c)
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
 		store := database.GormDatastore{}
 		if err != nil {
@@ -106,7 +108,8 @@ func DefineRoutes() *gin.Engine {
 			log.Infof("Message received : %v", received.Payload)
 			log.Infof("Action received: %v", received.Action)
 			if received.Action == "config upgrade" {
-				processes.UpdateCoreConfig(conn, store, &processes.ActRunnerImpl{})
+				runner := &processes.ActRunnerImpl{}
+				runner.UpdateCoreConfig(conn, store)
 			}
 
 			// Echo the message back to the client.

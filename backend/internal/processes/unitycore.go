@@ -20,7 +20,7 @@ func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]stri
 	return act.RunAct(path, inputs, env, secrets, conn)
 }
 
-func UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, runner ActRunner) error {
+func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Datastore) error {
 	inputs := map[string]string{
 		"deploymentProject": "SIPS",
 		"deploymentStage":   "SIPS",
@@ -58,5 +58,22 @@ func UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, runner Act
 	}
 
 	secrets := map[string]string{}
-	return runner.RunAct(basepath+".github/workflows/environment-provisioner.yml", inputs, env, secrets, conn)
+	return r.RunAct(basepath+".github/workflows/environment-provisioner.yml", inputs, env, secrets, conn)
+}
+
+func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, store database.Datastore, meta string) error {
+	inputs := map[string]string{
+		"METADATA": meta,
+	}
+
+	env := map[string]string{
+		"AWS_ACCESS_KEY_ID":     os.Getenv("AWS_ACCESS_KEY_ID"),
+		"AWS_SECRET_ACCESS_KEY": os.Getenv("AWS_SECRET_ACCESS_KEY"),
+		"AWS_SESSION_TOKEN":     os.Getenv("AWS_SESSION_TOKEN"),
+		"AWS_REGION":            "us-west-2",
+	}
+
+	secrets := map[string]string{}
+	return r.RunAct(basepath+".github/workflows/install-stacks.yml", inputs, env, secrets, conn)
+
 }
