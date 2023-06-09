@@ -109,7 +109,7 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 	}
 
 	secrets := map[string]string{}
-	log.Infof("Launching act runner")
+	log.Infof("Launching act runner with following meta: %v", meta)
 	return r.RunAct(config.WorkflowBasePath+"/install-stacks.yml", inputs, env, secrets, conn)
 
 	// Add application to installed packages in database
