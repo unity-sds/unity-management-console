@@ -61,7 +61,43 @@ func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Da
 	return r.RunAct(basepath+".github/workflows/environment-provisioner.yml", inputs, env, secrets, conn)
 }
 
+func (r *ActRunnerImpl) ValidateMarketplaceInstallation() error {
+	// Validate installation
+
+	// Is already installed?
+
+	// Do dependencies match?
+
+	return nil
+}
+
+func (r *ActRunnerImpl) FetchPackage() error {
+	// Get package
+
+	// Fetch from zip
+
+	// Checkout git repo
+
+	return nil
+}
+
+func (r *ActRunnerImpl) GenerateMetadata() error {
+	// Generate meta string
+
+	return nil
+}
+
+func (r *ActRunnerImpl) CheckIAMPolicies() error {
+	// Check IAM policies
+
+	// Get default polcies from marketplace
+
+	// Run IAM Simulator
+	return nil
+}
 func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, store database.Datastore, meta string) error {
+
+	// Install package
 	inputs := map[string]string{
 		"METADATA": meta,
 	}
@@ -75,5 +111,7 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 
 	secrets := map[string]string{}
 	return r.RunAct(basepath+".github/workflows/install-stacks.yml", inputs, env, secrets, conn)
+
+	// Add application to installed packages in database
 
 }
