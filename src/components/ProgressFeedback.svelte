@@ -9,7 +9,7 @@
         socket.closeSocket();
     });
     onMount(() => {
-        socket.installSoftwareSocket();
+        //socket.installSoftwareSocket();
         const interval = setInterval(() => {
             if (progress < 100) {
                 progress += 10;

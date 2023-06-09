@@ -31,7 +31,7 @@ export class HttpHandler {
         }
     }
 
-    installSoftwareSocket() {
+    installSoftwareSocket(meta: string) {
         if (!dev){
             this.websocket = new WebSocket('ws://localhost:8080/ws');
 
@@ -49,10 +49,19 @@ export class HttpHandler {
                 this.message += 'WebSocket connection closed\n';
             };
             console.log("Sending message")
-            const message = {
-                action: "config upgrade",
-                payload: [{ "key": "abc", "value": "def" }]
-            };
+            let message: { payload: { value: string; key: string }[]; action: string }
+            if (meta != null) {
+                message = {
+                    action: "install software",
+                    payload: [{"key": "sps", "value": meta}]
+                }
+            } else {
+                message = {
+                    action: "config upgrade",
+                    payload: [{ "key": "abc", "value": "def" }]
+                };
+            }
+
 
             this.websocket.onopen = () => {
                 if (this.websocket!=null){

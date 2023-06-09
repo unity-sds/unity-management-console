@@ -4,11 +4,10 @@ import (
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-control-plane/backend/internal/act"
+	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"os"
 )
-
-var basepath = "/home/barber/Projects/unity-cs-infra/"
 
 type ActRunner interface {
 	RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
@@ -20,7 +19,7 @@ func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]stri
 	return act.RunAct(path, inputs, env, secrets, conn)
 }
 
-func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Datastore) error {
+func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, config config.AppConfig) error {
 	inputs := map[string]string{
 		"deploymentProject": "SIPS",
 		"deploymentStage":   "SIPS",
@@ -58,7 +57,7 @@ func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Da
 	}
 
 	secrets := map[string]string{}
-	return r.RunAct(basepath+".github/workflows/environment-provisioner.yml", inputs, env, secrets, conn)
+	return r.RunAct(config.WorkflowBasePath+"/environment-provisioner.yml", inputs, env, secrets, conn)
 }
 
 func (r *ActRunnerImpl) ValidateMarketplaceInstallation() error {
@@ -95,7 +94,7 @@ func (r *ActRunnerImpl) CheckIAMPolicies() error {
 	// Run IAM Simulator
 	return nil
 }
-func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, store database.Datastore, meta string) error {
+func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, store database.Datastore, meta string, config config.AppConfig) error {
 
 	// Install package
 	inputs := map[string]string{
@@ -110,7 +109,8 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 	}
 
 	secrets := map[string]string{}
-	return r.RunAct(basepath+".github/workflows/install-stacks.yml", inputs, env, secrets, conn)
+	log.Infof("Launching act runner")
+	return r.RunAct(config.WorkflowBasePath+"/install-stacks.yml", inputs, env, secrets, conn)
 
 	// Add application to installed packages in database
 

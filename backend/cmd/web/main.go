@@ -49,7 +49,7 @@ func installGateway(appConfig config.AppConfig) {
 	runner := &processes.ActRunnerImpl{}
 	store := database.GormDatastore{}
 	meta := ""
-	err := runner.InstallMarketplaceApplication(nil, store, meta)
+	err := runner.InstallMarketplaceApplication(nil, store, meta, appConfig)
 	if err != nil {
 		return 
 	}

@@ -75,7 +75,7 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 
 		// Trigger environment update via act
 		runner := &processes.ActRunnerImpl{}
-		err = runner.UpdateCoreConfig(nil, store)
+		err = runner.UpdateCoreConfig(nil, store, conf)
 		if err != nil {
 			return
 		}
@@ -109,7 +109,13 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 			log.Infof("Action received: %v", received.Action)
 			if received.Action == "config upgrade" {
 				runner := &processes.ActRunnerImpl{}
-				runner.UpdateCoreConfig(conn, store)
+				runner.UpdateCoreConfig(conn, store, conf)
+			} else if received.Action == "install software" {
+				runner := &processes.ActRunnerImpl{}
+				err := runner.InstallMarketplaceApplication(conn, store, received.Payload[0].Value, conf)
+				if err != nil{
+					log.Errorf("Error running workflow: %v", err)
+				}
 			}
 
 			// Echo the message back to the client.
