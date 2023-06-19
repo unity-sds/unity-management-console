@@ -21,7 +21,8 @@
 		"docker": "docker build . -t svelte-ts-go -f Dockerfile",
 		"docker-run": "open-cli http://localhost:8080 && docker run -p 8080:8080 --rm svelte-ts-go",
 		"commit": "npm run format && git pull origin main && git add . && git commit -m \"Updating\" && git push origin main",
-		"package": "npm run build-all && rm -rf management-console && mkdir management-console &&  cp -rf build static main management-console && zip -r managementconsole.zip management-console"
+		"package": "npm run build-all && rm -rf management-console && mkdir management-console &&  cp -rf build static main management-console && zip -r managementconsole.zip management-console",
+		"build-proto": "protoc --proto_path=protobuf --go_out=backend/internal/marketplace/ --go_opt=paths=source_relative marketplace.proto && protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./src/data/ ./protobuf/marketplace.proto"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-static": "^2.0.2",
@@ -48,6 +49,7 @@
 		"@nasa-jpl/stellar": "^1.1.4",
 		"atob": "^2.1.2",
 		"axios": "^1.4.0",
-		"bootstrap": "^5.2.3"
+		"bootstrap": "^5.2.3",
+		"ts-proto": "^1.149.0"
 	}
 }

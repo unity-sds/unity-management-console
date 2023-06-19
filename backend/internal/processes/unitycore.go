@@ -6,6 +6,7 @@ import (
 	"github.com/unity-sds/unity-control-plane/backend/internal/act"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
+	ws "github.com/unity-sds/unity-control-plane/backend/internal/websocket"
 	"os"
 )
 
@@ -60,14 +61,28 @@ func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Da
 	return r.RunAct(config.WorkflowBasePath+"/environment-provisioner.yml", inputs, env, secrets, conn)
 }
 
-func (r *ActRunnerImpl) ValidateMarketplaceInstallation() error {
+func (r *ActRunnerImpl) ValidateMarketplaceInstallation(name string, version string) (bool, error) {
 	// Validate installation
 
+	// Check Marketplace Installation Exists
+	meta, err := fetchMarketplaceMetadata(name, version)
+	if err != nil {
+		return false, err
+	}
+
 	// Is already installed?
+	exists, err := checkExistingInstallation(meta)
+	if exists == true || err != nil {
+		return false, err
+	}
 
 	// Do dependencies match?
+	depvalid, err := checkDependencies(meta)
+	if depvalid == false || err != nil {
+		return false, err
+	}
 
-	return nil
+	return true, nil
 }
 
 func (r *ActRunnerImpl) FetchPackage() error {
@@ -99,7 +114,6 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 	// Install package
 	inputs := map[string]string{
 		"METADATA": meta,
-
 	}
 
 	env := map[string]string{
@@ -117,4 +131,31 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 
 	// Add application to installed packages in database
 
+}
+
+func (r *ActRunnerImpl) TriggerInstall(conn *websocket.Conn, store database.GormDatastore, received ws.InstallMessage, conf config.AppConfig) error {
+	for _, s := range received.Payload {
+
+		for _, t := range s.Install {
+
+			validmarket, err := r.ValidateMarketplaceInstallation(t.Name, t.Version)
+			if err != nil || validmarket == false {
+				return err
+			}
+			err = r.CheckIAMPolicies()
+			if err != nil {
+				return err
+			}
+			err = r.FetchPackage()
+			if err != nil {
+				return err
+			}
+			err = r.GenerateMetadata()
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

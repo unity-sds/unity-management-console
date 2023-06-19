@@ -52,7 +52,10 @@ export class Application {
 }
 
 export interface AppInstall {
-    
+	name: string
+	version: string
+	variables: {[key: string]: string};
+
 }
 
 export interface Extensions {

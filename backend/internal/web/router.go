@@ -10,13 +10,9 @@ import (
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
 	"github.com/unity-sds/unity-control-plane/backend/internal/processes"
+	ws "github.com/unity-sds/unity-control-plane/backend/internal/websocket"
 	"net/http"
 )
-
-type Message struct {
-	Action  string              `json:"action"`
-	Payload []models.CoreConfig `json:"payload"`
-}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -45,7 +41,7 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 		"admin": "unity",
 		"user":  "unity",
 	}))
-	router.GET("/", func(c *gin.Context){
+	router.GET("/", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/ui")
 	})
 	router.GET("/ping", func(c *gin.Context) {
@@ -98,7 +94,7 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 				break
 			}
 
-			var received Message
+			var received ws.BareMessage
 			err = json.Unmarshal(msg, &received)
 			if err != nil {
 				log.Println("Error during message unmarshalling:", err)
@@ -112,8 +108,14 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 				runner.UpdateCoreConfig(conn, store, conf)
 			} else if received.Action == "install software" {
 				runner := &processes.ActRunnerImpl{}
-				err := runner.InstallMarketplaceApplication(conn, store, received.Payload[0].Value, conf)
-				if err != nil{
+				var received ws.InstallMessage
+				err = json.Unmarshal(msg, &received)
+				if err != nil {
+					log.Println("Error during message unmarshalling:", err)
+					break
+				}
+				err := runner.TriggerInstall(conn, store, received, conf)
+				if err != nil {
 					log.Errorf("Error running workflow: %v", err)
 				}
 			}

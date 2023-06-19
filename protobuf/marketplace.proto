@@ -1,0 +1,61 @@
+syntax = "proto3";
+option go_package = "backend/internal/marketplace";
+
+message MarketplaceMetadata {
+
+  message Statement {
+    string Effect = 1;
+    repeated string Action = 2;
+    repeated string Resource = 3;
+  }
+
+  message Iamroles {
+    repeated Statement Statement = 1;
+  }
+
+  message Eks {
+    string MinimumVersion = 1;
+  }
+
+  message Manageddependencies {
+    Eks Eks = 1;
+  }
+
+  message Variables {
+    string some_terraform_variable = 1;
+  }
+
+  message Nodegroup1 {
+    uint32 MinNodes = 1;
+    uint32 MaxNodes = 2;
+    uint32 DesiredNodes = 3;
+    string InstanceType = 4;
+  }
+
+  message Nodegroups {
+    Nodegroup1 NodeGroup1 = 1;
+  }
+
+  message Eksspec {
+    repeated Nodegroups NodeGroups = 1;
+  }
+
+  message Defaultdeployment {
+    Variables Variables = 1;
+    Eksspec EksSpec = 2;
+  }
+
+  string Name = 1;
+  string Version = 2;
+  string Channel = 3;
+  string Owner = 4;
+  string Description = 5;
+  string Repository = 6;
+  repeated string Tags = 7;
+  string Category = 8;
+  Iamroles IamRoles = 9;
+  string Package = 10;
+  repeated Manageddependencies ManagedDependencies = 11;
+  string Backend = 12;
+  Defaultdeployment DefaultDeployment = 13;
+}

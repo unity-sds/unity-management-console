@@ -114,11 +114,50 @@ export class HttpHandler {
     }
 
     async installSoftware(install: Install): Promise<string> {
+        console.log("installing: "+JSON.stringify(install))
         if (!dev) {
-            const installData = {}
+            const relativePath = '/ws'; // Relative path to the WebSocket endpoint
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            const websocketUrl = `${protocol}//${host}${relativePath}`;
+            //const response = await Axios.post<{ id: string }>(urls.install, installData);
+            this.websocket = new WebSocket(websocketUrl);
 
-            const response = await Axios.post<{ id: string }>(urls.install, installData);
-            return response.data.id;
+            this.websocket.onmessage = (event) => {
+                // Append new messages to the existing text
+                this.message += event.data + '\n';
+                messageStore.update(message => message + event.data + '\n');
+            };
+
+            this.websocket.onerror = (error) => {
+                this.message += 'WebSocket error: ' + error + '\n';
+            };
+
+            this.websocket.onclose = () => {
+                this.message += 'WebSocket connection closed\n';
+            };
+            console.log("Sending message")
+            let message: { payload: any[]; action: string }
+            if (install != null) {
+                message = {
+                    action: "install software",
+                    payload: [install]
+                }
+            } else {
+                message = {
+                    action: "config upgrade",
+                    payload: [{ "key": "abc", "value": "def" }]
+                };
+            }
+
+
+            this.websocket.onopen = () => {
+                if (this.websocket!=null){
+                    this.websocket.send(JSON.stringify(message));
+                    console.log("Message sent")
+                }
+            }
+            return "";
         } else {
             return "abc";
         }
@@ -131,7 +170,7 @@ interface GithubContent {
     type: string;
 }
 
-const token = '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';
+const token = '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';
 const api = Axios.create({
     baseURL: 'https://api.github.com',
     headers: {
@@ -238,6 +277,55 @@ const mock_products = [
         DefaultDeployment: {
             Variables: {
                 "some_terraform_variable": "some value"
+            },
+            EksSpec: {
+                NodeGroups: [
+                    {
+                        NodeGroup1: {
+                            MinNodes: 1,
+                            MaxNodes: 10,
+                            DesiredNodes: 4,
+                            InstanceType: "m6.large"
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    {
+        Id: 1,
+        Name: "Unity Kubernetes",
+        Version: "0.1-beta",
+        Branch: '',
+        Channel: "beta",
+        Owner: "Tom Barber",
+        Description: "The Unity Kubernetes package",
+        Repository: "https://github.com/unity-sds/unity-cs-infra",
+        Tags: [
+            "eks",
+            "kubernetes"
+        ],
+        Category: "system",
+        IamRoles: [{
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Action": "service-prefix:action-name",
+                    "Resource": "*",
+                    "Condition": {
+                        "DateGreaterThan": {"aws:CurrentTime": "2020-04-01T00:00:00Z"},
+                        "DateLessThan": {"aws:CurrentTime": "2020-06-30T23:59:59Z"}
+                    }
+                }
+            ]
+        }],
+        Package: "https://github.com/unity-sds/unity-cs-infra",
+        Backend: "./github/workflows/deploy_eks.yml",
+        ManagedDependencies: [],
+        DefaultDeployment: {
+            Variables: {
+                "some_terraform_variable": "some_value"
             },
             EksSpec: {
                 NodeGroups: [

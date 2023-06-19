@@ -3,10 +3,12 @@ import { onMount } from 'svelte';
 import { goto } from '$app/navigation';
 	import { install } from '../../store/stores';
 	import { HttpHandler } from '../../data/httpHandler';
-	import type { Product } from '../../data/entities';
+import type { AppInstall, Product } from "../../data/entities";
+import { Install } from "../../data/entities";
 	let product: Product | null = null;
 	let variables: Array<[string, string]> = [];
 	let nodeGroups: NodeGroupType[] = [];
+	let hasEks = false;
 	onMount(async () => {
 		const productString = localStorage.getItem('product');
 		console.log('product:');
@@ -28,6 +30,9 @@ import { goto } from '$app/navigation';
 				};
 			});
 			console.log(nodeGroups);
+			hasEks = product.ManagedDependencies.some(
+				(dependency) => dependency.Eks
+			);
 		}
 	});
 
@@ -43,10 +48,16 @@ import { goto } from '$app/navigation';
 	}
 	const installSoftware = async () => {
 		console.log('installing');
+		const app = {} as AppInstall;
+		app.name = <string>product?.Name
+		app.version = <string>product?.Version
+
+		let inst = new Install([app])
+		install.set(inst)
 		const httpHandler = new HttpHandler();
-		const id = await httpHandler.installSoftware($install);
+		const id = await httpHandler.installSoftware(inst);
 		console.log(id);
-      goto('/ui/progress', { replaceState: true });
+		goto('/ui/progress', { replaceState: true });
 
 	};
 	interface NodeGroupType {
@@ -104,12 +115,15 @@ import { goto } from '$app/navigation';
 						<label for="branch">Branch</label>
 						<input id="branch" class="form-control" bind:value={product.Branch} />
 					</div>
+					<!-- only show if uses eks managed dependency -->
+					{#if hasEks}
 					<div class="form-group mt-4">
 						<label for="ekscluster"
 							>EKS Cluster(Leave blank to deploy new cluster with software)</label
 						>
 						<select id="ekscluster" class="form-control" />
 					</div>
+
 					<div class="accordion mt-4" id="accordionExample">
 						<div class="accordion-item">
 							<h2 class="accordion-header" id="headingOne">
@@ -264,8 +278,9 @@ import { goto } from '$app/navigation';
 									>
 								</div>
 							</div>
-						</div>
 					</div>
+					</div>
+					{/if}
 
 					<h2>Variables</h2>
 					{#each variables as variable, index (variable[0])}
