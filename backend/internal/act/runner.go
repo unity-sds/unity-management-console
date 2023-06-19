@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	log "github.com/sirupsen/logrus"
+
 	"github.com/gorilla/websocket"
 	"github.com/nektos/act/pkg/common"
 	"github.com/nektos/act/pkg/model"
@@ -97,6 +99,7 @@ func (ar *ActRunner) CreateWorkflowPlan() error {
 func (ar *ActRunner) CreateRunnerConfig() error {
 	ar.RunnerConfig = &runner.Config{
 		Workdir:          ar.Workdir,
+		EventName: "workflow_dispatch",
 		BindWorkdir:      false,
 		Token:            os.Getenv("GITHUB_TOKEN"),
 		ReuseContainers:  false,
@@ -217,16 +220,23 @@ func (ar *ActRunner) PrintOutput() {
 // After this setup, it runs the workflow, captures the output and prints the captured output.
 // If an error occurs at any point during this process, it is returned.
 func RunAct(workflow string, inputs map[string]string, env map[string]string, secrets map[string]string, conn *websocket.Conn) error {
+	log.Info("Creating runner")
 	ar := NewActRunner(workflow, inputs, env, secrets, conn)
 
+	log.Info("Creating plan")
 	if err := ar.CreateWorkflowPlan(); err != nil {
 		return err
 	}
+	log.Info("Create config")
 	err := ar.CreateRunnerConfig()
 	if err != nil {
 		return err
 	}
+
+	log.Info("Configuring logger")
 	ar.SetupLogger()
+	log.Info("Running workflow")
+
 	if err := ar.RunWorkflow(); err != nil {
 		return err
 	}

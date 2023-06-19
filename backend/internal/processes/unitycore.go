@@ -4,11 +4,10 @@ import (
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-control-plane/backend/internal/act"
+	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"os"
 )
-
-var basepath = "/home/barber/Projects/unity-cs-infra/"
 
 type ActRunner interface {
 	RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
@@ -20,7 +19,7 @@ func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]stri
 	return act.RunAct(path, inputs, env, secrets, conn)
 }
 
-func UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, runner ActRunner) error {
+func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, config config.AppConfig) error {
 	inputs := map[string]string{
 		"deploymentProject": "SIPS",
 		"deploymentStage":   "SIPS",
@@ -58,5 +57,64 @@ func UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, runner Act
 	}
 
 	secrets := map[string]string{}
-	return runner.RunAct(basepath+".github/workflows/environment-provisioner.yml", inputs, env, secrets, conn)
+	return r.RunAct(config.WorkflowBasePath+"/environment-provisioner.yml", inputs, env, secrets, conn)
+}
+
+func (r *ActRunnerImpl) ValidateMarketplaceInstallation() error {
+	// Validate installation
+
+	// Is already installed?
+
+	// Do dependencies match?
+
+	return nil
+}
+
+func (r *ActRunnerImpl) FetchPackage() error {
+	// Get package
+
+	// Fetch from zip
+
+	// Checkout git repo
+
+	return nil
+}
+
+func (r *ActRunnerImpl) GenerateMetadata() error {
+	// Generate meta string
+
+	return nil
+}
+
+func (r *ActRunnerImpl) CheckIAMPolicies() error {
+	// Check IAM policies
+
+	// Get default polcies from marketplace
+
+	// Run IAM Simulator
+	return nil
+}
+func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, store database.Datastore, meta string, config config.AppConfig) error {
+
+	// Install package
+	inputs := map[string]string{
+		"METADATA": meta,
+
+	}
+
+	env := map[string]string{
+		"AWS_ACCESS_KEY_ID":     os.Getenv("AWS_ACCESS_KEY_ID"),
+		"AWS_SECRET_ACCESS_KEY": os.Getenv("AWS_SECRET_ACCESS_KEY"),
+		"AWS_SESSION_TOKEN":     os.Getenv("AWS_SESSION_TOKEN"),
+		"AWS_REGION":            "us-west-2",
+	}
+
+	secrets := map[string]string{
+		"token": os.Getenv("GITHUB_TOKEN"),
+	}
+	log.Infof("Launching act runner with following meta: %v", meta)
+	return r.RunAct(config.WorkflowBasePath+"/install-stacks.yml", inputs, env, secrets, conn)
+
+	// Add application to installed packages in database
+
 }
