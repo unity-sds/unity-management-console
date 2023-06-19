@@ -99,6 +99,7 @@ func (ar *ActRunner) CreateWorkflowPlan() error {
 func (ar *ActRunner) CreateRunnerConfig() error {
 	ar.RunnerConfig = &runner.Config{
 		Workdir:          ar.Workdir,
+		EventName: "workflow_dispatch",
 		BindWorkdir:      false,
 		Token:            os.Getenv("GITHUB_TOKEN"),
 		ReuseContainers:  false,

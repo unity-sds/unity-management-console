@@ -99,6 +99,7 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 	// Install package
 	inputs := map[string]string{
 		"METADATA": meta,
+
 	}
 
 	env := map[string]string{
@@ -108,7 +109,9 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 		"AWS_REGION":            "us-west-2",
 	}
 
-	secrets := map[string]string{}
+	secrets := map[string]string{
+		"token": os.Getenv("GITHUB_TOKEN"),
+	}
 	log.Infof("Launching act runner with following meta: %v", meta)
 	return r.RunAct(config.WorkflowBasePath+"/install-stacks.yml", inputs, env, secrets, conn)
 
