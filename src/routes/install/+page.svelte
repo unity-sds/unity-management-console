@@ -5,17 +5,16 @@
 	import { HttpHandler } from "../../data/httpHandler";
 	import type { Product } from "../../data/entities";
 	import { Writer } from "protobufjs";
+	import {Install} from "../../data/protobuf/extensions"
 	import type {
 		Install_Applications,
 		Install_Extensions,
 		Install_Extensions_Eks, Install_Extensions_Nodegroups
 	} from "../../data/protobuf/extensions";
-	import { Install } from "../../data/protobuf/extensions";
+	import VariablesForm from "../../components/VariablesForm.svelte";
+	import EKSSettings from "../../components/EKSSettings.svelte";
+	import ProductForm from "../../components/ProductForm.svelte";
 
-	let product: Product | null = null;
-	let variables: Array<[string, string]> = [];
-	let nodeGroups: NodeGroupType[] = [];
-	let hasEks = false;
 	interface NodeGroupType {
 		name: string;
 		settings: {
@@ -25,113 +24,73 @@
 			InstanceType: string;
 		};
 	}
-	let newNodeGroup = {
-		name: '',
-		settings: {
-			MinNodes: 0,
-			MaxNodes: 0,
-			DesiredNodes: 0,
-			InstanceType: ''
-		}
-	};
+
+	let product: Product | null = null;
+	let variables: Array<[string, string]> = [];
+	let hasEks = false;
+	let nodeGroups: NodeGroupType[] = [];
+
+	const productString = localStorage.getItem('product');
+
 	onMount(async () => {
-		const productString = localStorage.getItem('product');
-		console.log('product:');
-		console.log(productString);
-		product = productString ? JSON.parse(productString) : null; // Retrieve product from local storage
-		if (product != null) {
-			variables = Object.entries(product.DefaultDeployment.Variables);
-			nodeGroups = product.DefaultDeployment.EksSpec.NodeGroups.map((ng) => {
-				let name = Object.keys(ng)[0];
-				//return { name: name, ...ng[name] };
-				return {
-					name: name,
-					settings: {
-						MinNodes: Number(ng[name].MinNodes),
-						MaxNodes: Number(ng[name].MaxNodes),
-						DesiredNodes: Number(ng[name].DesiredNodes),
-						InstanceType: ng[name].InstanceType
-					}
-				};
-			});
-			console.log("deps:"+product.ManagedDependencies);
-			hasEks = product.ManagedDependencies.some((dependency) => dependency.Eks);
-			console.log("Has eks: "+ hasEks)
+		if (productString) {
+			product = JSON.parse(productString);
+			if (product != null) {
+				variables = Object.entries(product.DefaultDeployment.Variables);
+				hasEks = product.ManagedDependencies.some((dependency) => dependency.Eks);
+			}
 		}
 	});
 
-	let newVariable = { key: '', value: '' };
 
-	function addVariable() {
-		variables = [...variables, [newVariable.key, newVariable.value]];
-		newVariable.key = '';
-		newVariable.value = '';
-	}
-	function removeVariable(index: number) {
-		variables = variables.filter((_, i) => i !== index);
+	const generateNodeGroup = (nodegroup: NodeGroupType): Install_Extensions_Nodegroups => {
+		return {
+			name: nodegroup.name,
+			nodecount: nodegroup.settings.DesiredNodes.toString(),
+			instancetype: nodegroup.settings.InstanceType,
+		}
 	}
 
-	function generateExtensions() {
-		const ext = {} as Install_Extensions;
-		const eks = {} as Install_Extensions_Eks
+	const generateExtensions = (): Install_Extensions => {
+		const eks: Install_Extensions_Eks = {
+			nodegroups: nodeGroups.map(generateNodeGroup),
+			owner: "tom",
+			clustername: "cluster",
+			projectname: "test"
+		};
 
-		eks.nodegroups = []
-		for (const nodegroup of nodeGroups){
-			const ng = {} as Install_Extensions_Nodegroups
-			ng.name = nodegroup.name
-			ng.nodecount = nodegroup.settings.DesiredNodes.toString()
-			ng.instancetype = nodegroup.settings.InstanceType
-			eks.nodegroups.push(ng)
+		return { eks };
+	}
+
+	const installSoftware = async () => {
+		if (!product) {
+			console.error('No product selected for installation');
+			return;
 		}
 
-		eks.owner = "tom"
-		eks.clustername = "cluster"
-		eks.projectname = "test"
+		const app: Install_Applications = {
+			name: product.Name,
+			version: product.Version,
+			variables: {}
+		};
 
-		ext.eks = eks
+		const extensions: Install_Extensions = generateExtensions();
 
-		return ext
-
-	}
-	const installSoftware = async () => {
-		console.log('installing');
-		const app = {} as Install_Applications;
-		app.name = <string>product?.Name;
-		app.version = <string>product?.Version;
-		app.variables = {}
-
-		let inst = Install.create()
-
-		inst.extensions = generateExtensions()
+		const inst = Install.create();
 		inst.applications = app
-		//let inst = new Install([app], generateExtensions());
+		inst.extensions = extensions
+
 		install.set(inst);
+
 		const httpHandler = new HttpHandler();
 		const writer = Writer.create();
 		Install.encode(inst, writer)
-	  const	protomessage = writer.finish()
+		const protomessage = writer.finish();
 		const id = await httpHandler.installSoftware(protomessage);
 		console.log(id);
+
 		goto('/ui/progress', { replaceState: true });
 	};
-
-
-	function addNodeGroup() {
-		nodeGroups = [...nodeGroups, newNodeGroup];
-		newNodeGroup = {
-			name: '',
-			settings: {
-				MinNodes: 0,
-				MaxNodes: 0,
-				DesiredNodes: 0,
-				InstanceType: ''
-			}
-		};
-	}
-
-	function removeNodeGroup(index: number) {
-		nodeGroups = nodeGroups.filter((_, i) => i !== index);
-	}
 </script>
 
 <div class="container">
@@ -140,225 +99,13 @@
 			{#if product}
 				<h1 class="my-4">{product.Name} Installation</h1>
 				<form on:submit|preventDefault={installSoftware}>
-					<div class="form-group">
-						<label for="name">Name</label>
-						<input id="name" class="form-control" bind:value={product.Name} required />
-					</div>
-					<div class="form-group mt-4">
-						<label for="version">Version</label>
-						<input id="version" class="form-control" bind:value={product.Version} />
-					</div>
-					<div class="form-group mt-4">
-						<label for="branch">Branch</label>
-						<input id="branch" class="form-control" bind:value={product.Branch} />
-					</div>
+					<ProductForm bind:product />
 					<!-- only show if uses eks managed dependency -->
 					{#if hasEks}
-						<div class="form-group mt-4">
-							<label for="ekscluster"
-								>EKS Cluster(Leave blank to deploy new cluster with software)</label
-							>
-							<select id="ekscluster" class="form-control" />
-						</div>
-
-						<div class="accordion mt-4" id="accordionExample">
-							<div class="accordion-item">
-								<h2 class="accordion-header" id="headingOne">
-									<button
-										class="accordion-button collapsed"
-										type="button"
-										data-bs-toggle="collapse"
-										data-bs-target="#collapseOne"
-										aria-expanded="false"
-										aria-controls="collapseOne"
-									>
-										Advanced EKS Settings
-									</button>
-								</h2>
-								<div
-									id="collapseOne"
-									class="accordion-collapse collapse"
-									aria-labelledby="headingOne"
-									data-bs-parent="#accordionExample"
-								>
-									<div class="accordion-body">
-										<h2>Node Groups</h2>
-										{#each nodeGroups as nodeGroup, index (nodeGroup.name)}
-											<div>
-												<h3>{nodeGroup.name}</h3>
-												<div class="form-group row">
-													<label for={`minNodes${index}`} class="col-sm-2 col-form-label"
-														>Min Nodes</label
-													>
-													<div class="col-sm-10">
-														<input
-															type="number"
-															class="form-control"
-															id={`minNodes${index}`}
-															bind:value={nodeGroup.settings.MinNodes}
-														/>
-													</div>
-												</div>
-												<div class="form-group row">
-													<label for={`maxNodes${index}`} class="col-sm-2 col-form-label"
-														>Max Nodes</label
-													>
-													<div class="col-sm-10">
-														<input
-															type="number"
-															class="form-control"
-															id={`maxNodes${index}`}
-															bind:value={nodeGroup.settings.MaxNodes}
-														/>
-													</div>
-												</div>
-												<div class="form-group row">
-													<label for={`desiredNodes${index}`} class="col-sm-2 col-form-label"
-														>Desired Nodes</label
-													>
-													<div class="col-sm-10">
-														<input
-															type="number"
-															class="form-control"
-															id={`desiredNodes${index}`}
-															bind:value={nodeGroup.settings.DesiredNodes}
-														/>
-													</div>
-												</div>
-												<div class="form-group row">
-													<label for={`instanceType${index}`} class="col-sm-2 col-form-label"
-														>Instance Type</label
-													>
-													<div class="col-sm-10">
-														<input
-															type="text"
-															class="form-control"
-															id={`instanceType${index}`}
-															bind:value={nodeGroup.settings.InstanceType}
-														/>
-													</div>
-												</div>
-												<button
-													type="button"
-													on:click={() => removeNodeGroup(index)}
-													class="btn btn-danger">Remove Node Group</button
-												>
-											</div>
-										{/each}
-										<hr />
-										<h3>Add Node Group</h3>
-										<div class="form-group row">
-											<label for="newNodeGroupName" class="col-sm-2 col-form-label">Name</label>
-											<div class="col-sm-10">
-												<input
-													type="text"
-													class="form-control"
-													id="newNodeGroupName"
-													bind:value={newNodeGroup.name}
-												/>
-											</div>
-										</div>
-										<div class="form-group row">
-											<label for="newNodeGroupMinNodes" class="col-sm-2 col-form-label"
-												>Min Nodes</label
-											>
-											<div class="col-sm-10">
-												<input
-													type="number"
-													class="form-control"
-													id="newNodeGroupMinNodes"
-													bind:value={newNodeGroup.settings.MinNodes}
-												/>
-											</div>
-										</div>
-										<div class="form-group row">
-											<label for="newNodeGroupMaxNodes" class="col-sm-2 col-form-label"
-												>Max Nodes</label
-											>
-											<div class="col-sm-10">
-												<input
-													type="number"
-													class="form-control"
-													id="newNodeGroupMaxNodes"
-													bind:value={newNodeGroup.settings.MaxNodes}
-												/>
-											</div>
-										</div>
-										<div class="form-group row">
-											<label for="newNodeGroupDesiredNodes" class="col-sm-2 col-form-label"
-												>Desired Nodes</label
-											>
-											<div class="col-sm-10">
-												<input
-													type="number"
-													class="form-control"
-													id="newNodeGroupDesiredNodes"
-													bind:value={newNodeGroup.settings.DesiredNodes}
-												/>
-											</div>
-										</div>
-										<div class="form-group row">
-											<label for="newNodeGroupInstanceType" class="col-sm-2 col-form-label"
-												>Instance Type</label
-											>
-											<div class="col-sm-10">
-												<input
-													type="text"
-													class="form-control"
-													id="newNodeGroupInstanceType"
-													bind:value={newNodeGroup.settings.InstanceType}
-												/>
-											</div>
-										</div>
-										<button type="button" on:click={addNodeGroup} class="btn btn-primary"
-											>Add Node Group</button
-										>
-									</div>
-								</div>
-							</div>
-						</div>
+						<EKSSettings bind:product bind:nodeGroups/>
 					{/if}
 
-					<h2>Variables</h2>
-					{#each variables as variable, index (variable[0])}
-						<div class="form-group row mt-4">
-							<label for={variable[0]} class="col-sm-2 col-form-label">{variable[0]}</label>
-							<div class="col-sm-8">
-								<input type="text" class="form-control" id={variable[0]} value={variable[1]} />
-							</div>
-							<div class="col-sm-2">
-								<button
-									type="button"
-									on:click={() => removeVariable(index)}
-									class="btn btn-danger st-button secondary
-                    large">Remove</button
-								>
-							</div>
-						</div>
-					{/each}
-					<div class="form-group row mt-4">
-						<div class="col-sm-2">
-							<input
-								type="text"
-								bind:value={newVariable.key}
-								class="form-control"
-								placeholder="Variable name"
-							/>
-						</div>
-						<div class="col-sm-8">
-							<input
-								type="text"
-								bind:value={newVariable.value}
-								class="form-control"
-								placeholder="Variable value"
-							/>
-						</div>
-						<div class="col-sm-2">
-							<button type="button" on:click={addVariable} class="btn btn-secondary"
-								>Add Variable</button
-							>
-						</div>
-					</div>
+					<VariablesForm bind:variables />
 					<button class="btn btn-secondary btn-success mt-3" type="submit">Install</button>
 				</form>
 			{:else}
