@@ -1,4 +1,12 @@
-
+export interface NodeGroupType {
+	name: string;
+	settings: {
+		MinNodes: number;
+		MaxNodes: number;
+		DesiredNodes: number;
+		InstanceType: string;
+	};
+}
 export interface Product {
 	Id: number;
 	Name: string;

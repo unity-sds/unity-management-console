@@ -1,9 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import NodeGroup from './NodeGroup.svelte';
+  import type {Product, NodeGroupType} from "../data/entities";
 
-  export let product;
-  export let nodeGroups;
+  export let product: Product | null;
+  export let nodeGroups: NodeGroupType[] ;
 
   const defaultNodeGroup = () => ({
     name: '',

@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let variables
+  export let variables: Array<[string, string]>
   let newVariable = { key: '', value: '' };
 
   function addVariable() {

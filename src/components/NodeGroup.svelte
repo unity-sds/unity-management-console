@@ -1,6 +1,8 @@
 <script lang="ts">
-  export let nodeGroup;
-  export let index;
+  import type { NodeGroupType } from "../data/entities";
+
+  export let nodeGroup : NodeGroupType;
+  export let index: number;
   export let onRemove: (index: number) => void;
 
   // consider defining your constants like '2' and '10' if you use them multiple times in your code

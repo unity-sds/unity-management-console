@@ -3,7 +3,7 @@
 	import { goto } from "$app/navigation";
 	import { install } from "../../store/stores";
 	import { HttpHandler } from "../../data/httpHandler";
-	import type { Product } from "../../data/entities";
+	import type { NodeGroupType, Product } from "../../data/entities";
 	import { Writer } from "protobufjs";
 	import {Install} from "../../data/protobuf/extensions"
 	import type {
@@ -15,15 +15,7 @@
 	import EKSSettings from "../../components/EKSSettings.svelte";
 	import ProductForm from "../../components/ProductForm.svelte";
 
-	interface NodeGroupType {
-		name: string;
-		settings: {
-			MinNodes: number;
-			MaxNodes: number;
-			DesiredNodes: number;
-			InstanceType: string;
-		};
-	}
+
 
 	let product: Product | null = null;
 	let variables: Array<[string, string]> = [];
