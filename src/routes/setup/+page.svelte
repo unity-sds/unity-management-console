@@ -2,6 +2,7 @@
 import { goto } from '$app/navigation';
 import { projectStore, venueStore } from '../../store/stores';
 import ProgressFeedback from "../../components/ProgressFeedback.svelte";
+import {config} from "../../store/stores"
 let project = '';
 let venue = '';
   let privateSubnets: string[] = [];
@@ -81,9 +82,13 @@ function handleSubmit() {
     <div class="form-group mt-4">
       <label for="privateSubnets">Private Subnets</label>
       <select multiple class="form-control" id="privateSubnets" bind:value={privateSubnets}>
-        <option>private subnet a</option>
-        <option>private subnet b</option>
-        <option>private subnet c</option>
+        {#if $config}
+          {#if $config.networkConfig}
+        {#each $config?.networkConfig?.privatesubnets as option (option)}
+          <option value={option}>{option}</option>
+        {/each}
+            {/if}
+          {/if}
       </select>
       
       <div class="form-text">Select the private subnets you would like to use for Unity.</div>
@@ -92,9 +97,13 @@ function handleSubmit() {
     <div class="form-group mt-4">
       <label for="publicSubnets">Public Subnets</label>
       <select multiple class="form-control" id="publicSubnets" bind:value={publicSubnets}>
-        <option>public subnet a</option>
-        <option>public subnet b</option>
-        <option>public subnet c</option>
+        {#if $config}
+          {#if $config.networkConfig}
+        {#each $config?.networkConfig?.publicsubnets as option (option)}
+          <option value={option}>{option}</option>
+        {/each}
+          {/if}
+        {/if}
       </select>
       <div class="form-text">Select the public subnets you would like to use for Unity.</div>
     </div>

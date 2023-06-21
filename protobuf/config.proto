@@ -1,0 +1,18 @@
+syntax = "proto3";
+option go_package = "backend/internal/marketplace";
+
+message Config {
+
+  message ApplicationConfig {
+    string GithubToken = 1;
+  }
+
+  message NetworkConfig {
+    repeated string publicsubnets = 1;
+    repeated string privatesubnets = 2;
+  }
+
+  ApplicationConfig applicationConfig = 1;
+  NetworkConfig networkConfig = 2;
+
+}

@@ -8,9 +8,20 @@ func fetchInstalledApplications() {
 
 func checkExistingInstallation(metadata marketplace.MarketplaceMetadata) (bool, error) {
 
-	return true, nil
+	// Fetch installed applications
+	fetchInstalledApplications()
+
+	// Check that selected application isn't installed
+
+	// If it is installed ensure that the name varies to prevent clashes
+
+	return false, nil
 }
 func checkDependencies(metadata marketplace.MarketplaceMetadata) (bool, error) {
 
-	return false, nil
+	// Check metadata for dependencies
+
+	// If dependencies exist ensure that they are fulfilled
+
+	return true, nil
 }

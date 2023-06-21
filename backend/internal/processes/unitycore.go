@@ -1,13 +1,16 @@
 package processes
 
 import (
+	"github.com/go-git/go-git/v5"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-control-plane/backend/internal/act"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
-	ws "github.com/unity-sds/unity-control-plane/backend/internal/websocket"
+	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
+	"github.com/unity-sds/unity-control-plane/backend/internal/metadata"
 	"os"
+	"strings"
 )
 
 type ActRunner interface {
@@ -61,44 +64,65 @@ func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Da
 	return r.RunAct(config.WorkflowBasePath+"/environment-provisioner.yml", inputs, env, secrets, conn)
 }
 
-func (r *ActRunnerImpl) ValidateMarketplaceInstallation(name string, version string) (bool, error) {
+func (r *ActRunnerImpl) ValidateMarketplaceInstallation(name string, version string) (bool, marketplace.MarketplaceMetadata, error) {
 	// Validate installation
 
 	// Check Marketplace Installation Exists
 	meta, err := fetchMarketplaceMetadata(name, version)
 	if err != nil {
-		return false, err
+		return false, meta, err
 	}
 
 	// Is already installed?
 	exists, err := checkExistingInstallation(meta)
 	if exists == true || err != nil {
-		return false, err
+		return false, meta, err
 	}
 
 	// Do dependencies match?
 	depvalid, err := checkDependencies(meta)
 	if depvalid == false || err != nil {
-		return false, err
+		return false, meta, err
 	}
 
-	return true, nil
+	return true, meta, nil
 }
 
-func (r *ActRunnerImpl) FetchPackage() error {
+func (r *ActRunnerImpl) FetchPackage(meta marketplace.MarketplaceMetadata) (string, error) {
 	// Get package
 
-	// Fetch from zip
+	locationdir := ""
+	if strings.HasSuffix(meta.Package, ".zip") {
+		// Fetch from zip
 
-	// Checkout git repo
-
-	return nil
+	} else {
+		// Checkout git repo
+		locationdir, err := gitclone(meta.Package)
+		return locationdir, err
+	}
+	return locationdir, nil
 }
 
-func (r *ActRunnerImpl) GenerateMetadata() error {
-	// Generate meta string
+func gitclone(url string) (string, error) {
+	tempDir, err := os.MkdirTemp("", "git-")
+	if err != nil {
+		return tempDir, err
+	}
+	_, err = git.PlainClone(tempDir, false, &git.CloneOptions{
+		URL:      url,
+		Progress: os.Stdout,
+	})
 
-	return nil
+	return tempDir, err
+}
+
+func (r *ActRunnerImpl) GenerateMetadata(appname string, loc string, extensions *marketplace.Install_Extensions) (string, error) {
+	// Generate meta string
+	if appname == "unity-eks" {
+		meta, err := metadata.GenerateEKSMetadata(extensions)
+		return string(meta), err
+	}
+	return "", nil
 }
 
 func (r *ActRunnerImpl) CheckIAMPolicies() error {
@@ -109,7 +133,7 @@ func (r *ActRunnerImpl) CheckIAMPolicies() error {
 	// Run IAM Simulator
 	return nil
 }
-func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, store database.Datastore, meta string, config config.AppConfig) error {
+func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, store database.Datastore, meta string, config config.AppConfig, entrypoint string) error {
 
 	// Install package
 	inputs := map[string]string{
@@ -127,34 +151,45 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 		"token": os.Getenv("GITHUB_TOKEN"),
 	}
 	log.Infof("Launching act runner with following meta: %v", meta)
-	return r.RunAct(config.WorkflowBasePath+"/install-stacks.yml", inputs, env, secrets, conn)
+	action := config.WorkflowBasePath + "/install-stacks.yml"
+	if entrypoint != "" {
+		action = config.WorkflowBasePath + "/" + entrypoint
+	}
+
+	return r.RunAct(action, inputs, env, secrets, conn)
 
 	// Add application to installed packages in database
 
 }
 
-func (r *ActRunnerImpl) TriggerInstall(conn *websocket.Conn, store database.GormDatastore, received ws.InstallMessage, conf config.AppConfig) error {
-	for _, s := range received.Payload {
+func (r *ActRunnerImpl) TriggerInstall(conn *websocket.Conn, store database.Datastore, received marketplace.Install, conf config.AppConfig) error {
 
-		for _, t := range s.Install {
+	t := received.Applications
+	log.Info("Validating installation")
+	validmarket, meta, err := r.ValidateMarketplaceInstallation(t.Name, t.Version)
+	if err != nil || validmarket == false {
+		return err
+	}
+	log.Info("Checking IAM Policies")
+	err = r.CheckIAMPolicies()
+	if err != nil {
+		return err
+	}
+	log.Info("Fetching package")
+	location, err := r.FetchPackage(meta)
+	if err != nil {
+		return err
+	}
+	log.Info("Generating Metadata")
+	metastr, err := r.GenerateMetadata(t.Name, location, received.Extensions)
+	if err != nil {
+		return err
+	}
 
-			validmarket, err := r.ValidateMarketplaceInstallation(t.Name, t.Version)
-			if err != nil || validmarket == false {
-				return err
-			}
-			err = r.CheckIAMPolicies()
-			if err != nil {
-				return err
-			}
-			err = r.FetchPackage()
-			if err != nil {
-				return err
-			}
-			err = r.GenerateMetadata()
-			if err != nil {
-				return err
-			}
-		}
+	log.Info("Installing Application")
+	err = r.InstallMarketplaceApplication(conn, store, metastr, conf, meta.Entrypoint)
+	if err != nil {
+		return err
 	}
 
 	return nil

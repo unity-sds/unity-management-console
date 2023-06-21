@@ -46,6 +46,7 @@ message MarketplaceMetadata {
   }
 
   string Name = 1;
+  string DisplayName = 15;
   string Version = 2;
   string Channel = 3;
   string Owner = 4;
@@ -57,5 +58,7 @@ message MarketplaceMetadata {
   string Package = 10;
   repeated Manageddependencies ManagedDependencies = 11;
   string Backend = 12;
-  Defaultdeployment DefaultDeployment = 13;
+  string Entrypoint = 13;
+
+  Defaultdeployment DefaultDeployment = 14;
 }

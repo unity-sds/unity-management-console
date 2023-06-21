@@ -1,14 +1,39 @@
 <script lang="ts">
-import { onMount } from 'svelte';
-import { goto } from '$app/navigation';
-	import { install } from '../../store/stores';
-	import { HttpHandler } from '../../data/httpHandler';
-import type { AppInstall, Product } from "../../data/entities";
-import { Install } from "../../data/entities";
+	import { onMount } from "svelte";
+	import { goto } from "$app/navigation";
+	import { install } from "../../store/stores";
+	import { HttpHandler } from "../../data/httpHandler";
+	import type { Product } from "../../data/entities";
+	import { Writer } from "protobufjs";
+	import type {
+		Install_Applications,
+		Install_Extensions,
+		Install_Extensions_Eks, Install_Extensions_Nodegroups
+	} from "../../data/protobuf/extensions";
+	import { Install } from "../../data/protobuf/extensions";
+
 	let product: Product | null = null;
 	let variables: Array<[string, string]> = [];
 	let nodeGroups: NodeGroupType[] = [];
 	let hasEks = false;
+	interface NodeGroupType {
+		name: string;
+		settings: {
+			MinNodes: number;
+			MaxNodes: number;
+			DesiredNodes: number;
+			InstanceType: string;
+		};
+	}
+	let newNodeGroup = {
+		name: '',
+		settings: {
+			MinNodes: 0,
+			MaxNodes: 0,
+			DesiredNodes: 0,
+			InstanceType: ''
+		}
+	};
 	onMount(async () => {
 		const productString = localStorage.getItem('product');
 		console.log('product:');
@@ -29,10 +54,9 @@ import { Install } from "../../data/entities";
 					}
 				};
 			});
-			console.log(nodeGroups);
-			hasEks = product.ManagedDependencies.some(
-				(dependency) => dependency.Eks
-			);
+			console.log("deps:"+product.ManagedDependencies);
+			hasEks = product.ManagedDependencies.some((dependency) => dependency.Eks);
+			console.log("Has eks: "+ hasEks)
 		}
 	});
 
@@ -46,38 +70,51 @@ import { Install } from "../../data/entities";
 	function removeVariable(index: number) {
 		variables = variables.filter((_, i) => i !== index);
 	}
+
+	function generateExtensions() {
+		const ext = {} as Install_Extensions;
+		const eks = {} as Install_Extensions_Eks
+
+		eks.nodegroups = []
+		for (const nodegroup of nodeGroups){
+			const ng = {} as Install_Extensions_Nodegroups
+			ng.name = nodegroup.name
+			ng.nodecount = nodegroup.settings.DesiredNodes.toString()
+			ng.instancetype = nodegroup.settings.InstanceType
+			eks.nodegroups.push(ng)
+		}
+
+		eks.owner = "tom"
+		eks.clustername = "cluster"
+		eks.projectname = "test"
+
+		ext.eks = eks
+
+		return ext
+
+	}
 	const installSoftware = async () => {
 		console.log('installing');
-		const app = {} as AppInstall;
-		app.name = <string>product?.Name
-		app.version = <string>product?.Version
+		const app = {} as Install_Applications;
+		app.name = <string>product?.Name;
+		app.version = <string>product?.Version;
+		app.variables = {}
 
-		let inst = new Install([app])
-		install.set(inst)
+		let inst = Install.create()
+
+		inst.extensions = generateExtensions()
+		inst.applications = app
+		//let inst = new Install([app], generateExtensions());
+		install.set(inst);
 		const httpHandler = new HttpHandler();
-		const id = await httpHandler.installSoftware(inst);
+		const writer = Writer.create();
+		Install.encode(inst, writer)
+	  const	protomessage = writer.finish()
+		const id = await httpHandler.installSoftware(protomessage);
 		console.log(id);
 		goto('/ui/progress', { replaceState: true });
+	};
 
-	};
-	interface NodeGroupType {
-		name: string;
-		settings: {
-			MinNodes: number;
-			MaxNodes: number;
-			DesiredNodes: number;
-			InstanceType: string;
-		};
-	}
-	let newNodeGroup = {
-		name: '',
-		settings: {
-			MinNodes: 0,
-			MaxNodes: 0,
-			DesiredNodes: 0,
-			InstanceType: ''
-		}
-	};
 
 	function addNodeGroup() {
 		nodeGroups = [...nodeGroups, newNodeGroup];
@@ -117,169 +154,169 @@ import { Install } from "../../data/entities";
 					</div>
 					<!-- only show if uses eks managed dependency -->
 					{#if hasEks}
-					<div class="form-group mt-4">
-						<label for="ekscluster"
-							>EKS Cluster(Leave blank to deploy new cluster with software)</label
-						>
-						<select id="ekscluster" class="form-control" />
-					</div>
-
-					<div class="accordion mt-4" id="accordionExample">
-						<div class="accordion-item">
-							<h2 class="accordion-header" id="headingOne">
-								<button
-									class="accordion-button collapsed"
-									type="button"
-									data-bs-toggle="collapse"
-									data-bs-target="#collapseOne"
-									aria-expanded="false"
-									aria-controls="collapseOne"
-								>
-									Advanced EKS Settings
-								</button>
-							</h2>
-							<div
-								id="collapseOne"
-								class="accordion-collapse collapse"
-								aria-labelledby="headingOne"
-								data-bs-parent="#accordionExample"
+						<div class="form-group mt-4">
+							<label for="ekscluster"
+								>EKS Cluster(Leave blank to deploy new cluster with software)</label
 							>
-								<div class="accordion-body">
-									<h2>Node Groups</h2>
-									{#each nodeGroups as nodeGroup, index (nodeGroup.name)}
-										<div>
-											<h3>{nodeGroup.name}</h3>
-											<div class="form-group row">
-												<label for={`minNodes${index}`} class="col-sm-2 col-form-label"
-													>Min Nodes</label
-												>
-												<div class="col-sm-10">
-													<input
-														type="number"
-														class="form-control"
-														id={`minNodes${index}`}
-														bind:value={nodeGroup.settings.MinNodes}
-													/>
-												</div>
-											</div>
-											<div class="form-group row">
-												<label for={`maxNodes${index}`} class="col-sm-2 col-form-label"
-													>Max Nodes</label
-												>
-												<div class="col-sm-10">
-													<input
-														type="number"
-														class="form-control"
-														id={`maxNodes${index}`}
-														bind:value={nodeGroup.settings.MaxNodes}
-													/>
-												</div>
-											</div>
-											<div class="form-group row">
-												<label for={`desiredNodes${index}`} class="col-sm-2 col-form-label"
-													>Desired Nodes</label
-												>
-												<div class="col-sm-10">
-													<input
-														type="number"
-														class="form-control"
-														id={`desiredNodes${index}`}
-														bind:value={nodeGroup.settings.DesiredNodes}
-													/>
-												</div>
-											</div>
-											<div class="form-group row">
-												<label for={`instanceType${index}`} class="col-sm-2 col-form-label"
-													>Instance Type</label
-												>
-												<div class="col-sm-10">
-													<input
-														type="text"
-														class="form-control"
-														id={`instanceType${index}`}
-														bind:value={nodeGroup.settings.InstanceType}
-													/>
-												</div>
-											</div>
-											<button
-												type="button"
-												on:click={() => removeNodeGroup(index)}
-												class="btn btn-danger">Remove Node Group</button
-											>
-										</div>
-									{/each}
-									<hr />
-									<h3>Add Node Group</h3>
-									<div class="form-group row">
-										<label for="newNodeGroupName" class="col-sm-2 col-form-label">Name</label>
-										<div class="col-sm-10">
-											<input
-												type="text"
-												class="form-control"
-												id="newNodeGroupName"
-												bind:value={newNodeGroup.name}
-											/>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label for="newNodeGroupMinNodes" class="col-sm-2 col-form-label"
-											>Min Nodes</label
-										>
-										<div class="col-sm-10">
-											<input
-												type="number"
-												class="form-control"
-												id="newNodeGroupMinNodes"
-												bind:value={newNodeGroup.settings.MinNodes}
-											/>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label for="newNodeGroupMaxNodes" class="col-sm-2 col-form-label"
-											>Max Nodes</label
-										>
-										<div class="col-sm-10">
-											<input
-												type="number"
-												class="form-control"
-												id="newNodeGroupMaxNodes"
-												bind:value={newNodeGroup.settings.MaxNodes}
-											/>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label for="newNodeGroupDesiredNodes" class="col-sm-2 col-form-label"
-											>Desired Nodes</label
-										>
-										<div class="col-sm-10">
-											<input
-												type="number"
-												class="form-control"
-												id="newNodeGroupDesiredNodes"
-												bind:value={newNodeGroup.settings.DesiredNodes}
-											/>
-										</div>
-									</div>
-									<div class="form-group row">
-										<label for="newNodeGroupInstanceType" class="col-sm-2 col-form-label"
-											>Instance Type</label
-										>
-										<div class="col-sm-10">
-											<input
-												type="text"
-												class="form-control"
-												id="newNodeGroupInstanceType"
-												bind:value={newNodeGroup.settings.InstanceType}
-											/>
-										</div>
-									</div>
-									<button type="button" on:click={addNodeGroup} class="btn btn-primary"
-										>Add Node Group</button
+							<select id="ekscluster" class="form-control" />
+						</div>
+
+						<div class="accordion mt-4" id="accordionExample">
+							<div class="accordion-item">
+								<h2 class="accordion-header" id="headingOne">
+									<button
+										class="accordion-button collapsed"
+										type="button"
+										data-bs-toggle="collapse"
+										data-bs-target="#collapseOne"
+										aria-expanded="false"
+										aria-controls="collapseOne"
 									>
+										Advanced EKS Settings
+									</button>
+								</h2>
+								<div
+									id="collapseOne"
+									class="accordion-collapse collapse"
+									aria-labelledby="headingOne"
+									data-bs-parent="#accordionExample"
+								>
+									<div class="accordion-body">
+										<h2>Node Groups</h2>
+										{#each nodeGroups as nodeGroup, index (nodeGroup.name)}
+											<div>
+												<h3>{nodeGroup.name}</h3>
+												<div class="form-group row">
+													<label for={`minNodes${index}`} class="col-sm-2 col-form-label"
+														>Min Nodes</label
+													>
+													<div class="col-sm-10">
+														<input
+															type="number"
+															class="form-control"
+															id={`minNodes${index}`}
+															bind:value={nodeGroup.settings.MinNodes}
+														/>
+													</div>
+												</div>
+												<div class="form-group row">
+													<label for={`maxNodes${index}`} class="col-sm-2 col-form-label"
+														>Max Nodes</label
+													>
+													<div class="col-sm-10">
+														<input
+															type="number"
+															class="form-control"
+															id={`maxNodes${index}`}
+															bind:value={nodeGroup.settings.MaxNodes}
+														/>
+													</div>
+												</div>
+												<div class="form-group row">
+													<label for={`desiredNodes${index}`} class="col-sm-2 col-form-label"
+														>Desired Nodes</label
+													>
+													<div class="col-sm-10">
+														<input
+															type="number"
+															class="form-control"
+															id={`desiredNodes${index}`}
+															bind:value={nodeGroup.settings.DesiredNodes}
+														/>
+													</div>
+												</div>
+												<div class="form-group row">
+													<label for={`instanceType${index}`} class="col-sm-2 col-form-label"
+														>Instance Type</label
+													>
+													<div class="col-sm-10">
+														<input
+															type="text"
+															class="form-control"
+															id={`instanceType${index}`}
+															bind:value={nodeGroup.settings.InstanceType}
+														/>
+													</div>
+												</div>
+												<button
+													type="button"
+													on:click={() => removeNodeGroup(index)}
+													class="btn btn-danger">Remove Node Group</button
+												>
+											</div>
+										{/each}
+										<hr />
+										<h3>Add Node Group</h3>
+										<div class="form-group row">
+											<label for="newNodeGroupName" class="col-sm-2 col-form-label">Name</label>
+											<div class="col-sm-10">
+												<input
+													type="text"
+													class="form-control"
+													id="newNodeGroupName"
+													bind:value={newNodeGroup.name}
+												/>
+											</div>
+										</div>
+										<div class="form-group row">
+											<label for="newNodeGroupMinNodes" class="col-sm-2 col-form-label"
+												>Min Nodes</label
+											>
+											<div class="col-sm-10">
+												<input
+													type="number"
+													class="form-control"
+													id="newNodeGroupMinNodes"
+													bind:value={newNodeGroup.settings.MinNodes}
+												/>
+											</div>
+										</div>
+										<div class="form-group row">
+											<label for="newNodeGroupMaxNodes" class="col-sm-2 col-form-label"
+												>Max Nodes</label
+											>
+											<div class="col-sm-10">
+												<input
+													type="number"
+													class="form-control"
+													id="newNodeGroupMaxNodes"
+													bind:value={newNodeGroup.settings.MaxNodes}
+												/>
+											</div>
+										</div>
+										<div class="form-group row">
+											<label for="newNodeGroupDesiredNodes" class="col-sm-2 col-form-label"
+												>Desired Nodes</label
+											>
+											<div class="col-sm-10">
+												<input
+													type="number"
+													class="form-control"
+													id="newNodeGroupDesiredNodes"
+													bind:value={newNodeGroup.settings.DesiredNodes}
+												/>
+											</div>
+										</div>
+										<div class="form-group row">
+											<label for="newNodeGroupInstanceType" class="col-sm-2 col-form-label"
+												>Instance Type</label
+											>
+											<div class="col-sm-10">
+												<input
+													type="text"
+													class="form-control"
+													id="newNodeGroupInstanceType"
+													bind:value={newNodeGroup.settings.InstanceType}
+												/>
+											</div>
+										</div>
+										<button type="button" on:click={addNodeGroup} class="btn btn-primary"
+											>Add Node Group</button
+										>
+									</div>
 								</div>
 							</div>
-					</div>
-					</div>
+						</div>
 					{/if}
 
 					<h2>Variables</h2>
@@ -290,8 +327,12 @@ import { Install } from "../../data/entities";
 								<input type="text" class="form-control" id={variable[0]} value={variable[1]} />
 							</div>
 							<div class="col-sm-2">
-								<button type="button" on:click={() => removeVariable(index)} class="btn btn-danger st-button secondary
-                    large">Remove</button>
+								<button
+									type="button"
+									on:click={() => removeVariable(index)}
+									class="btn btn-danger st-button secondary
+                    large">Remove</button
+								>
 							</div>
 						</div>
 					{/each}
@@ -312,9 +353,11 @@ import { Install } from "../../data/entities";
 								placeholder="Variable value"
 							/>
 						</div>
-            <div class="col-sm-2">
-					      <button type="button" on:click={addVariable} class="btn btn-secondary">Add Variable</button>
-            </div>
+						<div class="col-sm-2">
+							<button type="button" on:click={addVariable} class="btn btn-secondary"
+								>Add Variable</button
+							>
+						</div>
 					</div>
 					<button class="btn btn-secondary btn-success mt-3" type="submit">Install</button>
 				</form>

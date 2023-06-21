@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	log "github.com/sirupsen/logrus"
+	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 
 	"github.com/gorilla/websocket"
 	"github.com/nektos/act/pkg/common"
@@ -13,23 +14,23 @@ import (
 	"github.com/sirupsen/logrus"
 	"io"
 	"os"
-	"sync"
 )
 
 type ActRunner struct {
-	Workflow       string
-	Inputs         map[string]string
-	Env            map[string]string
-	Secrets        map[string]string
-	Conn           *websocket.Conn
-	Workdir        string
-	RunnerConfig   *runner.Config
-	Plan           *model.Plan
-	LoggerFactory  runner.JobLoggerFactory
-	Logger         *logrus.Logger
-	StdoutBuffer   bytes.Buffer
-	StderrBuffer   bytes.Buffer
-	PlanExecutor   common.Executor
+	Workflow      string
+	Inputs        map[string]string
+	Env           map[string]string
+	Secrets       map[string]string
+	Conn          *websocket.Conn
+	Workdir       string
+	RunnerConfig  *runner.Config
+	Plan          *model.Plan
+	LoggerFactory runner.JobLoggerFactory
+	Logger        *logrus.Logger
+	StdoutBuffer  bytes.Buffer
+	StderrBuffer  bytes.Buffer
+	PlanExecutor  common.Executor
+	AppConfig     config.AppConfig
 }
 
 type MyLogger struct {
@@ -44,12 +45,13 @@ type MyLogger struct {
 //
 // Example usage:
 //
-//    myLogger := &MyLogger{}
-//    logger := myLogger.WithJobLogger()
-//    logger.Info("This log will be stored in myLogger's buffer.")
+//	myLogger := &MyLogger{}
+//	logger := myLogger.WithJobLogger()
+//	logger.Info("This log will be stored in myLogger's buffer.")
 //
 // Returns:
-//    *logrus.Logger : a pointer to the newly created logrus Logger instance
+//
+//	*logrus.Logger : a pointer to the newly created logrus Logger instance
 func (m *MyLogger) WithJobLogger() *logrus.Logger {
 	logger := logrus.New()
 	logger.Info("MyLogger: WithJobLogger() invoked")
@@ -72,7 +74,8 @@ func NewActRunner(workflow string, inputs, env, secrets map[string]string, conn 
 // from the planner.PlanEvent method, if they are unable to create the plan as expected.
 //
 // Returns:
-//    error : an error object if an error occurs during the planning process, otherwise nil
+//
+//	error : an error object if an error occurs during the planning process, otherwise nil
 func (ar *ActRunner) CreateWorkflowPlan() error {
 	planner, err := model.NewWorkflowPlanner(ar.Workflow, false)
 	if err != nil {
@@ -95,13 +98,14 @@ func (ar *ActRunner) CreateWorkflowPlan() error {
 // that could cause an error. Future enhancements might change this behavior.
 //
 // Returns:
-//    error : an error object if an error occurs during the configuration setup, otherwise nil
+//
+//	error : an error object if an error occurs during the configuration setup, otherwise nil
 func (ar *ActRunner) CreateRunnerConfig() error {
 	ar.RunnerConfig = &runner.Config{
 		Workdir:          ar.Workdir,
-		EventName: "workflow_dispatch",
+		EventName:        "workflow_dispatch",
 		BindWorkdir:      false,
-		Token:            os.Getenv("GITHUB_TOKEN"),
+		Token:            ar.AppConfig.GithubToken,
 		ReuseContainers:  false,
 		ForcePull:        false,
 		LogOutput:        true,
@@ -156,7 +160,7 @@ func (ar *ActRunner) RunWorkflow() error {
 // websocket connection is available, the captured output is also sent through the connection. After the workflow
 // execution, the original standard output and error streams are restored, and the pipe writers are closed. This
 // method blocks until all goroutines are finished.
-func (ar *ActRunner) CaptureOutput() {
+func (ar *ActRunner) CaptureOutput() (stopCapture func()) {
 	stdoutReader, stdoutWriter, _ := os.Pipe()
 	stderrReader, stderrWriter, _ := os.Pipe()
 
@@ -165,45 +169,43 @@ func (ar *ActRunner) CaptureOutput() {
 	os.Stdout = stdoutWriter
 	os.Stderr = stderrWriter
 
-	var wg sync.WaitGroup
-	wg.Add(3)
-
-	go func() {
-		defer wg.Done()
+	done := make(chan bool, 2)
+	readAndCapture := func(reader *os.File, buffer *bytes.Buffer) {
 		buf := make([]byte, 1024)
 		for {
-			n, err := stdoutReader.Read(buf)
+			n, err := reader.Read(buf)
 			if err != nil {
 				if err != io.EOF {
-					//log.Println("read error:", err)
+					// log.Println("read error:", err)
 				}
 				break
 			}
 
-			if _, err := ar.StdoutBuffer.Write(buf[:n]); err != nil {
-				//log.Println("buffer write:", err)
+			if _, err := buffer.Write(buf[:n]); err != nil {
+				// log.Println("buffer write:", err)
 				return
 			}
 			if ar.Conn != nil {
 				if err := ar.Conn.WriteMessage(websocket.TextMessage, buf[:n]); err != nil {
-					//log.Println("write:", err)
+					// log.Println("write:", err)
 					return
 				}
 			}
 		}
-	}()
-	go func() {
-		defer wg.Done()
-		io.Copy(&ar.StderrBuffer, stderrReader)
-	}()
-	go func() {
-		defer wg.Done()
+		done <- true
+	}
+
+	go readAndCapture(stdoutReader, &ar.StdoutBuffer)
+	go readAndCapture(stderrReader, &ar.StderrBuffer)
+
+	return func() {
 		stdoutWriter.Close()
 		stderrWriter.Close()
 		os.Stdout = oldStdout
 		os.Stderr = oldStderr
-	}()
-	wg.Wait()
+		<-done
+		<-done
+	}
 }
 
 // PrintOutput is a method of ActRunner that prints the captured standard output and standard error from the
@@ -235,12 +237,14 @@ func RunAct(workflow string, inputs map[string]string, env map[string]string, se
 
 	log.Info("Configuring logger")
 	ar.SetupLogger()
+
+	stopCapture := ar.CaptureOutput()
+	defer stopCapture() // Ensure that we stop capturing even if an error occurs
 	log.Info("Running workflow")
 
 	if err := ar.RunWorkflow(); err != nil {
 		return err
 	}
-	ar.CaptureOutput()
 	ar.PrintOutput()
 
 	return nil

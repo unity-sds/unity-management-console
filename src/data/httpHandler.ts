@@ -1,11 +1,12 @@
-import type {Product, Order, AppInstall, Extensions, Install} from './entities';
-import Axios, {AxiosError} from 'axios';
+import type {Product, Order} from './entities';
+import Axios from 'axios';
 import {dev} from '$app/environment';
 import {fetchline} from "../routes/progress/text";
-import {writable} from "svelte/store";
 import {messageStore} from "../store/stores";
-let progress = 0;
-let installationComplete = false;
+import {config} from "../store/stores"
+import {get} from 'svelte/store'
+import { Config } from "./protobuf/config";
+
 let text = '';
 let lines = 0;
 const maxLines = 100;
@@ -113,7 +114,50 @@ export class HttpHandler {
         }
     }
 
-    async installSoftware(install: Install): Promise<string> {
+    async fetchConfig(): Promise<string> {
+        if (!dev) {
+            const relativePath = '/ws'; // Relative path to the WebSocket endpoint
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            const websocketUrl = `${protocol}//${host}${relativePath}`;
+            //const response = await Axios.post<{ id: string }>(urls.install, installData);
+            this.websocket = new WebSocket(websocketUrl);
+
+            this.websocket.onmessage = async (event) => {
+                console.log("Config message received: " + event.data)
+                const arrayBuffer = await new Response(event.data).arrayBuffer();
+                const encodedConfig = new Uint8Array(arrayBuffer);
+                const decodeConfig = Config.decode(encodedConfig)
+                console.log(decodeConfig)
+                config.set(decodeConfig)
+            };
+
+            this.websocket.onerror = (error) => {
+                console.log('WebSocket error: ' + error);
+            };
+
+            this.websocket.onclose = () => {
+                console.log('WebSocket connection closed');
+            };
+            console.log("Sending message")
+            const message = {
+                action: "request config",
+                payload: null
+            }
+
+            this.websocket.onopen = () => {
+                if (this.websocket!=null){
+                    this.websocket.send(JSON.stringify(message));
+                    console.log("Config requested")
+                }
+            }
+            return "";
+        } else {
+            return "abc";
+        }
+    }
+
+    async installSoftware(install: any): Promise<string> {
         console.log("installing: "+JSON.stringify(install))
         if (!dev) {
             const relativePath = '/ws'; // Relative path to the WebSocket endpoint
@@ -137,16 +181,18 @@ export class HttpHandler {
                 this.message += 'WebSocket connection closed\n';
             };
             console.log("Sending message")
-            let message: { payload: any[]; action: string }
+            let message: { payload: any; action: string }
+            let extrapayload = new Uint8Array
             if (install != null) {
                 message = {
                     action: "install software",
-                    payload: [install]
+                    payload: null
                 }
+                extrapayload = install
             } else {
                 message = {
                     action: "config upgrade",
-                    payload: [{ "key": "abc", "value": "def" }]
+                    payload: install
                 };
             }
 
@@ -155,6 +201,11 @@ export class HttpHandler {
                 if (this.websocket!=null){
                     this.websocket.send(JSON.stringify(message));
                     console.log("Message sent")
+                    if (extrapayload != null && extrapayload.length>0){
+                        console.log("Other Message sent")
+
+                        this.websocket.send(extrapayload)
+                    }
                 }
             }
             return "";
@@ -170,15 +221,15 @@ interface GithubContent {
     type: string;
 }
 
-const token = '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';
 const api = Axios.create({
     baseURL: 'https://api.github.com',
     headers: {
-        'Authorization': `token ${token}`
+        'Authorization': `token ${get(config)?.applicationConfig?.GithubToken}`
     }
 });
 
 async function generateMarketplace(): Promise<Product[]> {
+
 
     const c = await getRepoContents("unity-sds", "unity-marketplace");
 
@@ -322,7 +373,13 @@ const mock_products = [
         }],
         Package: "https://github.com/unity-sds/unity-cs-infra",
         Backend: "./github/workflows/deploy_eks.yml",
-        ManagedDependencies: [],
+        ManagedDependencies: [
+            {
+                "Eks": {
+                    "MinimumVersion": "1.21"
+                }
+            }
+        ],
         DefaultDeployment: {
             Variables: {
                 "some_terraform_variable": "some_value"

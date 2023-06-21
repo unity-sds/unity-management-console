@@ -5,6 +5,7 @@ export const protobufPackage = "";
 
 export interface MarketplaceMetadata {
   Name: string;
+  DisplayName: string;
   Version: string;
   Channel: string;
   Owner: string;
@@ -16,6 +17,7 @@ export interface MarketplaceMetadata {
   Package: string;
   ManagedDependencies: MarketplaceMetadata_Manageddependencies[];
   Backend: string;
+  Entrypoint: string;
   DefaultDeployment: MarketplaceMetadata_Defaultdeployment | undefined;
 }
 
@@ -64,6 +66,7 @@ export interface MarketplaceMetadata_Defaultdeployment {
 function createBaseMarketplaceMetadata(): MarketplaceMetadata {
   return {
     Name: "",
+    DisplayName: "",
     Version: "",
     Channel: "",
     Owner: "",
@@ -75,6 +78,7 @@ function createBaseMarketplaceMetadata(): MarketplaceMetadata {
     Package: "",
     ManagedDependencies: [],
     Backend: "",
+    Entrypoint: "",
     DefaultDeployment: undefined,
   };
 }
@@ -83,6 +87,9 @@ export const MarketplaceMetadata = {
   encode(message: MarketplaceMetadata, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.Name !== "") {
       writer.uint32(10).string(message.Name);
+    }
+    if (message.DisplayName !== "") {
+      writer.uint32(122).string(message.DisplayName);
     }
     if (message.Version !== "") {
       writer.uint32(18).string(message.Version);
@@ -117,8 +124,11 @@ export const MarketplaceMetadata = {
     if (message.Backend !== "") {
       writer.uint32(98).string(message.Backend);
     }
+    if (message.Entrypoint !== "") {
+      writer.uint32(106).string(message.Entrypoint);
+    }
     if (message.DefaultDeployment !== undefined) {
-      MarketplaceMetadata_Defaultdeployment.encode(message.DefaultDeployment, writer.uint32(106).fork()).ldelim();
+      MarketplaceMetadata_Defaultdeployment.encode(message.DefaultDeployment, writer.uint32(114).fork()).ldelim();
     }
     return writer;
   },
@@ -136,6 +146,13 @@ export const MarketplaceMetadata = {
           }
 
           message.Name = reader.string();
+          continue;
+        case 15:
+          if (tag !== 122) {
+            break;
+          }
+
+          message.DisplayName = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -219,6 +236,13 @@ export const MarketplaceMetadata = {
             break;
           }
 
+          message.Entrypoint = reader.string();
+          continue;
+        case 14:
+          if (tag !== 114) {
+            break;
+          }
+
           message.DefaultDeployment = MarketplaceMetadata_Defaultdeployment.decode(reader, reader.uint32());
           continue;
       }
@@ -233,6 +257,7 @@ export const MarketplaceMetadata = {
   fromJSON(object: any): MarketplaceMetadata {
     return {
       Name: isSet(object.Name) ? String(object.Name) : "",
+      DisplayName: isSet(object.DisplayName) ? String(object.DisplayName) : "",
       Version: isSet(object.Version) ? String(object.Version) : "",
       Channel: isSet(object.Channel) ? String(object.Channel) : "",
       Owner: isSet(object.Owner) ? String(object.Owner) : "",
@@ -246,6 +271,7 @@ export const MarketplaceMetadata = {
         ? object.ManagedDependencies.map((e: any) => MarketplaceMetadata_Manageddependencies.fromJSON(e))
         : [],
       Backend: isSet(object.Backend) ? String(object.Backend) : "",
+      Entrypoint: isSet(object.Entrypoint) ? String(object.Entrypoint) : "",
       DefaultDeployment: isSet(object.DefaultDeployment)
         ? MarketplaceMetadata_Defaultdeployment.fromJSON(object.DefaultDeployment)
         : undefined,
@@ -255,6 +281,7 @@ export const MarketplaceMetadata = {
   toJSON(message: MarketplaceMetadata): unknown {
     const obj: any = {};
     message.Name !== undefined && (obj.Name = message.Name);
+    message.DisplayName !== undefined && (obj.DisplayName = message.DisplayName);
     message.Version !== undefined && (obj.Version = message.Version);
     message.Channel !== undefined && (obj.Channel = message.Channel);
     message.Owner !== undefined && (obj.Owner = message.Owner);
@@ -277,6 +304,7 @@ export const MarketplaceMetadata = {
       obj.ManagedDependencies = [];
     }
     message.Backend !== undefined && (obj.Backend = message.Backend);
+    message.Entrypoint !== undefined && (obj.Entrypoint = message.Entrypoint);
     message.DefaultDeployment !== undefined && (obj.DefaultDeployment = message.DefaultDeployment
       ? MarketplaceMetadata_Defaultdeployment.toJSON(message.DefaultDeployment)
       : undefined);
@@ -290,6 +318,7 @@ export const MarketplaceMetadata = {
   fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata>, I>>(object: I): MarketplaceMetadata {
     const message = createBaseMarketplaceMetadata();
     message.Name = object.Name ?? "";
+    message.DisplayName = object.DisplayName ?? "";
     message.Version = object.Version ?? "";
     message.Channel = object.Channel ?? "";
     message.Owner = object.Owner ?? "";
@@ -304,6 +333,7 @@ export const MarketplaceMetadata = {
     message.ManagedDependencies =
       object.ManagedDependencies?.map((e) => MarketplaceMetadata_Manageddependencies.fromPartial(e)) || [];
     message.Backend = object.Backend ?? "";
+    message.Entrypoint = object.Entrypoint ?? "";
     message.DefaultDeployment = (object.DefaultDeployment !== undefined && object.DefaultDeployment !== null)
       ? MarketplaceMetadata_Defaultdeployment.fromPartial(object.DefaultDeployment)
       : undefined;

@@ -16,10 +16,10 @@ import (
 var (
 	conf config.AppConfig
 
-	cfgFile              string
+	cfgFile   string
 	bootstrap bool
-	rootCmd              = &cobra.Command{Use: "Unity", Short: "Unity Command Line Tool", Long: ""}
-	cplanecmd            = &cobra.Command{
+	rootCmd   = &cobra.Command{Use: "Unity", Short: "Unity Command Line Tool", Long: ""}
+	cplanecmd = &cobra.Command{
 		Use:   "webapp",
 		Short: "Execute management console commands",
 		Long:  `Management console startup configuration commands`,
@@ -49,9 +49,9 @@ func installGateway(appConfig config.AppConfig) {
 	runner := &processes.ActRunnerImpl{}
 	store := database.GormDatastore{}
 	meta := ""
-	err := runner.InstallMarketplaceApplication(nil, store, meta, appConfig)
+	err := runner.InstallMarketplaceApplication(nil, store, meta, appConfig, "")
 	if err != nil {
-		return 
+		return
 	}
 }
 
@@ -82,7 +82,7 @@ func initConfig() {
 
 	configdir := filepath.Join(dir, ".unity")
 
-	if _, err := os.Stat(configdir); os.IsNotExist(err){
+	if _, err := os.Stat(configdir); os.IsNotExist(err) {
 		errDir := os.MkdirAll(configdir, 0755)
 		if errDir != nil {
 			log.Errorf("Error creating directory: %v", errDir)

@@ -8,6 +8,8 @@ import (
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
+	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
+	ws "github.com/unity-sds/unity-control-plane/backend/internal/websocket"
 	"os"
 	"path/filepath"
 	"testing"
@@ -34,8 +36,8 @@ func (db *mockDB) FetchConfig() ([]models.CoreConfig, error) {
 
 type MockActRunner struct {
 	//mockRunAct func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
-	RunActFn func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
-	UpdateCoreConfigFn func(conn *websocket.Conn, store database.Datastore) error
+	RunActFn                func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
+	UpdateCoreConfigFn      func(conn *websocket.Conn, store database.Datastore) error
 	InstallMarketplaceAppFn func(conn *websocket.Conn, store database.Datastore, meta string) error
 }
 
@@ -87,7 +89,7 @@ func TestUpdateCoreConfig(t *testing.T) {
 	})
 }
 
-func fetchConfig()  {
+func fetchConfig() {
 	dir, err := os.UserHomeDir()
 	if err != nil {
 		log.Errorf("Error fetching home directory: %v", err)
@@ -96,7 +98,7 @@ func fetchConfig()  {
 
 	configdir := filepath.Join(dir, ".unity")
 
-	if _, err := os.Stat(configdir); os.IsNotExist(err){
+	if _, err := os.Stat(configdir); os.IsNotExist(err) {
 		errDir := os.MkdirAll(configdir, 0755)
 		if errDir != nil {
 			log.Errorf("Error creating directory: %v", errDir)
@@ -104,15 +106,13 @@ func fetchConfig()  {
 		}
 	}
 
-		// Search config in home directory with name ".cobra" (without extension).
-		viper.AddConfigPath(configdir)
-		viper.SetConfigType("yaml")
-		viper.SetConfigName("unity")
-		viper.SetDefault("GithubToken", "unset")
-		viper.SetDefault("MarketplaceURL", "unset")
-		viper.SetDefault("WorkflowBasePath", "unset")
-
-
+	// Search config in home directory with name ".cobra" (without extension).
+	viper.AddConfigPath(configdir)
+	viper.SetConfigType("yaml")
+	viper.SetConfigName("unity")
+	viper.SetDefault("GithubToken", "unset")
+	viper.SetDefault("MarketplaceURL", "unset")
+	viper.SetDefault("WorkflowBasePath", "unset")
 
 	viper.AutomaticEnv()
 
@@ -139,6 +139,45 @@ func TestRunSPSDemo(t *testing.T) {
 
 	fetchConfig()
 	meta := "{\n\t\"metadata\": {\n\t\t\"metadataversion\": \"unity-cs-0.1\",\n\t\t\"exectarget\": \"act\",\n\t\t\"deploymentname\": \"managementdashboard\",\n\t\t\"services\": [\n\t\t\t{\"name\":\"ryantestdeploy\",\"source\":\"unity-sds/unity-sps-prototype\",\"version\":\"xxx\",\"branch\":\"main\"}\n\t\t],\n\t\t\"extensions\":{\n\t\t\t\"kubernetes\":{\n\t\t\t\t\"clustername\":\"unity-sps-managementdashboard\",\n\t\t\t\t\"owner\":\"ryan\",\n\t\t\t\t\"projectname\":\"testproject\",\n\t\t\t\t\"nodegroups\":{\n\t\t\t\t\t\"group1\": {\n\t\t\t\t\t\t\"instancetype\": \"m5.xlarge\",\n\t\t\t\t\t\t\"nodecount\":\"1\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
-	err := r.InstallMarketplaceApplication(nil, mockStore, meta, conf)
+	err := r.InstallMarketplaceApplication(nil, mockStore, meta, conf, "")
 	log.Errorf("Error: %v", err)
+}
+
+func TestRun(t *testing.T) {
+	r := ActRunnerImpl{}
+	mockStore := &MockStore{}
+
+	ng1 := marketplace.Extensions_Nodegroups{
+		Name:         "my ng",
+		Instancetype: "m5.xlarge",
+		Nodecount:    "5",
+	}
+
+	narr := []*marketplace.Extensions_Nodegroups{&ng1}
+
+	eks := marketplace.Extensions_Eks{
+		Clustername: "test cluster",
+		Owner:       "tom",
+		Projectname: "testing",
+		Nodegroups:  narr,
+	}
+
+	msg := marketplace.Extensions{
+		Eks: &eks,
+	}
+	m := models.AppInstall{
+		Name:      "unity-eks",
+		Version:   "0.1",
+		Variables: nil,
+	}
+	c := models.InstallConfig{
+		Install:    []models.AppInstall{m},
+		Extensions: msg,
+	}
+	payload := []models.InstallConfig{c}
+	rec := ws.InstallMessage{
+		Action:  "install software",
+		Payload: payload,
+	}
+	r.TriggerInstall(nil, mockStore, rec, conf)
 }

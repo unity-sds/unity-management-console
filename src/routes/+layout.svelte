@@ -1,9 +1,18 @@
 <script lang="ts">
 	//import 'bootstrap/dist/css/bootstrap.min.css';
-        import '@nasa-jpl/stellar/css/button.css';
-import '@nasa-jpl/stellar/css/index.css';
-import '../custom.scss';
-import Navbar from '../components/Navbar.svelte';
+	import '@nasa-jpl/stellar/css/button.css';
+	import '@nasa-jpl/stellar/css/index.css';
+	import '../custom.scss';
+	import { HttpHandler } from '../data/httpHandler';
+
+	import Navbar from '../components/Navbar.svelte';
+	import { onMount } from 'svelte';
+
+	onMount(async () => {
+		const httpHandler = new HttpHandler();
+
+		await httpHandler.fetchConfig();
+	});
 </script>
 
 <svelte:head>
@@ -13,5 +22,5 @@ import Navbar from '../components/Navbar.svelte';
 <slot />
 
 <style lang="scss" global>
-  @import "../custom.scss";
+	@import '../custom.scss';
 </style>

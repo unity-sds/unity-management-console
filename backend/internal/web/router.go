@@ -3,12 +3,15 @@ package web
 import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
+	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/thomaspoignant/go-feature-flag/ffuser"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
+	"github.com/unity-sds/unity-control-plane/backend/internal/aws"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
+	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
 	"github.com/unity-sds/unity-control-plane/backend/internal/processes"
 	ws "github.com/unity-sds/unity-control-plane/backend/internal/websocket"
 	"net/http"
@@ -78,7 +81,7 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 	})
 
 	authorized.GET("/config", func(c *gin.Context) {
-
+		c.JSON(200, conf)
 	})
 	authorized.GET("/ws", func(c *gin.Context) {
 		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
@@ -88,7 +91,7 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 			return
 		}
 		for {
-			msgType, msg, err := conn.ReadMessage()
+			_, msg, err := conn.ReadMessage()
 			if err != nil {
 				log.Println("Error during message reading:", err)
 				break
@@ -98,6 +101,10 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 			err = json.Unmarshal(msg, &received)
 			if err != nil {
 				log.Println("Error during message unmarshalling:", err)
+				err := decodeProtobuf(msg, conn, conf, store)
+				if err != nil {
+					log.Errorf("Error decoding protobuf %v", err)
+				}
 				break
 			}
 
@@ -107,24 +114,40 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 				runner := &processes.ActRunnerImpl{}
 				runner.UpdateCoreConfig(conn, store, conf)
 			} else if received.Action == "install software" {
-				runner := &processes.ActRunnerImpl{}
-				var received ws.InstallMessage
-				err = json.Unmarshal(msg, &received)
+				//runner := &processes.ActRunnerImpl{}
+				//if err != nil {
+				//	log.Errorf("Failed to decode payload:", err)
+				//	return
+				//}
+				//pb := &marketplace.Install{}
+				//
+				//err = proto.Unmarshal(received.Payload, pb)
+				//if err != nil {
+				//	log.Println("Error during message unmarshalling:", err)
+				//	break
+				//}
+				//log.Infof("Message decoded successfully, %v", &pb)
+				//err = runner.TriggerInstall(conn, store, *pb, conf)
+				//if err != nil {
+				//	log.Errorf("Error running workflow: %v", err)
+				//}
+			} else if received.Action == "request config" {
+				msg, err := fetchConfig()
 				if err != nil {
-					log.Println("Error during message unmarshalling:", err)
-					break
+					log.Errorf("Problem requesting config: %v", err)
 				}
-				err := runner.TriggerInstall(conn, store, received, conf)
-				if err != nil {
-					log.Errorf("Error running workflow: %v", err)
+				log.Info("Writing config to websocket")
+				if err := conn.WriteMessage(websocket.BinaryMessage, msg); err != nil {
+					log.Errorf("Issue writing websocket message: %v", err)
+					break
 				}
 			}
 
 			// Echo the message back to the client.
-			if err := conn.WriteMessage(msgType, msg); err != nil {
-				log.Println("Error during message writing:", err)
-				break
-			}
+			//if err := conn.WriteMessage(msgType, msg); err != nil {
+			//	log.Println("Error during message writing:", err)
+			//	break
+			//}
 		}
 	})
 
@@ -133,4 +156,41 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 	})
 
 	return router
+}
+
+func fetchConfig() ([]byte, error) {
+
+	pub, priv, err := aws.FetchSubnets()
+	if err != nil {
+		log.Errorf("error fetching subnets: %v", err)
+	}
+	netconfig := marketplace.Config_NetworkConfig{
+		Publicsubnets:  pub,
+		Privatesubnets: priv,
+	}
+	genconfig := &marketplace.Config{
+		ApplicationConfig: nil,
+		NetworkConfig:     &netconfig,
+	}
+
+	log.Infof("Config Generated: %+v", genconfig)
+	return proto.Marshal(genconfig)
+}
+
+func decodeProtobuf(msg []byte, conn *websocket.Conn, conf config.AppConfig, store database.Datastore) error {
+	pb := &marketplace.Install{}
+	runner := &processes.ActRunnerImpl{}
+
+	log.Infof("Decoding message: %v", msg)
+	err := proto.Unmarshal(msg, pb)
+	if err != nil {
+		log.Println("Error during message unmarshalling:", err)
+		return err
+	}
+	log.Infof("Message decoded successfully, %+v", pb)
+	err = runner.TriggerInstall(conn, store, *pb, conf)
+	if err != nil {
+		log.Errorf("Error running workflow: %v", err)
+	}
+	return err
 }

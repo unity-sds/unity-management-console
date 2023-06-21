@@ -1,70 +1,55 @@
+
 export interface Product {
-	  Id: number;
-	  Name: string;
-	  Description: string;
-	  Category: string;
-	  Tags: string[];
-    IamRoles: any[];
-    Package: string;
-    ManagedDependencies: ManagedDependency[];
-    Backend: string;
-    DefaultDeployment: DefaultDeployment;
-    Version: string
-    Branch: string
+	Id: number;
+	Name: string;
+	Description: string;
+	Category: string;
+	Tags: string[];
+	IamRoles: any[];
+	Package: string;
+	ManagedDependencies: ManagedDependency[];
+	Backend: string;
+	DefaultDeployment: DefaultDeployment;
+	Version: string;
+	Branch: string;
 }
 
 interface ManagedDependency {
-    Eks: {
-        MinimumVersion: string;
-    };
+	Eks: {
+		MinimumVersion: string;
+	};
 }
 
 interface DefaultDeployment {
-    Variables: {
-        [key: string]: string;
-    };
-    EksSpec: {
-        NodeGroups: NodeGroup[];
-    };
+	Variables: {
+		[key: string]: string;
+	};
+	EksSpec: {
+		NodeGroups: NodeGroup[];
+	};
 }
 
 interface NodeGroup {
-    [key: string]: {
-        MinNodes: number;
-        MaxNodes: number;
-        DesiredNodes: number;
-        InstanceType: string;
-    };
+	[key: string]: {
+		MinNodes: number;
+		MaxNodes: number;
+		DesiredNodes: number;
+		InstanceType: string;
+	};
 }
 
 export class OrderLine {
 	constructor(public product: Product, public quantity: number) {}
 
 	get total(): number {
-		  //return this.product.price * this.quantity;
-      return 0;
+		return 0;
 	}
 }
 
 export class Application {
-    constructor(public app: Product) {}
-
+	constructor(public app: Product) {}
 }
 
-export interface AppInstall {
-	name: string
-	version: string
-	variables: {[key: string]: string};
-
-}
-
-export interface Extensions {
-    
-}
-
-export class Install {
-    constructor(public install?: AppInstall[], public extenstions?: Extensions) {}
-}
 export class Order {
 	private lines = new Map<number, OrderLine>();
 

@@ -1,0 +1,34 @@
+syntax = "proto3";
+option go_package = "backend/internal/marketplace";
+
+message Install {
+
+  message Applications {
+    string name = 1;
+    string version = 2;
+    map<string, string> variables = 3;
+  }
+
+  message Extensions {
+
+    message Nodegroups {
+      string name = 1;
+      string instancetype = 2;
+      string nodecount = 3;
+    }
+
+    message Eks {
+      string clustername = 1;
+      string owner = 2;
+      string projectname = 3;
+      repeated Nodegroups nodegroups = 4;
+    }
+
+    Eks eks = 1;
+  }
+
+  Applications applications = 1;
+  Extensions extensions = 2;
+}
+
+
