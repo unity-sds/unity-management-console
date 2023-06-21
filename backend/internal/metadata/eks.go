@@ -8,21 +8,6 @@ import (
 )
 
 func GenerateEKSMetadata(extensions *marketplace.Install_Extensions) ([]byte, error) {
-	//{
-	//	"clustername": "testng2",
-	//	"owner": "tom",
-	//	"projectname": "testproject",
-	//	"nodegroups": {
-	//		"group1": {
-	//			"instancetype": "m5.xlarge",
-	//			"nodecount": "1"
-	//		},
-	//		"group2": {
-	//			"instancetype": "m5.xlarge",
-	//			"nodecount": "1"
-	//		}
-	//	}
-	//}
 
 	m := protojson.MarshalOptions{
 		UseProtoNames: true,
@@ -34,7 +19,6 @@ func GenerateEKSMetadata(extensions *marketplace.Install_Extensions) ([]byte, er
 		log.Errorf("unable to decode json: %s", jsonStr)
 		return []byte{}, err
 	}
-	//eksstr := extensions.Eks.String()
 
 	// We will unmarshal to a map of string keys and arbitrary types.
 	var result map[string]interface{}
@@ -44,9 +28,6 @@ func GenerateEKSMetadata(extensions *marketplace.Install_Extensions) ([]byte, er
 		return []byte{}, err
 	}
 
-	// Convert the protobuf message to JSON.
-	log.Infof("converting extensions to metadata, %s", jsonStr)
-
 	// Extract the "eks" object.
 	eks, ok := result["eks"]
 	if !ok {
@@ -54,13 +35,55 @@ func GenerateEKSMetadata(extensions *marketplace.Install_Extensions) ([]byte, er
 		return []byte{}, err
 	}
 
+	// Convert the "eks" object to a map
+	eksMap, ok := eks.(map[string]interface{})
+	if !ok {
+		log.Fatalf("'eks' value is not a map")
+		return []byte{}, err
+	}
+
+	// Extract the "nodegroups" slice
+	nodegroups, ok := eksMap["nodegroups"]
+	if !ok {
+		log.Fatalf("'nodegroups' key not found in the 'eks' map")
+		return []byte{}, err
+	}
+
+	// Convert the "nodegroups" slice to a slice of maps
+	nodegroupsSlice, ok := nodegroups.([]interface{})
+	if !ok {
+		log.Fatalf("'nodegroups' value is not a slice")
+		return []byte{}, err
+	}
+
+	// Create a new map where each key is the "name" field from the slice elements
+	newNodegroups := make(map[string]interface{})
+	for _, ng := range nodegroupsSlice {
+		ngMap, ok := ng.(map[string]interface{})
+		if !ok {
+			log.Fatalf("Element of 'nodegroups' slice is not a map")
+			return []byte{}, err
+		}
+		name, ok := ngMap["name"].(string)
+		if !ok {
+			log.Fatalf("'name' key not found in the 'nodegroups' element map or is not a string")
+			return []byte{}, err
+		}
+		delete(ngMap, "name") // remove the name key-value pair
+		newNodegroups[name] = ngMap
+	}
+
+	// Replace the old "nodegroups" slice with the new map
+	eksMap["nodegroups"] = newNodegroups
+
 	// Marshal the "eks" object back to a JSON string.
-	eksJson, err := json.Marshal(eks)
+	eksJson, err := json.Marshal(eksMap)
 	if err != nil {
 		log.Fatalf("Error occurred during marshalling: %v", err)
 		return []byte{}, err
 	}
 
-	return eksJson, nil
+	log.Infof("EKS Meta: %v", string(eksJson))
 
+	return eksJson, nil
 }

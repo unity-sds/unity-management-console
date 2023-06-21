@@ -14,13 +14,13 @@ import (
 )
 
 type ActRunner interface {
-	RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
+	RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) error
 }
 
 type ActRunnerImpl struct{}
 
-func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error {
-	return act.RunAct(path, inputs, env, secrets, conn)
+func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) error {
+	return act.RunAct(path, inputs, env, secrets, conn, appConfig)
 }
 
 func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, config config.AppConfig) error {
@@ -61,7 +61,7 @@ func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Da
 	}
 
 	secrets := map[string]string{}
-	return r.RunAct(config.WorkflowBasePath+"/environment-provisioner.yml", inputs, env, secrets, conn)
+	return r.RunAct(config.WorkflowBasePath+"/environment-provisioner.yml", inputs, env, secrets, conn, config)
 }
 
 func (r *ActRunnerImpl) ValidateMarketplaceInstallation(name string, version string) (bool, marketplace.MarketplaceMetadata, error) {
@@ -137,7 +137,9 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 
 	// Install package
 	inputs := map[string]string{
-		"METADATA": meta,
+		"META":             meta,
+		"DEPLOYMENTSOURCE": "act",
+		"AWSCONNECTION":    "keys",
 	}
 
 	env := map[string]string{
@@ -148,15 +150,16 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 	}
 
 	secrets := map[string]string{
-		"token": os.Getenv("GITHUB_TOKEN"),
+		"token": config.GithubToken,
 	}
 	log.Infof("Launching act runner with following meta: %v", meta)
 	action := config.WorkflowBasePath + "/install-stacks.yml"
 	if entrypoint != "" {
+
 		action = config.WorkflowBasePath + "/" + entrypoint
 	}
 
-	return r.RunAct(action, inputs, env, secrets, conn)
+	return r.RunAct(action, inputs, env, secrets, conn, config)
 
 	// Add application to installed packages in database
 
@@ -164,6 +167,7 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 
 func (r *ActRunnerImpl) TriggerInstall(conn *websocket.Conn, store database.Datastore, received marketplace.Install, conf config.AppConfig) error {
 
+	log.Infof("Token v: %v", conf.GithubToken)
 	t := received.Applications
 	log.Info("Validating installation")
 	validmarket, meta, err := r.ValidateMarketplaceInstallation(t.Name, t.Version)

@@ -132,7 +132,7 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 				//	log.Errorf("Error running workflow: %v", err)
 				//}
 			} else if received.Action == "request config" {
-				msg, err := fetchConfig()
+				msg, err := fetchConfig(conf)
 				if err != nil {
 					log.Errorf("Problem requesting config: %v", err)
 				}
@@ -143,11 +143,6 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 				}
 			}
 
-			// Echo the message back to the client.
-			//if err := conn.WriteMessage(msgType, msg); err != nil {
-			//	log.Println("Error during message writing:", err)
-			//	break
-			//}
 		}
 	})
 
@@ -158,7 +153,7 @@ func DefineRoutes(conf config.AppConfig) *gin.Engine {
 	return router
 }
 
-func fetchConfig() ([]byte, error) {
+func fetchConfig(conf config.AppConfig) ([]byte, error) {
 
 	pub, priv, err := aws.FetchSubnets()
 	if err != nil {
@@ -168,8 +163,10 @@ func fetchConfig() ([]byte, error) {
 		Publicsubnets:  pub,
 		Privatesubnets: priv,
 	}
+
+	appConfig := marketplace.Config_ApplicationConfig{GithubToken: conf.GithubToken}
 	genconfig := &marketplace.Config{
-		ApplicationConfig: nil,
+		ApplicationConfig: &appConfig,
 		NetworkConfig:     &netconfig,
 	}
 

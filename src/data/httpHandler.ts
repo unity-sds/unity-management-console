@@ -10,7 +10,18 @@ import { Config } from "./protobuf/config";
 let text = '';
 let lines = 0;
 const maxLines = 100;
+let headers = {};
 
+const unsubscribe = config.subscribe(configValue => {
+    if (configValue && configValue.applicationConfig && configValue.applicationConfig.GithubToken) {
+        headers = {
+            'Authorization': `token ${configValue.applicationConfig.GithubToken}`
+        };
+    } else {
+        // default or error headers if GithubToken is not available
+        headers = {};
+    }
+});
 const urls = {
     products: '/api/products',
     orders: '/api/orders',
@@ -221,12 +232,6 @@ interface GithubContent {
     type: string;
 }
 
-const api = Axios.create({
-    baseURL: 'https://api.github.com',
-    headers: {
-        'Authorization': `token ${get(config)?.applicationConfig?.GithubToken}`
-    }
-});
 
 async function generateMarketplace(): Promise<Product[]> {
 
@@ -248,6 +253,11 @@ async function getRepoContents(user: string, repo: string, path = ''): Promise<s
 
     const paths: string[] = [];
     try {
+        const api = Axios.create({
+            baseURL: 'https://api.github.com',
+            headers: headers
+        });
+
         const response = await api.get<GithubContent[]>(url);
         const data = response.data;
 
@@ -280,6 +290,11 @@ async function getGitHubFileContents(user: string, repo: string, path: string): 
     const url = `/repos/${user}/${repo}/contents/${path}`;
 
     try {
+        const api = Axios.create({
+            baseURL: 'https://api.github.com',
+            headers: headers
+        });
+
         const response = await api.get(url);
         const fileContent = decodeBase64(response.data.content);
         return fileContent;
