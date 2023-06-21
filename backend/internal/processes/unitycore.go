@@ -19,6 +19,10 @@ type ActRunner interface {
 
 type ActRunnerImpl struct{}
 
+// NewActRunner creates a new ActRunnerImpl instance.
+func NewActRunner() *ActRunnerImpl {
+	return &ActRunnerImpl{}
+}
 func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) error {
 	return act.RunAct(path, inputs, env, secrets, conn, appConfig)
 }
@@ -88,7 +92,7 @@ func (r *ActRunnerImpl) ValidateMarketplaceInstallation(name string, version str
 	return true, meta, nil
 }
 
-func (r *ActRunnerImpl) FetchPackage(meta marketplace.MarketplaceMetadata) (string, error) {
+func (r *ActRunnerImpl) FetchPackage(meta *marketplace.MarketplaceMetadata) (string, error) {
 	// Get package
 
 	locationdir := ""
@@ -166,35 +170,46 @@ func (r *ActRunnerImpl) InstallMarketplaceApplication(conn *websocket.Conn, stor
 }
 
 func (r *ActRunnerImpl) TriggerInstall(conn *websocket.Conn, store database.Datastore, received marketplace.Install, conf config.AppConfig) error {
-
-	log.Infof("Token v: %v", conf.GithubToken)
 	t := received.Applications
-	log.Info("Validating installation")
-	validmarket, meta, err := r.ValidateMarketplaceInstallation(t.Name, t.Version)
-	if err != nil || validmarket == false {
-		return err
-	}
-	log.Info("Checking IAM Policies")
-	err = r.CheckIAMPolicies()
+
+	meta, err := r.validateAndPrepareInstallation(t)
 	if err != nil {
 		return err
 	}
-	log.Info("Fetching package")
+
 	location, err := r.FetchPackage(meta)
 	if err != nil {
-		return err
-	}
-	log.Info("Generating Metadata")
-	metastr, err := r.GenerateMetadata(t.Name, location, received.Extensions)
-	if err != nil {
+		log.Error("Error fetching package:", err)
 		return err
 	}
 
-	log.Info("Installing Application")
-	err = r.InstallMarketplaceApplication(conn, store, metastr, conf, meta.Entrypoint)
+	metastr, err := r.GenerateMetadata(t.Name, location, received.Extensions)
 	if err != nil {
+		log.Error("Error generating metadata:", err)
+		return err
+	}
+
+	if err := r.InstallMarketplaceApplication(conn, store, metastr, conf, meta.Entrypoint); err != nil {
+		log.Error("Error installing application:", err)
 		return err
 	}
 
 	return nil
+}
+
+func (r *ActRunnerImpl) validateAndPrepareInstallation(app *marketplace.Install_Applications) (*marketplace.MarketplaceMetadata, error) {
+	log.Info("Validating installation")
+	validMarket, meta, err := r.ValidateMarketplaceInstallation(app.Name, app.Version)
+	if err != nil || !validMarket {
+		log.Error("Invalid marketplace installation:", err)
+		return &marketplace.MarketplaceMetadata{}, err
+	}
+
+	log.Info("Checking IAM Policies")
+	if err := r.CheckIAMPolicies(); err != nil {
+		log.Error("Error checking IAM policies:", err)
+		return &marketplace.MarketplaceMetadata{}, err
+	}
+
+	return &meta, nil
 }

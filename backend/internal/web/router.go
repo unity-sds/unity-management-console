@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
@@ -17,6 +18,7 @@ import (
 	"net/http"
 )
 
+var conf config.AppConfig
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -38,156 +40,180 @@ func setupFeatureFlags(c *gin.Context) {
 		log.Info("flag false")
 	}
 }
-func DefineRoutes(conf config.AppConfig) *gin.Engine {
+
+func handleRoot(c *gin.Context) {
+	c.Redirect(http.StatusMovedPermanently, "/ui")
+}
+
+func handlePing(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "pong",
+	})
+}
+
+func handleConfigPOST(c *gin.Context) {
+	var configjson []models.CoreConfig
+	store := database.GormDatastore{}
+
+	if err := c.ShouldBindJSON(&configjson); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if _, err := database.StoreConfig(configjson); err != nil {
+		log.WithError(err).Error("error storing configuration")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"data": configjson})
+
+	// Trigger environment update via act
+	runner := &processes.ActRunnerImpl{}
+	if err := runner.UpdateCoreConfig(nil, store, conf); err != nil {
+		log.WithError(err).Error("error updating core configuration")
+	}
+}
+
+func handleConfigGET(c *gin.Context) {
+	c.JSON(http.StatusOK, conf)
+}
+
+func handleWebsocket(c *gin.Context) {
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	store := database.GormDatastore{}
+	if err != nil {
+		log.Print("upgrade error:", err)
+		return
+	}
+	for {
+		_, msg, err := conn.ReadMessage()
+		if err != nil {
+			log.Println("Error during message reading:", err)
+			break
+		}
+
+		var received ws.BareMessage
+		err = json.Unmarshal(msg, &received)
+		if err != nil {
+			log.Println("Error during message unmarshalling:", err)
+			err := decodeProtobuf(msg, conn, conf, store)
+			if err != nil {
+				log.Errorf("Error decoding protobuf %v", err)
+			}
+			break
+		}
+
+		log.Infof("Message received : %v", received.Payload)
+		log.Infof("Action received: %v", received.Action)
+		if received.Action == "config upgrade" {
+			runner := &processes.ActRunnerImpl{}
+			runner.UpdateCoreConfig(conn, store, conf)
+		} else if received.Action == "install software" {
+			//runner := &processes.ActRunnerImpl{}
+			//if err != nil {
+			//	log.Errorf("Failed to decode payload:", err)
+			//	return
+			//}
+			//pb := &marketplace.Install{}
+			//
+			//err = proto.Unmarshal(received.Payload, pb)
+			//if err != nil {
+			//	log.Println("Error during message unmarshalling:", err)
+			//	break
+			//}
+			//log.Infof("Message decoded successfully, %v", &pb)
+			//err = runner.TriggerInstall(conn, store, *pb, conf)
+			//if err != nil {
+			//	log.Errorf("Error running workflow: %v", err)
+			//}
+		} else if received.Action == "request config" {
+			msg, err := fetchConfig(conf)
+			if err != nil {
+				log.Errorf("Problem requesting config: %v", err)
+			}
+			log.Info("Writing config to websocket")
+			if err := conn.WriteMessage(websocket.BinaryMessage, msg); err != nil {
+				log.Errorf("Issue writing websocket message: %v", err)
+				break
+			}
+		}
+
+	}
+}
+
+func handleNoRoute(c *gin.Context) {
+	c.File("./build/index.html")
+}
+
+func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router := gin.Default()
+	conf = appConfig
+
 	authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
 		"admin": "unity",
 		"user":  "unity",
 	}))
-	router.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/ui")
-	})
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
 
+	router.GET("/", handleRoot)
+	router.GET("/ping", handlePing)
 	authorized.StaticFS("/ui", http.Dir("./build"))
-
-	authorized.POST("/config", func(c *gin.Context) {
-		// Persist settings
-		var configjson []models.CoreConfig
-
-		store := database.GormDatastore{}
-		if err := c.ShouldBindJSON(&configjson); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		_, err := database.StoreConfig(configjson)
-		if err != nil {
-			return
-		}
-
-		c.JSON(http.StatusOK, gin.H{"data": configjson})
-
-		// Trigger environment update via act
-		runner := &processes.ActRunnerImpl{}
-		err = runner.UpdateCoreConfig(nil, store, conf)
-		if err != nil {
-			return
-		}
-	})
-
-	authorized.GET("/config", func(c *gin.Context) {
-		c.JSON(200, conf)
-	})
-	authorized.GET("/ws", func(c *gin.Context) {
-		conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-		store := database.GormDatastore{}
-		if err != nil {
-			log.Print("upgrade error:", err)
-			return
-		}
-		for {
-			_, msg, err := conn.ReadMessage()
-			if err != nil {
-				log.Println("Error during message reading:", err)
-				break
-			}
-
-			var received ws.BareMessage
-			err = json.Unmarshal(msg, &received)
-			if err != nil {
-				log.Println("Error during message unmarshalling:", err)
-				err := decodeProtobuf(msg, conn, conf, store)
-				if err != nil {
-					log.Errorf("Error decoding protobuf %v", err)
-				}
-				break
-			}
-
-			log.Infof("Message received : %v", received.Payload)
-			log.Infof("Action received: %v", received.Action)
-			if received.Action == "config upgrade" {
-				runner := &processes.ActRunnerImpl{}
-				runner.UpdateCoreConfig(conn, store, conf)
-			} else if received.Action == "install software" {
-				//runner := &processes.ActRunnerImpl{}
-				//if err != nil {
-				//	log.Errorf("Failed to decode payload:", err)
-				//	return
-				//}
-				//pb := &marketplace.Install{}
-				//
-				//err = proto.Unmarshal(received.Payload, pb)
-				//if err != nil {
-				//	log.Println("Error during message unmarshalling:", err)
-				//	break
-				//}
-				//log.Infof("Message decoded successfully, %v", &pb)
-				//err = runner.TriggerInstall(conn, store, *pb, conf)
-				//if err != nil {
-				//	log.Errorf("Error running workflow: %v", err)
-				//}
-			} else if received.Action == "request config" {
-				msg, err := fetchConfig(conf)
-				if err != nil {
-					log.Errorf("Problem requesting config: %v", err)
-				}
-				log.Info("Writing config to websocket")
-				if err := conn.WriteMessage(websocket.BinaryMessage, msg); err != nil {
-					log.Errorf("Issue writing websocket message: %v", err)
-					break
-				}
-			}
-
-		}
-	})
-
-	router.NoRoute(func(c *gin.Context) { // fallback
-		c.File("./build/index.html")
-	})
+	authorized.POST("/config", handleConfigPOST)
+	authorized.GET("/config", handleConfigGET)
+	authorized.GET("/ws", handleWebsocket)
+	router.NoRoute(handleNoRoute)
 
 	return router
 }
-
 func fetchConfig(conf config.AppConfig) ([]byte, error) {
 
 	pub, priv, err := aws.FetchSubnets()
 	if err != nil {
-		log.Errorf("error fetching subnets: %v", err)
+		log.WithError(err).Error("Error fetching subnets")
+		return nil, err
 	}
+
 	netconfig := marketplace.Config_NetworkConfig{
 		Publicsubnets:  pub,
 		Privatesubnets: priv,
 	}
 
-	appConfig := marketplace.Config_ApplicationConfig{GithubToken: conf.GithubToken}
+	appConfig := marketplace.Config_ApplicationConfig{
+		GithubToken: conf.GithubToken,
+	}
+
 	genconfig := &marketplace.Config{
 		ApplicationConfig: &appConfig,
 		NetworkConfig:     &netconfig,
 	}
 
-	log.Infof("Config Generated: %+v", genconfig)
-	return proto.Marshal(genconfig)
+	log.WithFields(log.Fields{
+		"Config": genconfig,
+	}).Info("Config Generated")
+
+	data, err := proto.Marshal(genconfig)
+	if err != nil {
+		log.WithError(err).Error("Failed to marshal config")
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func decodeProtobuf(msg []byte, conn *websocket.Conn, conf config.AppConfig, store database.Datastore) error {
 	pb := &marketplace.Install{}
-	runner := &processes.ActRunnerImpl{}
+	runner := processes.NewActRunner() // using a constructor function
 
-	log.Infof("Decoding message: %v", msg)
-	err := proto.Unmarshal(msg, pb)
-	if err != nil {
-		log.Println("Error during message unmarshalling:", err)
-		return err
+	log.Info("Attempting to decode the message...")
+	if err := proto.Unmarshal(msg, pb); err != nil {
+		return fmt.Errorf("failed to unmarshal message: %v, error: %w", msg, err)
 	}
-	log.Infof("Message decoded successfully, %+v", pb)
-	err = runner.TriggerInstall(conn, store, *pb, conf)
-	if err != nil {
-		log.Errorf("Error running workflow: %v", err)
+
+	log.Infof("Message decoded successfully: %+v", pb)
+
+	if err := runner.TriggerInstall(conn, store, *pb, conf); err != nil {
+		return fmt.Errorf("failed to trigger install: %v", err)
 	}
-	return err
+
+	return nil
 }
