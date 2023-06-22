@@ -1,6 +1,7 @@
 package processes
 
 import (
+	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
@@ -33,37 +34,38 @@ func (r *ActRunnerImpl) UpdateCoreConfig(conn *websocket.Conn, store database.Da
 		"deploymentStage":   "SIPS",
 		"awsConnection":     "keys",
 	}
-	cParams, err := store.FetchCoreParams()
+	cParams, err := store.FetchSSMParams()
 	if err != nil {
 		log.Errorf("Error fetching params. %v", err)
 		return err
 	}
-	project := ""
-	venue := ""
-	privsubs := ""
-	pubsubs := ""
-	for _, v := range cParams {
-		if v.Key == "project" {
-			project = v.Value
-		} else if v.Key == "venue" {
-			venue = v.Value
-		} else if v.Key == "privateSubnets" {
-			privsubs = v.Value
-		} else if v.Key == "publicSubnets" {
-			pubsubs = v.Value
-		}
-	}
+
 	env := map[string]string{
 		"AWS_ACCESS_KEY_ID":     os.Getenv("AWS_ACCESS_KEY_ID"),
 		"AWS_SECRET_ACCESS_KEY": os.Getenv("AWS_SECRET_ACCESS_KEY"),
 		"AWS_SESSION_TOKEN":     os.Getenv("AWS_SESSION_TOKEN"),
 		"AWS_REGION":            "us-west-2",
-		"CORE_PROJECT":          project,
-		"CORE_VENUE":            venue,
-		"CORE_PRIVATE_SUBNETS":  privsubs,
-		"CORE_PUBLIC_SUBNETS":   pubsubs,
 	}
 
+	varstr := ""
+	for _, v := range cParams {
+		if v.Key == "/unity/core/project" {
+			env["TF_VAR_project"] = v.Value
+		} else if v.Key == "/unity/core/venue" {
+			env["TF_VAR_venue"] = v.Value
+
+		} else {
+			varstr = varstr + fmt.Sprintf("{name  = \"%v\", type  = \"%v\", value = \"%v\"},", v.Key, v.Type, v.Value)
+		}
+	}
+
+	if varstr != "" {
+		varstr = strings.TrimRight(varstr, ",")
+		varstr = fmt.Sprintf("[%v]", varstr)
+
+		env["ssm_parameters"] = varstr
+
+	}
 	secrets := map[string]string{}
 	return r.RunAct(config.WorkflowBasePath+"/environment-provisioner.yml", inputs, env, secrets, conn, config)
 }

@@ -5,11 +5,11 @@ import (
 	log "github.com/sirupsen/logrus"
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/spf13/viper"
+	"github.com/stretchr/testify/mock"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
 	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
-	ws "github.com/unity-sds/unity-control-plane/backend/internal/websocket"
 	"os"
 	"path/filepath"
 	"testing"
@@ -17,7 +17,14 @@ import (
 
 type mockDB struct{}
 
-type MockStore struct{}
+type MockStore struct {
+	mock.Mock
+}
+
+func (m *MockStore) FetchSSMParams() ([]models.SSMParameters, error) { // Replace YourProject.YourPackage.SSMParam with the appropriate type
+	args := m.Called()
+	return args.Get(0).([]models.SSMParameters), args.Error(1)
+}
 
 var conf config.AppConfig
 
@@ -71,7 +78,20 @@ func TestUpdateCoreConfig(t *testing.T) {
 
 			Convey("When UpdateCoreConfig is called", func() {
 				// temporarily point the global DB variable to our mock
-				mockStore := &MockStore{}
+				mockStore := new(MockStore)
+
+				mockData := []models.SSMParameters{{
+					Key:   "/unity/core/project",
+					Value: "project-value",
+					Type:  "String",
+				}, {
+					Key:   "/unity/core/venue",
+					Value: "venue-value",
+					Type:  "String",
+				}}
+
+				mockStore.On("FetchSSMParams").Return(mockData, nil)
+
 				mockRunner := &MockActRunner{
 					RunActFn: func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error {
 						// Do something here to mock the act.RunAct behavior
@@ -79,10 +99,19 @@ func TestUpdateCoreConfig(t *testing.T) {
 					},
 				}
 
-				err := mockRunner.UpdateCoreConfig(nil, mockStore)
+				actRunnerImpl := NewActRunner()
+				conn := new(websocket.Conn) // You might want to mock this as well if your RunAct function interacts with it.
+				fetchConfig()
+				config := conf // Replace with the appropriate type and values.
 
-				Convey("Then the expectations should be met", func() {
-					So(err, ShouldBeNil)
+				Convey("When UpdateCoreConfig is called", func() {
+					err := actRunnerImpl.UpdateCoreConfig(conn, mockStore, config)
+
+					Convey("Then no error should be returned", func() {
+						So(err, ShouldBeNil)
+					})
+
+					// Add more assertions as per your requirements.
 				})
 			})
 		})
@@ -147,37 +176,34 @@ func TestRun(t *testing.T) {
 	r := ActRunnerImpl{}
 	mockStore := &MockStore{}
 
-	ng1 := marketplace.Extensions_Nodegroups{
+	ng1 := marketplace.Install_Extensions_Nodegroups{
 		Name:         "my ng",
 		Instancetype: "m5.xlarge",
 		Nodecount:    "5",
 	}
 
-	narr := []*marketplace.Extensions_Nodegroups{&ng1}
+	narr := []*marketplace.Install_Extensions_Nodegroups{&ng1}
 
-	eks := marketplace.Extensions_Eks{
+	eks := marketplace.Install_Extensions_Eks{
 		Clustername: "test cluster",
 		Owner:       "tom",
 		Projectname: "testing",
 		Nodegroups:  narr,
 	}
 
-	msg := marketplace.Extensions{
+	msg := marketplace.Install_Extensions{
 		Eks: &eks,
 	}
-	m := models.AppInstall{
+	m := marketplace.Install_Applications{
 		Name:      "unity-eks",
 		Version:   "0.1",
 		Variables: nil,
 	}
-	c := models.InstallConfig{
-		Install:    []models.AppInstall{m},
-		Extensions: msg,
+
+	c := marketplace.Install{
+		Applications: &m,
+		Extensions:   &msg,
 	}
-	payload := []models.InstallConfig{c}
-	rec := ws.InstallMessage{
-		Action:  "install software",
-		Payload: payload,
-	}
-	r.TriggerInstall(nil, mockStore, rec, conf)
+
+	r.TriggerInstall(nil, mockStore, c, conf)
 }

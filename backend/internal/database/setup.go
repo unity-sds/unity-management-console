@@ -36,4 +36,5 @@ func NewGormDatastore() (*GormDatastore, error) {
 
 type Datastore interface {
 	FetchCoreParams() ([]models.CoreConfig, error)
+	FetchSSMParams() ([]models.SSMParameters, error)
 }
