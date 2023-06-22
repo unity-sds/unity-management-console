@@ -23,6 +23,13 @@ jobs:
     - name: Build package
       run: npm run package
 
+    - name: Clone the service repository for deployment act
+      uses: actions/checkout@v3
+      with:
+        repository: 'unity-sds/unity-cs-infra'
+        path: resources
+        token: ${{ env.GITHUB_TOKEN }}
+        
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
