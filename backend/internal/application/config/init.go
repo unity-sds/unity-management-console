@@ -9,11 +9,12 @@ import (
 )
 
 type AppConfig struct {
-	GithubToken string
-	MarketplaceUrl string
+	GithubToken      string
+	MarketplaceUrl   string
 	WorkflowBasePath string
-	AWSRegion string
-	BucketName string
+	AWSRegion        string
+	BucketName       string
+	Workdir          string
 }
 
 type FeatureFlagClient interface {
@@ -44,13 +45,14 @@ var FFClient FeatureFlagClient
 //
 // Example usage:
 //
-//    featureFlags := initFeatureFlags()
-//    if featureFlags == nil {
-//        // Handle the error
-//    }
+//	featureFlags := initFeatureFlags()
+//	if featureFlags == nil {
+//	    // Handle the error
+//	}
 //
 // Returns:
-//   FeatureFlagClient : The initialized feature flag client
+//
+//	FeatureFlagClient : The initialized feature flag client
 func initFeatureFlags() (f FeatureFlagClient) {
 	ff, err := ffclient.New(ffclient.Config{
 		PollingInterval: 3 * time.Second,

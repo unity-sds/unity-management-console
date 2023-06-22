@@ -60,7 +60,7 @@ func (m *MyLogger) WithJobLogger() *logrus.Logger {
 }
 func NewActRunner(workflow string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) *ActRunner {
 	// setup the default ActRunner here
-	return &ActRunner{Workflow: workflow, Inputs: inputs, Env: env, Secrets: secrets, Conn: conn, AppConfig: appConfig}
+	return &ActRunner{Workflow: workflow, Inputs: inputs, Env: env, Secrets: secrets, Conn: conn, AppConfig: appConfig, Workdir: appConfig.Workdir}
 }
 
 // CreateWorkflowPlan is a method of ActRunner that creates a workflow plan based

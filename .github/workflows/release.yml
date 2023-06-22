@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    #Pegged due to the server image mcp uses
     runs-on: ubuntu-20.04
 
     steps:
@@ -28,8 +29,6 @@ jobs:
 
     - name: Build package
       run: npm run package
-
-
 
     - name: Create Release
       id: create_release

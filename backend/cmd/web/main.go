@@ -94,13 +94,13 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Search config in home directory with name ".cobra" (without extension).
 		viper.AddConfigPath(configdir)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName("unity")
 		viper.SetDefault("GithubToken", "unset")
 		viper.SetDefault("MarketplaceURL", "unset")
 		viper.SetDefault("WorkflowBasePath", "unset")
+		viper.SetDefault("Workdir", "unset")
 
 	}
 

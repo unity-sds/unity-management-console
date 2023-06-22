@@ -47,11 +47,23 @@
 		const eks: Install_Extensions_Eks = {
 			nodegroups: nodeGroups.map(generateNodeGroup),
 			owner: "tom",
-			clustername: "cluster",
+			clustername: generateRandomString(10),
 			projectname: "test"
 		};
 
 		return { eks };
+	}
+
+	function generateRandomString(length = 10): string {
+		let result = '';
+		const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		const charactersLength = characters.length;
+
+		for (let i = 0; i < length; i++) {
+			result += characters.charAt(Math.floor(Math.random() * charactersLength));
+		}
+
+		return result;
 	}
 
 	const installSoftware = async () => {
