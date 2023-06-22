@@ -17,6 +17,15 @@ export interface Config_NetworkConfig {
   privatesubnets: string[];
 }
 
+export interface Parameters {
+  parameterlist: { [key: string]: string };
+}
+
+export interface Parameters_ParameterlistEntry {
+  key: string;
+  value: string;
+}
+
 function createBaseConfig(): Config {
   return { applicationConfig: undefined, networkConfig: undefined };
 }
@@ -232,6 +241,155 @@ export const Config_NetworkConfig = {
   },
 };
 
+function createBaseParameters(): Parameters {
+  return { parameterlist: {} };
+}
+
+export const Parameters = {
+  encode(message: Parameters, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    Object.entries(message.parameterlist).forEach(([key, value]) => {
+      Parameters_ParameterlistEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
+    });
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Parameters {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParameters();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          const entry1 = Parameters_ParameterlistEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.parameterlist[entry1.key] = entry1.value;
+          }
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Parameters {
+    return {
+      parameterlist: isObject(object.parameterlist)
+        ? Object.entries(object.parameterlist).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: Parameters): unknown {
+    const obj: any = {};
+    obj.parameterlist = {};
+    if (message.parameterlist) {
+      Object.entries(message.parameterlist).forEach(([k, v]) => {
+        obj.parameterlist[k] = v;
+      });
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Parameters>, I>>(base?: I): Parameters {
+    return Parameters.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Parameters>, I>>(object: I): Parameters {
+    const message = createBaseParameters();
+    message.parameterlist = Object.entries(object.parameterlist ?? {}).reduce<{ [key: string]: string }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = String(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseParameters_ParameterlistEntry(): Parameters_ParameterlistEntry {
+  return { key: "", value: "" };
+}
+
+export const Parameters_ParameterlistEntry = {
+  encode(message: Parameters_ParameterlistEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Parameters_ParameterlistEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParameters_ParameterlistEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Parameters_ParameterlistEntry {
+    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object.value) ? String(object.value) : "" };
+  },
+
+  toJSON(message: Parameters_ParameterlistEntry): unknown {
+    const obj: any = {};
+    message.key !== undefined && (obj.key = message.key);
+    message.value !== undefined && (obj.value = message.value);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Parameters_ParameterlistEntry>, I>>(base?: I): Parameters_ParameterlistEntry {
+    return Parameters_ParameterlistEntry.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Parameters_ParameterlistEntry>, I>>(
+    object: I,
+  ): Parameters_ParameterlistEntry {
+    const message = createBaseParameters_ParameterlistEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
+    return message;
+  },
+};
+
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
@@ -242,6 +400,10 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

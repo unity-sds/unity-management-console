@@ -2,10 +2,9 @@ import type {Product, Order} from './entities';
 import Axios from 'axios';
 import {dev} from '$app/environment';
 import {fetchline} from "../routes/progress/text";
-import {messageStore} from "../store/stores";
+import { messageStore, parametersStore } from "../store/stores";
 import {config} from "../store/stores"
-import {get} from 'svelte/store'
-import { Config } from "./protobuf/config";
+import { Config, Parameters } from "./protobuf/config";
 
 let text = '';
 let lines = 0;
@@ -125,6 +124,47 @@ export class HttpHandler {
         }
     }
 
+    async fetchParams(): Promise<string> {
+        if (!dev) {
+            const relativePath = '/ws'; // Relative path to the WebSocket endpoint
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            const websocketUrl = `${protocol}//${host}${relativePath}`;
+            this.websocket = new WebSocket(websocketUrl);
+
+            this.websocket.onmessage = async (event) => {
+                console.log("Parameter message received: " + event.data)
+                const arrayBuffer = await new Response(event.data).arrayBuffer();
+                const encodedConfig = new Uint8Array(arrayBuffer);
+                const decodeConfig = Parameters.decode(encodedConfig)
+                console.log(decodeConfig)
+                parametersStore.set(decodeConfig)
+            };
+
+            this.websocket.onerror = (error) => {
+                console.log('WebSocket error: ' + error);
+            };
+
+            this.websocket.onclose = () => {
+                console.log('WebSocket connection closed');
+            };
+            console.log("Sending message")
+            const message = {
+                action: "request parameters",
+                payload: null
+            }
+
+            this.websocket.onopen = () => {
+                if (this.websocket!=null){
+                    this.websocket.send(JSON.stringify(message));
+                    console.log("Config requested")
+                }
+            }
+            return "";
+        } else {
+            return "abc";
+        }
+    }
     async fetchConfig(): Promise<string> {
         if (!dev) {
             const relativePath = '/ws'; // Relative path to the WebSocket endpoint

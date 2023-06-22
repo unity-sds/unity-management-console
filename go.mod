@@ -5,9 +5,11 @@ go 1.20
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/aws/aws-sdk-go v1.44.255
+	github.com/aws/aws-sdk-go-v2 v1.18.1
 	github.com/aws/aws-sdk-go-v2/config v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.102.0
 	github.com/aws/aws-sdk-go-v2/service/iam v1.19.12
+	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.6
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-git/go-git/v5 v5.6.2-0.20230411180853-ce62f3e9ff86
 	github.com/golang/protobuf v1.5.3
@@ -35,7 +37,6 @@ require (
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230321174746-8dcc6526cfb1 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.18.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.0 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.4 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.34 // indirect

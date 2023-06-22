@@ -16,3 +16,8 @@ message Config {
   NetworkConfig networkConfig = 2;
 
 }
+
+message Parameters {
+
+  map<string, string> parameterlist = 1;
+}

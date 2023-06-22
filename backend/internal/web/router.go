@@ -110,29 +110,25 @@ func handleWebsocket(c *gin.Context) {
 			runner := &processes.ActRunnerImpl{}
 			runner.UpdateCoreConfig(conn, store, conf)
 		} else if received.Action == "install software" {
-			//runner := &processes.ActRunnerImpl{}
-			//if err != nil {
-			//	log.Errorf("Failed to decode payload:", err)
-			//	return
-			//}
-			//pb := &marketplace.Install{}
-			//
-			//err = proto.Unmarshal(received.Payload, pb)
-			//if err != nil {
-			//	log.Println("Error during message unmarshalling:", err)
-			//	break
-			//}
-			//log.Infof("Message decoded successfully, %v", &pb)
-			//err = runner.TriggerInstall(conn, store, *pb, conf)
-			//if err != nil {
-			//	log.Errorf("Error running workflow: %v", err)
-			//}
+
 		} else if received.Action == "request config" {
 			msg, err := fetchConfig(conf)
 			if err != nil {
 				log.Errorf("Problem requesting config: %v", err)
 			}
 			log.Info("Writing config to websocket")
+			if err := conn.WriteMessage(websocket.BinaryMessage, msg); err != nil {
+				log.Errorf("Issue writing websocket message: %v", err)
+				break
+			}
+		} else if received.Action == "request parameters" {
+			params, err := aws.ReadSSMParameters()
+
+			if err != nil {
+				log.Errorf("Problem requesting config: %v", err)
+			}
+			log.Info("Writing params to websocket")
+			msg, err := proto.Marshal(params)
 			if err := conn.WriteMessage(websocket.BinaryMessage, msg); err != nil {
 				log.Errorf("Issue writing websocket message: %v", err)
 				break
