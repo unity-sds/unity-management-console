@@ -20,14 +20,16 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Build package
-      run: npm run package
-
-    - name: Clone the service repository for deployment act
+    - name: Clone the infra repo for workflows etc
       uses: actions/checkout@v3
       with:
         repository: 'unity-sds/unity-cs-infra'
-        path: resources
+        path: workflowresources
+
+    - name: Build package
+      run: npm run package
+
+
 
     - name: Create Release
       id: create_release
