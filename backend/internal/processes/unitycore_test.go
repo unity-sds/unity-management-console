@@ -21,7 +21,7 @@ type MockStore struct {
 }
 
 func (m *MockStore) StoreSSMParams(p []config.SSMParameter, owner string) error {
-	
+
 	return nil
 }
 
