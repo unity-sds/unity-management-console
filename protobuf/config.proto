@@ -19,5 +19,11 @@ message Config {
 
 message Parameters {
 
-  map<string, string> parameterlist = 1;
+  message Parameter {
+    string value = 2;
+    string type = 3;
+    bool tracked = 4;
+    bool insync = 5;
+  }
+  map<string, Parameter> parameterlist = 1;
 }

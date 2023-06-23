@@ -6,10 +6,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	log "github.com/sirupsen/logrus"
+	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
 	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
 )
 
-func ReadSSMParameters() (*marketplace.Parameters, error) {
+func ReadSSMParameters(ssmParams []models.SSMParameters) (*marketplace.Parameters, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 	if err != nil {
 		panic("configuration error, " + err.Error())
@@ -26,7 +27,7 @@ func ReadSSMParameters() (*marketplace.Parameters, error) {
 	}
 
 	paginator := ssm.NewGetParametersByPathPaginator(client, paramsInput)
-	ssmparams := map[string]string{}
+	ssmparams := map[string]*marketplace.Parameters_Parameter{}
 	ssmparamholder := marketplace.Parameters{}
 
 	// Iterate through the SSM parameter pages.
@@ -40,10 +41,32 @@ func ReadSSMParameters() (*marketplace.Parameters, error) {
 		// Print out the parameters.
 		for _, param := range output.Parameters {
 			log.Infof("Name: %s, Value: %s\n", aws.ToString(param.Name), aws.ToString(param.Value))
-			ssmparams[aws.ToString(param.Name)] = aws.ToString(param.Value)
+			exists, valuetracks := checkExistsInDatabase(aws.ToString(param.Name), aws.ToString(param.Value), ssmParams)
+			par := marketplace.Parameters_Parameter{
+				Value:   aws.ToString(param.Value),
+				Type:    "fixme",
+				Tracked: exists,
+				Insync:  valuetracks,
+			}
+			ssmparams[aws.ToString(param.Name)] = &par
 		}
 	}
 
 	ssmparamholder.Parameterlist = ssmparams
 	return &ssmparamholder, nil
+}
+
+func checkExistsInDatabase(name, value string, params []models.SSMParameters) (bool, bool) {
+
+	for _, param := range params {
+		if param.Key == name {
+			if param.Value == value {
+				return true, true
+			} else {
+				return true, false
+			}
+		}
+	}
+
+	return false, false
 }

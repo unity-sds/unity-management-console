@@ -18,12 +18,19 @@ export interface Config_NetworkConfig {
 }
 
 export interface Parameters {
-  parameterlist: { [key: string]: string };
+  parameterlist: { [key: string]: Parameters_Parameter };
+}
+
+export interface Parameters_Parameter {
+  value: string;
+  type: string;
+  tracked: boolean;
+  insync: boolean;
 }
 
 export interface Parameters_ParameterlistEntry {
   key: string;
-  value: string;
+  value: Parameters_Parameter | undefined;
 }
 
 function createBaseConfig(): Config {
@@ -282,8 +289,8 @@ export const Parameters = {
   fromJSON(object: any): Parameters {
     return {
       parameterlist: isObject(object.parameterlist)
-        ? Object.entries(object.parameterlist).reduce<{ [key: string]: string }>((acc, [key, value]) => {
-          acc[key] = String(value);
+        ? Object.entries(object.parameterlist).reduce<{ [key: string]: Parameters_Parameter }>((acc, [key, value]) => {
+          acc[key] = Parameters_Parameter.fromJSON(value);
           return acc;
         }, {})
         : {},
@@ -295,7 +302,7 @@ export const Parameters = {
     obj.parameterlist = {};
     if (message.parameterlist) {
       Object.entries(message.parameterlist).forEach(([k, v]) => {
-        obj.parameterlist[k] = v;
+        obj.parameterlist[k] = Parameters_Parameter.toJSON(v);
       });
     }
     return obj;
@@ -307,10 +314,10 @@ export const Parameters = {
 
   fromPartial<I extends Exact<DeepPartial<Parameters>, I>>(object: I): Parameters {
     const message = createBaseParameters();
-    message.parameterlist = Object.entries(object.parameterlist ?? {}).reduce<{ [key: string]: string }>(
+    message.parameterlist = Object.entries(object.parameterlist ?? {}).reduce<{ [key: string]: Parameters_Parameter }>(
       (acc, [key, value]) => {
         if (value !== undefined) {
-          acc[key] = String(value);
+          acc[key] = Parameters_Parameter.fromPartial(value);
         }
         return acc;
       },
@@ -320,8 +327,105 @@ export const Parameters = {
   },
 };
 
+function createBaseParameters_Parameter(): Parameters_Parameter {
+  return { value: "", type: "", tracked: false, insync: false };
+}
+
+export const Parameters_Parameter = {
+  encode(message: Parameters_Parameter, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    if (message.type !== "") {
+      writer.uint32(26).string(message.type);
+    }
+    if (message.tracked === true) {
+      writer.uint32(32).bool(message.tracked);
+    }
+    if (message.insync === true) {
+      writer.uint32(40).bool(message.insync);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Parameters_Parameter {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParameters_Parameter();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.tracked = reader.bool();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.insync = reader.bool();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Parameters_Parameter {
+    return {
+      value: isSet(object.value) ? String(object.value) : "",
+      type: isSet(object.type) ? String(object.type) : "",
+      tracked: isSet(object.tracked) ? Boolean(object.tracked) : false,
+      insync: isSet(object.insync) ? Boolean(object.insync) : false,
+    };
+  },
+
+  toJSON(message: Parameters_Parameter): unknown {
+    const obj: any = {};
+    message.value !== undefined && (obj.value = message.value);
+    message.type !== undefined && (obj.type = message.type);
+    message.tracked !== undefined && (obj.tracked = message.tracked);
+    message.insync !== undefined && (obj.insync = message.insync);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Parameters_Parameter>, I>>(base?: I): Parameters_Parameter {
+    return Parameters_Parameter.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Parameters_Parameter>, I>>(object: I): Parameters_Parameter {
+    const message = createBaseParameters_Parameter();
+    message.value = object.value ?? "";
+    message.type = object.type ?? "";
+    message.tracked = object.tracked ?? false;
+    message.insync = object.insync ?? false;
+    return message;
+  },
+};
+
 function createBaseParameters_ParameterlistEntry(): Parameters_ParameterlistEntry {
-  return { key: "", value: "" };
+  return { key: "", value: undefined };
 }
 
 export const Parameters_ParameterlistEntry = {
@@ -329,8 +433,8 @@ export const Parameters_ParameterlistEntry = {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
-    if (message.value !== "") {
-      writer.uint32(18).string(message.value);
+    if (message.value !== undefined) {
+      Parameters_Parameter.encode(message.value, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -354,7 +458,7 @@ export const Parameters_ParameterlistEntry = {
             break;
           }
 
-          message.value = reader.string();
+          message.value = Parameters_Parameter.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -366,13 +470,16 @@ export const Parameters_ParameterlistEntry = {
   },
 
   fromJSON(object: any): Parameters_ParameterlistEntry {
-    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object.value) ? String(object.value) : "" };
+    return {
+      key: isSet(object.key) ? String(object.key) : "",
+      value: isSet(object.value) ? Parameters_Parameter.fromJSON(object.value) : undefined,
+    };
   },
 
   toJSON(message: Parameters_ParameterlistEntry): unknown {
     const obj: any = {};
     message.key !== undefined && (obj.key = message.key);
-    message.value !== undefined && (obj.value = message.value);
+    message.value !== undefined && (obj.value = message.value ? Parameters_Parameter.toJSON(message.value) : undefined);
     return obj;
   },
 
@@ -385,7 +492,9 @@ export const Parameters_ParameterlistEntry = {
   ): Parameters_ParameterlistEntry {
     const message = createBaseParameters_ParameterlistEntry();
     message.key = object.key ?? "";
-    message.value = object.value ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? Parameters_Parameter.fromPartial(object.value)
+      : undefined;
     return message;
   },
 };

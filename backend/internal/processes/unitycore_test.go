@@ -135,11 +135,10 @@ func fetchConfig() {
 }
 func TestRunSPSDemo(t *testing.T) {
 	r := ActRunnerImpl{}
-	mockStore := &MockStore{}
 
 	fetchConfig()
 	meta := "{\n\t\"metadata\": {\n\t\t\"metadataversion\": \"unity-cs-0.1\",\n\t\t\"exectarget\": \"act\",\n\t\t\"deploymentname\": \"managementdashboard\",\n\t\t\"services\": [\n\t\t\t{\"name\":\"ryantestdeploy\",\"source\":\"unity-sds/unity-sps-prototype\",\"version\":\"xxx\",\"branch\":\"main\"}\n\t\t],\n\t\t\"extensions\":{\n\t\t\t\"kubernetes\":{\n\t\t\t\t\"clustername\":\"unity-sps-managementdashboard\",\n\t\t\t\t\"owner\":\"ryan\",\n\t\t\t\t\"projectname\":\"testproject\",\n\t\t\t\t\"nodegroups\":{\n\t\t\t\t\t\"group1\": {\n\t\t\t\t\t\t\"instancetype\": \"m5.xlarge\",\n\t\t\t\t\t\t\"nodecount\":\"1\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
-	err := InstallMarketplaceApplication(nil, mockStore, meta, conf, "", r)
+	err := InstallMarketplaceApplication(nil, meta, conf, "", r)
 	log.Errorf("Error: %v", err)
 }
 

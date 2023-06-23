@@ -122,7 +122,9 @@ func handleWebsocket(c *gin.Context) {
 				break
 			}
 		} else if received.Action == "request parameters" {
-			params, err := aws.ReadSSMParameters()
+			existingparams, err := store.FetchSSMParams()
+
+			params, err := aws.ReadSSMParameters(existingparams)
 
 			if err != nil {
 				log.Errorf("Problem requesting config: %v", err)
