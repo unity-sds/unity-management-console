@@ -3,6 +3,7 @@ package act
 import (
 	"github.com/gorilla/websocket"
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"testing"
 )
 
@@ -12,7 +13,7 @@ func TestRunner(t *testing.T) {
 
 func TestActRunner(t *testing.T) {
 	Convey("Given a new ActRunner instance", t, func() {
-		ar := NewActRunner("../../../test-data/workflows/demo-workflow.yml", map[string]string{}, map[string]string{}, map[string]string{}, &websocket.Conn{})
+		ar := NewActRunner("../../../test-data/workflows/demo-workflow.yml", map[string]string{}, map[string]string{}, map[string]string{}, &websocket.Conn{}, config.AppConfig{})
 
 		Convey("When the instance is created", func() {
 			Convey("Then the instance should not be nil", func() {
@@ -20,7 +21,7 @@ func TestActRunner(t *testing.T) {
 			})
 		})
 
-		Convey("When CreateWorkflowPlan is called", func(){
+		Convey("When CreateWorkflowPlan is called", func() {
 			err := ar.CreateWorkflowPlan()
 
 			Convey("Then no error should be returned", func() {
@@ -31,7 +32,7 @@ func TestActRunner(t *testing.T) {
 		Convey("When CreateRunnerConfig is called", func() {
 			err := ar.CreateRunnerConfig()
 
-			Convey("Then no error should be returned", func(){
+			Convey("Then no error should be returned", func() {
 				So(err, ShouldBeNil)
 			})
 		})

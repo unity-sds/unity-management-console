@@ -20,6 +20,11 @@ type MockStore struct {
 	mock.Mock
 }
 
+func (m *MockStore) StoreSSMParams(p []config.SSMParameter, owner string) error {
+	
+	return nil
+}
+
 func (m *MockStore) FetchSSMParams() ([]models.SSMParameters, error) { // Replace YourProject.YourPackage.SSMParam with the appropriate type
 	args := m.Called()
 	return args.Get(0).([]models.SSMParameters), args.Error(1)
