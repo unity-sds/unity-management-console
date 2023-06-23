@@ -81,7 +81,7 @@ func handleConfigGET(c *gin.Context) {
 
 func handleWebsocket(c *gin.Context) {
 	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	store := database.GormDatastore{}
+	store, err := database.NewGormDatastore()
 	if err != nil {
 		log.Print("upgrade error:", err)
 		return
