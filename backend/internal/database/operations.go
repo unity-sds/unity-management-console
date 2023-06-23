@@ -2,6 +2,7 @@ package database
 
 import (
 	log "github.com/sirupsen/logrus"
+	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
 	"gorm.io/gorm/clause"
 )
@@ -18,16 +19,18 @@ import (
 //
 // Example usage:
 //
-//    updatedConfigs, err := StoreConfig(configs)
-//    if err != nil {
-//        // Handle the error
-//    }
+//	updatedConfigs, err := StoreConfig(configs)
+//	if err != nil {
+//	    // Handle the error
+//	}
 //
 // Parameters:
-//   config : A slice of CoreConfig models to be stored in the database
+//
+//	config : A slice of CoreConfig models to be stored in the database
 //
 // Returns:
-//   ([]models.CoreConfig, error) : A slice of updated CoreConfig models and error (if any)
+//
+//	([]models.CoreConfig, error) : A slice of updated CoreConfig models and error (if any)
 func StoreConfig(config []models.CoreConfig) ([]models.CoreConfig, error) {
 	// Begin a new transaction
 	tx := DB.Begin()
@@ -53,13 +56,14 @@ func StoreConfig(config []models.CoreConfig) ([]models.CoreConfig, error) {
 //
 // Example usage:
 //
-//    configs, err := FetchConfig()
-//    if err != nil {
-//        // Handle the error
-//    }
+//	configs, err := FetchConfig()
+//	if err != nil {
+//	    // Handle the error
+//	}
 //
 // Returns:
-//   ([]models.CoreConfig, error) : A slice of CoreConfig models and an error (if any)
+//
+//	([]models.CoreConfig, error) : A slice of CoreConfig models and an error (if any)
 func FetchConfig() ([]models.CoreConfig, error) {
 	var config []models.CoreConfig
 
@@ -69,4 +73,40 @@ func FetchConfig() ([]models.CoreConfig, error) {
 	}
 
 	return config, nil
+}
+
+func (g GormDatastore) StoreSSMParams(p []config.SSMParameter, owner string) error {
+	for _, param := range p {
+		model := models.SSMParameters{}
+
+		// Use FirstOrInit to get existing record or initialize a new one
+		if err := g.db.Where(models.SSMParameters{Key: param.Name}).FirstOrInit(&model).Error; err != nil {
+			// Handle error for FirstOrInit
+			log.WithError(err).Error("Problem finding or initializing record in database")
+			return err
+		}
+
+		// Update the record's fields
+		model.Type = param.Type
+		model.Value = param.Value
+		model.Owner = owner
+
+		// Use Save to insert or update the record
+		if err := g.db.Save(&model).Error; err != nil {
+			// Handle error for Save
+			log.WithError(err).Error("Problem saving record to database")
+			return err
+		}
+	}
+	return nil
+}
+
+func FetchSSMParams() ([]models.SSMParameters, error) {
+	var params []models.SSMParameters
+
+	if err := DB.Find(&params).Error; err != nil {
+		return nil, err
+	}
+
+	return params, nil
 }

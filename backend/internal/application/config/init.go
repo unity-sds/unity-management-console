@@ -8,13 +8,20 @@ import (
 	"time"
 )
 
+type SSMParameter struct {
+	Name  string `mapstructure:"name"`
+	Type  string `mapstructure:"type"`
+	Value string `mapstructure:"value"`
+}
+
 type AppConfig struct {
-	GithubToken      string
-	MarketplaceUrl   string
-	WorkflowBasePath string
-	AWSRegion        string
-	BucketName       string
-	Workdir          string
+	GithubToken          string
+	MarketplaceUrl       string
+	WorkflowBasePath     string
+	AWSRegion            string
+	BucketName           string
+	Workdir              string
+	DefaultSSMParameters []SSMParameter
 }
 
 type FeatureFlagClient interface {

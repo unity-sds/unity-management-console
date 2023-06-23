@@ -24,15 +24,22 @@ var (
 		Short: "Execute management console commands",
 		Long:  `Management console startup configuration commands`,
 		Run: func(cmd *cobra.Command, args []string) {
+			store, err := database.NewGormDatastore()
 			if bootstrap == true {
 				//appLauncher(bootstrapApplication)
-				provisionS3(conf)
-				installGateway(conf)
+				storeDefaultSSMParameters(conf, store)
+				r := processes.ActRunnerImpl{}
+				err := processes.UpdateCoreConfig(nil, store, conf, &r)
+				if err != nil {
+					log.WithError(err).Error("Problem updating ssm config")
+				}
+				//provisionS3(conf)
+				//installGateway(conf)
 
 			}
 			router := web.DefineRoutes(conf)
 
-			err := router.Run()
+			err = router.Run()
 			if err != nil {
 				log.Errorf("Failed to launch API. %v", err)
 				return
@@ -41,15 +48,22 @@ var (
 	}
 )
 
+func storeDefaultSSMParameters(appConfig config.AppConfig, store database.Datastore) {
+
+	err := store.StoreSSMParams(appConfig.DefaultSSMParameters, "bootstrap")
+	if err != nil {
+		log.WithError(err).Error("Problem storing parameters in database.")
+	}
+}
+
 func provisionS3(appConfig config.AppConfig) {
 	aws.CreateBucket(appConfig)
 }
 
 func installGateway(appConfig config.AppConfig) {
-	runner := &processes.ActRunnerImpl{}
-	store := database.GormDatastore{}
+	runner := processes.ActRunnerImpl{}
 	meta := ""
-	err := runner.InstallMarketplaceApplication(nil, store, meta, appConfig, "")
+	err := processes.InstallMarketplaceApplication(nil, meta, appConfig, "", runner)
 	if err != nil {
 		return
 	}

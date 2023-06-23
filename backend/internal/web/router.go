@@ -70,7 +70,7 @@ func handleConfigPOST(c *gin.Context) {
 
 	// Trigger environment update via act
 	runner := &processes.ActRunnerImpl{}
-	if err := runner.UpdateCoreConfig(nil, store, conf); err != nil {
+	if err := processes.UpdateCoreConfig(nil, store, conf, runner); err != nil {
 		log.WithError(err).Error("error updating core configuration")
 	}
 }
@@ -108,7 +108,7 @@ func handleWebsocket(c *gin.Context) {
 		log.Infof("Action received: %v", received.Action)
 		if received.Action == "config upgrade" {
 			runner := &processes.ActRunnerImpl{}
-			runner.UpdateCoreConfig(conn, store, conf)
+			processes.UpdateCoreConfig(conn, store, conf, runner)
 		} else if received.Action == "install software" {
 
 		} else if received.Action == "request config" {
@@ -207,7 +207,7 @@ func decodeProtobuf(msg []byte, conn *websocket.Conn, conf config.AppConfig, sto
 
 	log.Infof("Message decoded successfully: %+v", pb)
 
-	if err := runner.TriggerInstall(conn, store, *pb, conf); err != nil {
+	if err := processes.TriggerInstall(conn, store, *pb, conf, *runner); err != nil {
 		return fmt.Errorf("failed to trigger install: %v", err)
 	}
 

@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/mock"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
-	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
 	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
 	"os"
@@ -42,32 +41,10 @@ func (db *mockDB) FetchConfig() ([]models.CoreConfig, error) {
 }
 
 type MockActRunner struct {
-	//mockRunAct func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
-	RunActFn                func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error
-	UpdateCoreConfigFn      func(conn *websocket.Conn, store database.Datastore) error
-	InstallMarketplaceAppFn func(conn *websocket.Conn, store database.Datastore, meta string) error
+	ActRunner
 }
 
-func (m *MockActRunner) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error {
-	if m.RunActFn != nil {
-		return m.RunActFn(path, inputs, env, secrets, conn)
-	}
-	return nil
-}
-
-func (m *MockActRunner) UpdateCoreConfig(conn *websocket.Conn, store database.Datastore) error {
-	if m.UpdateCoreConfigFn != nil {
-		return m.UpdateCoreConfigFn(conn, store)
-	}
-
-	return nil
-}
-
-func (m *MockActRunner) InstallMarketplaceApplication(conn *websocket.Conn, store database.Datastore, meta string) error {
-	if m.InstallMarketplaceAppFn != nil {
-		return m.InstallMarketplaceAppFn(conn, store, meta)
-	}
-
+func (m *MockActRunner) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) error {
 	return nil
 }
 
@@ -92,20 +69,14 @@ func TestUpdateCoreConfig(t *testing.T) {
 
 				mockStore.On("FetchSSMParams").Return(mockData, nil)
 
-				mockRunner := &MockActRunner{
-					RunActFn: func(path string, inputs, env, secrets map[string]string, conn *websocket.Conn) error {
-						// Do something here to mock the act.RunAct behavior
-						return nil
-					},
-				}
+				mockRunner := &MockActRunner{}
 
-				actRunnerImpl := NewActRunner()
 				conn := new(websocket.Conn) // You might want to mock this as well if your RunAct function interacts with it.
 				fetchConfig()
 				config := conf // Replace with the appropriate type and values.
 
 				Convey("When UpdateCoreConfig is called", func() {
-					err := actRunnerImpl.UpdateCoreConfig(conn, mockStore, config)
+					err := UpdateCoreConfig(conn, mockStore, config, mockRunner)
 
 					Convey("Then no error should be returned", func() {
 						So(err, ShouldBeNil)
@@ -168,7 +139,7 @@ func TestRunSPSDemo(t *testing.T) {
 
 	fetchConfig()
 	meta := "{\n\t\"metadata\": {\n\t\t\"metadataversion\": \"unity-cs-0.1\",\n\t\t\"exectarget\": \"act\",\n\t\t\"deploymentname\": \"managementdashboard\",\n\t\t\"services\": [\n\t\t\t{\"name\":\"ryantestdeploy\",\"source\":\"unity-sds/unity-sps-prototype\",\"version\":\"xxx\",\"branch\":\"main\"}\n\t\t],\n\t\t\"extensions\":{\n\t\t\t\"kubernetes\":{\n\t\t\t\t\"clustername\":\"unity-sps-managementdashboard\",\n\t\t\t\t\"owner\":\"ryan\",\n\t\t\t\t\"projectname\":\"testproject\",\n\t\t\t\t\"nodegroups\":{\n\t\t\t\t\t\"group1\": {\n\t\t\t\t\t\t\"instancetype\": \"m5.xlarge\",\n\t\t\t\t\t\t\"nodecount\":\"1\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
-	err := r.InstallMarketplaceApplication(nil, mockStore, meta, conf, "")
+	err := InstallMarketplaceApplication(nil, mockStore, meta, conf, "", r)
 	log.Errorf("Error: %v", err)
 }
 
@@ -205,5 +176,5 @@ func TestRun(t *testing.T) {
 		Extensions:   &msg,
 	}
 
-	r.TriggerInstall(nil, mockStore, c, conf)
+	TriggerInstall(nil, mockStore, c, conf, r)
 }
