@@ -66,6 +66,7 @@ message ActionMeta {
     }
 
     Eks eks = 1;
+    Apigateway apis = 2;
   }
 
   string metadataVersion = 1;
