@@ -59,6 +59,7 @@ message MarketplaceMetadata {
   repeated Manageddependencies ManagedDependencies = 11;
   string Backend = 12;
   string Entrypoint = 13;
+  string WorkDirectory = 16;
 
   Defaultdeployment DefaultDeployment = 14;
 }

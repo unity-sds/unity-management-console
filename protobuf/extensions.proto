@@ -29,6 +29,40 @@ message Install {
 
   Applications applications = 1;
   Extensions extensions = 2;
+  string DeploymentName = 3;
 }
 
 
+message ActionMeta {
+
+  message Services {
+    string name = 1;
+    string source = 2;
+    string version = 3;
+    string branch = 4;
+  }
+
+  message Extensions {
+
+    message Nodegroups {
+      string name = 1;
+      string instancetype = 2;
+      string nodecount = 3;
+    }
+
+    message Eks {
+      string clustername = 1;
+      string owner = 2;
+      string projectname = 3;
+      repeated Nodegroups nodegroups = 4;
+    }
+
+    Eks eks = 1;
+  }
+
+  string metadataVersion = 1;
+  string exectarget = 2;
+  string deploymentName = 3;
+  repeated Services services = 4;
+  Extensions extensions = 5;
+}

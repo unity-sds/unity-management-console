@@ -18,6 +18,7 @@ export interface MarketplaceMetadata {
   ManagedDependencies: MarketplaceMetadata_Manageddependencies[];
   Backend: string;
   Entrypoint: string;
+  WorkDirectory: string;
   DefaultDeployment: MarketplaceMetadata_Defaultdeployment | undefined;
 }
 
@@ -79,6 +80,7 @@ function createBaseMarketplaceMetadata(): MarketplaceMetadata {
     ManagedDependencies: [],
     Backend: "",
     Entrypoint: "",
+    WorkDirectory: "",
     DefaultDeployment: undefined,
   };
 }
@@ -126,6 +128,9 @@ export const MarketplaceMetadata = {
     }
     if (message.Entrypoint !== "") {
       writer.uint32(106).string(message.Entrypoint);
+    }
+    if (message.WorkDirectory !== "") {
+      writer.uint32(130).string(message.WorkDirectory);
     }
     if (message.DefaultDeployment !== undefined) {
       MarketplaceMetadata_Defaultdeployment.encode(message.DefaultDeployment, writer.uint32(114).fork()).ldelim();
@@ -238,6 +243,13 @@ export const MarketplaceMetadata = {
 
           message.Entrypoint = reader.string();
           continue;
+        case 16:
+          if (tag !== 130) {
+            break;
+          }
+
+          message.WorkDirectory = reader.string();
+          continue;
         case 14:
           if (tag !== 114) {
             break;
@@ -272,6 +284,7 @@ export const MarketplaceMetadata = {
         : [],
       Backend: isSet(object.Backend) ? String(object.Backend) : "",
       Entrypoint: isSet(object.Entrypoint) ? String(object.Entrypoint) : "",
+      WorkDirectory: isSet(object.WorkDirectory) ? String(object.WorkDirectory) : "",
       DefaultDeployment: isSet(object.DefaultDeployment)
         ? MarketplaceMetadata_Defaultdeployment.fromJSON(object.DefaultDeployment)
         : undefined,
@@ -305,6 +318,7 @@ export const MarketplaceMetadata = {
     }
     message.Backend !== undefined && (obj.Backend = message.Backend);
     message.Entrypoint !== undefined && (obj.Entrypoint = message.Entrypoint);
+    message.WorkDirectory !== undefined && (obj.WorkDirectory = message.WorkDirectory);
     message.DefaultDeployment !== undefined && (obj.DefaultDeployment = message.DefaultDeployment
       ? MarketplaceMetadata_Defaultdeployment.toJSON(message.DefaultDeployment)
       : undefined);
@@ -334,6 +348,7 @@ export const MarketplaceMetadata = {
       object.ManagedDependencies?.map((e) => MarketplaceMetadata_Manageddependencies.fromPartial(e)) || [];
     message.Backend = object.Backend ?? "";
     message.Entrypoint = object.Entrypoint ?? "";
+    message.WorkDirectory = object.WorkDirectory ?? "";
     message.DefaultDeployment = (object.DefaultDeployment !== undefined && object.DefaultDeployment !== null)
       ? MarketplaceMetadata_Defaultdeployment.fromPartial(object.DefaultDeployment)
       : undefined;

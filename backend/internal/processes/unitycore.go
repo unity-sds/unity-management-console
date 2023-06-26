@@ -1,6 +1,7 @@
 package processes
 
 import (
+	"encoding/base64"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-control-plane/backend/internal/act"
@@ -26,20 +27,23 @@ func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]stri
 	return act.RunAct(path, inputs, env, secrets, conn, appConfig)
 }
 
-func GenerateMetadata(appname string, loc string, extensions *marketplace.Install_Extensions) (string, error) {
+func GenerateMetadata(appname string, install *marketplace.Install, meta *marketplace.MarketplaceMetadata) ([]byte, error) {
 	// Generate meta string
 	if appname == "unity-eks" {
-		meta, err := metadata.GenerateEKSMetadata(extensions)
-		return string(meta), err
+		meta, err := metadata.GenerateEKSMetadata(install.Extensions)
+		return meta, err
 	}
-	return "", nil
+
+	metaarr, err := metadata.GenerateApplicationMetadata(appname, install, meta)
+	return metaarr, err
 }
 
-func InstallMarketplaceApplication(conn *websocket.Conn, meta string, config config.AppConfig, entrypoint string, r ActRunnerImpl) error {
+func InstallMarketplaceApplication(conn *websocket.Conn, meta []byte, config config.AppConfig, entrypoint string, r ActRunnerImpl, location string) error {
 
+	str := base64.StdEncoding.EncodeToString(meta)
 	// Install package
 	inputs := map[string]string{
-		"META":             meta,
+		"META":             str,
 		"DEPLOYMENTSOURCE": "act",
 		"AWSCONNECTION":    "keys",
 	}
@@ -57,7 +61,6 @@ func InstallMarketplaceApplication(conn *websocket.Conn, meta string, config con
 	log.Infof("Launching act runner with following meta: %v", meta)
 	action := config.WorkflowBasePath + "/install-stacks.yml"
 	if entrypoint != "" {
-
 		action = config.WorkflowBasePath + "/" + entrypoint
 	}
 
@@ -81,13 +84,13 @@ func TriggerInstall(conn *websocket.Conn, store database.Datastore, received mar
 		return err
 	}
 
-	metastr, err := GenerateMetadata(t.Name, location, received.Extensions)
+	metastr, err := GenerateMetadata(t.Name, &received, meta)
 	if err != nil {
 		log.Error("Error generating metadata:", err)
 		return err
 	}
 
-	if err := InstallMarketplaceApplication(conn, metastr, conf, meta.Entrypoint, r); err != nil {
+	if err := InstallMarketplaceApplication(conn, metastr, conf, meta.Entrypoint, r, location); err != nil {
 		log.Error("Error installing application:", err)
 		return err
 	}

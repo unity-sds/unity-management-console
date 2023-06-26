@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"math/rand"
 	"time"
@@ -14,7 +15,7 @@ const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-func CreateBucket(conf config.AppConfig){
+func CreateBucket(conf config.AppConfig) {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(conf.AWSRegion),
 	})
@@ -31,7 +32,11 @@ func CreateBucket(conf config.AppConfig){
 		bucket = conf.BucketName
 	} else {
 		bucket = generateBucketName()
-		//TODO Persist bucketname in config
+		conf.BucketName = bucket
+		err := viper.WriteConfig()
+		if err != nil {
+			log.WithError(err).Error("Could not write config file")
+		}
 	}
 
 	// check bucket exists
@@ -57,7 +62,6 @@ func CreateBucket(conf config.AppConfig){
 		log.Infof("Bucket %v exists", bucket)
 	}
 }
-
 
 func stringWithCharset(length int, charset string) string {
 	b := make([]byte, length)

@@ -7,6 +7,7 @@ import (
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/aws"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
+	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
 	"github.com/unity-sds/unity-control-plane/backend/internal/processes"
 	"github.com/unity-sds/unity-control-plane/backend/internal/web"
 	"os"
@@ -33,8 +34,8 @@ var (
 				if err != nil {
 					log.WithError(err).Error("Problem updating ssm config")
 				}
-				//provisionS3(conf)
-				//installGateway(conf)
+				provisionS3(conf)
+				installGateway(store, conf)
 
 			}
 			router := web.DefineRoutes(conf)
@@ -60,12 +61,22 @@ func provisionS3(appConfig config.AppConfig) {
 	aws.CreateBucket(appConfig)
 }
 
-func installGateway(appConfig config.AppConfig) {
-	runner := processes.ActRunnerImpl{}
-	meta := ""
-	err := processes.InstallMarketplaceApplication(nil, meta, appConfig, "", runner)
+func installGateway(store database.Datastore, appConfig config.AppConfig) {
+	runner := processes.NewActRunner()
+
+	applications := marketplace.Install_Applications{
+		Name:      "unity-apigateway",
+		Version:   "0.1",
+		Variables: nil,
+	}
+	install := marketplace.Install{
+		Applications:   &applications,
+		Extensions:     nil,
+		DeploymentName: "Core API Gateway",
+	}
+	err := processes.TriggerInstall(nil, store, install, appConfig, *runner)
 	if err != nil {
-		return
+		log.WithError(err).Error("Issue installing API Gateway")
 	}
 }
 

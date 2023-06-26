@@ -2,11 +2,30 @@ package metadata
 
 import (
 	"encoding/json"
+	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+func GenerateApplicationMetadata(appname string, install *marketplace.Install, meta *marketplace.MarketplaceMetadata) ([]byte, error) {
+
+	svc := marketplace.ActionMeta_Services{
+		Name:    "",
+		Source:  "",
+		Version: "",
+		Branch:  "",
+	}
+	actionmeta := &marketplace.ActionMeta{
+		MetadataVersion: "unity-cs-0.1",
+		Exectarget:      "act",
+		DeploymentName:  appname,
+		Services:        []*marketplace.ActionMeta_Services{&svc},
+		Extensions:      nil,
+	}
+
+	return proto.Marshal(actionmeta)
+}
 func GenerateEKSMetadata(extensions *marketplace.Install_Extensions) ([]byte, error) {
 
 	m := protojson.MarshalOptions{
