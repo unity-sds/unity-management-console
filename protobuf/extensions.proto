@@ -44,6 +44,14 @@ message ActionMeta {
 
   message Extensions {
 
+    message Apis {
+      string name = 1;
+    }
+
+    message Apigateway {
+      repeated Apis apis = 1;
+    }
+
     message Nodegroups {
       string name = 1;
       string instancetype = 2;
@@ -65,4 +73,5 @@ message ActionMeta {
   string deploymentName = 3;
   repeated Services services = 4;
   Extensions extensions = 5;
+  string deploymentType = 6;
 }
