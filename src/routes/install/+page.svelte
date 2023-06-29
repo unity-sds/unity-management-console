@@ -51,7 +51,8 @@
 			projectname: "test"
 		};
 
-		return { eks };
+
+		return { apigateway: undefined, eks: eks };
 	}
 
 	function generateRandomString(length = 10): string {

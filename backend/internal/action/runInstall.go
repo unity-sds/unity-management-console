@@ -3,16 +3,30 @@ package action
 import (
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
+	"github.com/unity-sds/unity-control-plane/backend/internal/act"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/aws"
-	"github.com/unity-sds/unity-control-plane/backend/internal/processes"
 	"github.com/unity-sds/unity-cs-manager/lib"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 
 	"os"
 )
 
-func RunInstall(install *marketplace.Install, conn *websocket.Conn, appConfig config.AppConfig, r processes.ActRunnerImpl) error {
+type ActRunner interface {
+	RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) error
+}
+
+type ActRunnerImpl struct {
+}
+
+// NewActRunner creates a new ActRunnerImpl instance.
+func NewActRunner() *ActRunnerImpl {
+	return &ActRunnerImpl{}
+}
+func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) error {
+	return act.RunAct(path, inputs, env, secrets, conn, appConfig)
+}
+func RunInstall(install *marketplace.Install, conn *websocket.Conn, appConfig config.AppConfig, r ActRunnerImpl) error {
 
 	if install.Extensions != nil {
 		err := spinUpExtensions(conn, appConfig, install.Extensions, r)
@@ -31,7 +45,7 @@ func spinUpProjects(applications *marketplace.Install_Applications) {
 
 }
 
-func spinUpExtensions(conn *websocket.Conn, appConfig config.AppConfig, extensions *marketplace.Install_Extensions, r processes.ActRunnerImpl) error {
+func spinUpExtensions(conn *websocket.Conn, appConfig config.AppConfig, extensions *marketplace.Install_Extensions, r ActRunnerImpl) error {
 	if extensions.Eks != nil {
 		ami, err := aws.ReadSSMParameter("/unity/account/ami/eksClusterAmi")
 		secgrp, err := aws.ReadSSMParameter("/unity/account/securityGroups/eksSecurityGroup")

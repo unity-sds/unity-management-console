@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-control-plane/backend/internal/act"
 	"github.com/unity-sds/unity-control-plane/backend/internal/action"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
@@ -12,21 +11,6 @@ import (
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"os"
 )
-
-type ActRunner interface {
-	RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) error
-}
-
-type ActRunnerImpl struct {
-}
-
-// NewActRunner creates a new ActRunnerImpl instance.
-func NewActRunner() *ActRunnerImpl {
-	return &ActRunnerImpl{}
-}
-func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) error {
-	return act.RunAct(path, inputs, env, secrets, conn, appConfig)
-}
 
 func GenerateMetadata(appname string, install *marketplace.Install, meta *marketplace.MarketplaceMetadata) ([]byte, error) {
 	// Generate meta string
@@ -42,7 +26,7 @@ func GenerateMetadata(appname string, install *marketplace.Install, meta *market
 	return metaarr, err
 }
 
-func InstallMarketplaceApplication(conn *websocket.Conn, meta []byte, config config.AppConfig, entrypoint string, r ActRunnerImpl, appName string, install *marketplace.Install) error {
+func InstallMarketplaceApplication(conn *websocket.Conn, meta []byte, config config.AppConfig, entrypoint string, r action.ActRunnerImpl, appName string, install *marketplace.Install) error {
 
 	if appName == "unity-apigateway" {
 		return action.RunInstall(install, conn, config, r)
@@ -80,7 +64,7 @@ func InstallMarketplaceApplication(conn *websocket.Conn, meta []byte, config con
 	}
 }
 
-func TriggerInstall(conn *websocket.Conn, store database.Datastore, received marketplace.Install, conf config.AppConfig, r ActRunnerImpl) error {
+func TriggerInstall(conn *websocket.Conn, store database.Datastore, received marketplace.Install, conf config.AppConfig, r action.ActRunnerImpl) error {
 	t := received.Applications
 
 	meta, err := validateAndPrepareInstallation(t)

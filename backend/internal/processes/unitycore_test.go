@@ -6,9 +6,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/mock"
+	"github.com/unity-sds/unity-control-plane/backend/internal/action"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
-	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
+	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"os"
 	"path/filepath"
 	"testing"
@@ -46,7 +47,7 @@ func (db *mockDB) FetchConfig() ([]models.CoreConfig, error) {
 }
 
 type MockActRunner struct {
-	ActRunner
+	action.ActRunner
 }
 
 func (m *MockActRunner) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) error {
@@ -139,7 +140,7 @@ func fetchConfig() {
 	}
 }
 func TestRunSPSDemo(t *testing.T) {
-	r := ActRunnerImpl{}
+	r := action.ActRunnerImpl{}
 
 	fetchConfig()
 	meta := "{\n\t\"metadata\": {\n\t\t\"metadataversion\": \"unity-cs-0.1\",\n\t\t\"exectarget\": \"act\",\n\t\t\"deploymentname\": \"managementdashboard\",\n\t\t\"services\": [\n\t\t\t{\"name\":\"ryantestdeploy\",\"source\":\"unity-sds/unity-sps-prototype\",\"version\":\"xxx\",\"branch\":\"main\"}\n\t\t],\n\t\t\"extensions\":{\n\t\t\t\"kubernetes\":{\n\t\t\t\t\"clustername\":\"unity-sps-managementdashboard\",\n\t\t\t\t\"owner\":\"ryan\",\n\t\t\t\t\"projectname\":\"testproject\",\n\t\t\t\t\"nodegroups\":{\n\t\t\t\t\t\"group1\": {\n\t\t\t\t\t\t\"instancetype\": \"m5.xlarge\",\n\t\t\t\t\t\t\"nodecount\":\"1\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
@@ -148,7 +149,7 @@ func TestRunSPSDemo(t *testing.T) {
 }
 
 func TestRun(t *testing.T) {
-	r := ActRunnerImpl{}
+	r := action.ActRunnerImpl{}
 	mockStore := &MockStore{}
 
 	ng1 := marketplace.Install_Extensions_Nodegroups{

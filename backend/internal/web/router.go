@@ -8,13 +8,14 @@ import (
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
 	"github.com/thomaspoignant/go-feature-flag/ffuser"
+	"github.com/unity-sds/unity-control-plane/backend/internal/action"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/aws"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
-	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
 	"github.com/unity-sds/unity-control-plane/backend/internal/processes"
 	ws "github.com/unity-sds/unity-control-plane/backend/internal/websocket"
+	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"net/http"
 )
 
@@ -69,7 +70,7 @@ func handleConfigPOST(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": configjson})
 
 	// Trigger environment update via act
-	runner := &processes.ActRunnerImpl{}
+	runner := &action.ActRunnerImpl{}
 	if err := processes.UpdateCoreConfig(nil, store, conf, runner); err != nil {
 		log.WithError(err).Error("error updating core configuration")
 	}
@@ -107,7 +108,7 @@ func handleWebsocket(c *gin.Context) {
 		log.Infof("Message received : %v", received.Payload)
 		log.Infof("Action received: %v", received.Action)
 		if received.Action == "config upgrade" {
-			runner := &processes.ActRunnerImpl{}
+			runner := &action.ActRunnerImpl{}
 			processes.UpdateCoreConfig(conn, store, conf, runner)
 		} else if received.Action == "install software" {
 
@@ -200,7 +201,7 @@ func fetchConfig(conf config.AppConfig) ([]byte, error) {
 
 func decodeProtobuf(msg []byte, conn *websocket.Conn, conf config.AppConfig, store database.Datastore) error {
 	pb := &marketplace.Install{}
-	runner := processes.NewActRunner() // using a constructor function
+	runner := action.NewActRunner() // using a constructor function
 
 	log.Info("Attempting to decode the message...")
 	if err := proto.Unmarshal(msg, pb); err != nil {

@@ -4,12 +4,13 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/unity-sds/unity-control-plane/backend/internal/action"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/aws"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
-	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
 	"github.com/unity-sds/unity-control-plane/backend/internal/processes"
 	"github.com/unity-sds/unity-control-plane/backend/internal/web"
+	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"os"
 	"path/filepath"
 )
@@ -29,7 +30,7 @@ var (
 			if bootstrap == true {
 				//appLauncher(bootstrapApplication)
 				storeDefaultSSMParameters(conf, store)
-				r := processes.ActRunnerImpl{}
+				r := action.ActRunnerImpl{}
 				err := processes.UpdateCoreConfig(nil, store, conf, &r)
 				if err != nil {
 					log.WithError(err).Error("Problem updating ssm config")
@@ -62,7 +63,7 @@ func provisionS3(appConfig config.AppConfig) {
 }
 
 func installGateway(store database.Datastore, appConfig config.AppConfig) {
-	runner := processes.NewActRunner()
+	runner := action.NewActRunner()
 
 	applications := marketplace.Install_Applications{
 		Name:      "unity-apigateway",

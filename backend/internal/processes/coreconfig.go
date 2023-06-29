@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
+	"github.com/unity-sds/unity-control-plane/backend/internal/action"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"os"
 	"strings"
 )
 
-func UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, config config.AppConfig, r ActRunner) error {
+func UpdateCoreConfig(conn *websocket.Conn, store database.Datastore, config config.AppConfig, r action.ActRunner) error {
 	inputs := map[string]string{
 		"deploymentProject": "SIPS",
 		"deploymentStage":   "SIPS",
