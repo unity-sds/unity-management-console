@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
+	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io"
 	"net/http"

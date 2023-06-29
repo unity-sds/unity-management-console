@@ -2,7 +2,7 @@ package processes
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
+	"github.com/unity-sds/unity-cs-manager/marketplace"
 )
 
 func CheckIAMPolicies() error {

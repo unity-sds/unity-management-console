@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
+	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func GenerateApplicationMetadata(appname string, install *marketplace.Install, meta *marketplace.MarketplaceMetadata) ([]byte, error) {
 
 	svc := marketplace.ActionMeta_Services{
-		Name:    "",
-		Source:  "",
-		Version: "",
-		Branch:  "",
+		Name:    install.Applications.Name,
+		Source:  meta.Package,
+		Version: meta.Version,
+		Branch:  "main",
 	}
 	actionmeta := &marketplace.ActionMeta{
 		MetadataVersion: "unity-cs-0.1",
@@ -25,6 +25,27 @@ func GenerateApplicationMetadata(appname string, install *marketplace.Install, m
 	}
 
 	return proto.Marshal(actionmeta)
+}
+
+func GenerateApiGatewayMetadata(extensions *marketplace.Install_Extensions) ([]byte, error) {
+
+	api := marketplace.ActionMeta_Extensions_Apis{Name: "test"}
+	a := marketplace.ActionMeta_Extensions_Apigateway{Apis: []*marketplace.ActionMeta_Extensions_Apis{&api}}
+
+	apis := marketplace.ActionMeta_Extensions{
+		Eks:  nil,
+		Apis: &a,
+	}
+	actionmeta := marketplace.ActionMeta{
+		MetadataVersion: "0.1",
+		Exectarget:      "act",
+		DeploymentName:  "gateway",
+		Services:        nil,
+		Extensions:      &apis,
+	}
+
+	return proto.Marshal(&actionmeta)
+
 }
 func GenerateEKSMetadata(extensions *marketplace.Install_Extensions) ([]byte, error) {
 

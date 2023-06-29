@@ -7,9 +7,23 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
-	"github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
+	"github.com/unity-sds/unity-cs-manager/marketplace"
 )
 
+func ReadSSMParameter(path string) (*ssm.GetParameterOutput, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
+	if err != nil {
+		panic("configuration error, " + err.Error())
+	}
+
+	client := ssm.NewFromConfig(cfg)
+
+	input := &ssm.GetParameterInput{
+		Name: &path,
+	}
+
+	return client.GetParameter(context.TODO(), input)
+}
 func ReadSSMParameters(ssmParams []models.SSMParameters) (*marketplace.Parameters, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 	if err != nil {

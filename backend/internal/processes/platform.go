@@ -1,6 +1,6 @@
 package processes
 
-import "github.com/unity-sds/unity-control-plane/backend/internal/marketplace"
+import "github.com/unity-sds/unity-cs-manager/marketplace"
 
 func fetchInstalledApplications() {
 

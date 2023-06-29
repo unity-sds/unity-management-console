@@ -3,9 +3,9 @@ package act
 import (
 	"bytes"
 	"context"
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
+	"strings"
 
 	"github.com/gorilla/websocket"
 	"github.com/nektos/act/pkg/common"
@@ -213,8 +213,15 @@ func (ar *ActRunner) CaptureOutput() (stopCapture func()) {
 // workflow execution. It prints the contents of the ActRunner's StdoutBuffer and StderrBuffer to the console
 // using the fmt.Println function.
 func (ar *ActRunner) PrintOutput() {
-	fmt.Println("stdout:", ar.StdoutBuffer.String())
-	fmt.Println("stderr:", ar.StderrBuffer.String())
+	stdoutLines := strings.Split(ar.StdoutBuffer.String(), "\n")
+	for _, line := range stdoutLines {
+		log.Infof("stdout: %v", line)
+	}
+
+	stderrLines := strings.Split(ar.StderrBuffer.String(), "\n")
+	for _, line := range stderrLines {
+		log.Infof("stderr: %v", line)
+	}
 }
 
 // RunAct is a function that executes an Act workflow with the provided parameters. It first creates a new
@@ -244,6 +251,7 @@ func RunAct(workflow string, inputs map[string]string, env map[string]string, se
 	log.Info("Running workflow")
 
 	if err := ar.RunWorkflow(); err != nil {
+		ar.PrintOutput()
 		return err
 	}
 	ar.PrintOutput()
