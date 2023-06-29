@@ -19,3 +19,5 @@ export const publicSubnetsStore = writable<string[]>([]);
 export const listStore = writable<{ key: string; value: string }[]>([]);
 
 export const messageStore = writable<string>('')
+
+export const installComplete = writable<boolean>(false)

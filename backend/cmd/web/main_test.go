@@ -40,7 +40,6 @@ func TestGateway(t *testing.T) {
 
 	appConfig := config.AppConfig{
 		GithubToken:          "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",
-		MarketplaceUrl:       "",
 		WorkflowBasePath:     "/home/barber/Projects/unity-cs-infra/.github/workflows",
 		AWSRegion:            "",
 		BucketName:           "",

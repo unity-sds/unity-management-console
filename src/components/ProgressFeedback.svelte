@@ -1,27 +1,10 @@
 <script>
-    import {onDestroy, onMount} from "svelte";
+    import {onDestroy} from "svelte";
     import {HttpHandler} from "../data/httpHandler";
-    import {messageStore} from "../store/stores";
-    let progress = 0;
-    let installationComplete=false;
+    import { installComplete, messageStore } from "../store/stores";
     let socket = new HttpHandler();
     onDestroy(() => {
         socket.closeSocket();
-    });
-    onMount(() => {
-        //socket.installSoftwareSocket();
-        const interval = setInterval(() => {
-            if (progress < 100) {
-                progress += 10;
-            }
-            if (progress >= 100) {
-                clearInterval(interval);
-                installationComplete = true;
-            }
-        }, 1000);
-        return () => {
-            clearInterval(interval);
-        }
     });
 </script>
 
@@ -38,18 +21,8 @@
         </div>
         <div class="row mt-3">
             <div class="col-md-3"></div>
-            <div class="progress col-md-6" style="height: 50px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                     style="width: {progress}%;"
-                     aria-valuenow={+progress}
-                     aria-valuemin={Number(0)}
-                     aria-valuemax={Number(100)}
-                >
-                    {progress}%
-                </div>
-            </div>
             <div class="col-md-3"></div>
-            {#if installationComplete}
+            {#if installComplete}
                 <a href="/ui/landing" class="btn btn-primary mt-3">Installation Complete</a>
             {/if}
         </div>
