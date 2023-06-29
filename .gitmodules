@@ -1,0 +1,3 @@
+[submodule "unity-cs-manager"]
+	path = unity-cs-manager
+	url = https://github.com/unity-sds/unity-cs-manager.git

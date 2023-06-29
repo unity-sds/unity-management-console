@@ -1,9 +1,9 @@
 import type {Product } from "../data/entities";
-import type {Config} from "../data/protobuf/config"
+import type {Config} from "../data/unity-cs-manager/protobuf/config"
 import { Order } from '../data/entities';
 import { writable } from 'svelte/store';
-import type { Install } from "../data/protobuf/extensions";
-import type { Parameters} from "../data/protobuf/config";
+import type { Install } from "../data/unity-cs-manager/protobuf/extensions";
+import type { Parameters} from "../data/unity-cs-manager/protobuf/config";
 
 export const config = writable<Config | null>(null);
 export const products = writable<Product[]>([]);

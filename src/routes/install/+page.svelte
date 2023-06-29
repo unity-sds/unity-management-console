@@ -5,12 +5,12 @@
 	import { HttpHandler } from "../../data/httpHandler";
 	import type { NodeGroupType, Product } from "../../data/entities";
 	import { Writer } from "protobufjs";
-	import {Install} from "../../data/protobuf/extensions"
+	import {Install} from "../../data/unity-cs-manager/protobuf/extensions"
 	import type {
 		Install_Applications,
 		Install_Extensions,
 		Install_Extensions_Eks, Install_Extensions_Nodegroups
-	} from "../../data/protobuf/extensions";
+	} from "../../data/unity-cs-manager/protobuf/extensions";
 	import VariablesForm from "../../components/VariablesForm.svelte";
 	import EKSSettings from "../../components/EKSSettings.svelte";
 	import ProductForm from "../../components/ProductForm.svelte";
@@ -45,6 +45,20 @@
 
 	const generateExtensions = (): Install_Extensions => {
 		const eks: Install_Extensions_Eks = {
+			EKSClusterAMI: "",
+			EKSClusterRegion: "",
+			EKSClusterVersion: "",
+			EKSCoreDNSVersion: "",
+			EKSEBSCSIVersion: "",
+			EKSInstanceRoleArn: "",
+			EKSKubeProxyVersion: "",
+			EKSPrivateSubnetA: "",
+			EKSPrivateSubnetB: "",
+			EKSPublicSubnetA: "",
+			EKSPublicSubnetB: "",
+			EKSSecurityGroup: "",
+			EKSServiceArn: "",
+			EKSSharedNodeSecurityGroup: "",
 			nodegroups: nodeGroups.map(generateNodeGroup),
 			owner: "tom",
 			clustername: generateRandomString(10),

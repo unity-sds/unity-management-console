@@ -178,7 +178,9 @@ func fetchConfig(conf config.AppConfig) ([]byte, error) {
 	}
 
 	appConfig := marketplace.Config_ApplicationConfig{
-		GithubToken: conf.GithubToken,
+		GithubToken:      conf.GithubToken,
+		MarketplaceOwner: conf.MarketplaceOwner,
+		MarketplaceUser:  conf.MarketplaceRepo,
 	}
 
 	genconfig := &marketplace.Config{

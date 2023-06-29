@@ -124,7 +124,8 @@ func initConfig() {
 		viper.SetConfigType("yaml")
 		viper.SetConfigName("unity")
 		viper.SetDefault("GithubToken", "unset")
-		viper.SetDefault("MarketplaceURL", "unset")
+		viper.SetDefault("MarketplaceOwner", "unity-sds")
+		viper.SetDefault("MarketplaceRepo", "unity-marketplace")
 		viper.SetDefault("WorkflowBasePath", "unset")
 		viper.SetDefault("Workdir", "unset")
 

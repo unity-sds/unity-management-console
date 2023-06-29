@@ -4,18 +4,26 @@ import {dev} from '$app/environment';
 import {fetchline} from "../routes/progress/text";
 import { messageStore, parametersStore } from "../store/stores";
 import {config} from "../store/stores"
-import { Config, Parameters } from "./protobuf/config";
+import { Config, Parameters } from "./unity-cs-manager/protobuf/config";
 
 let text = '';
 let lines = 0;
 const maxLines = 100;
 let headers = {};
-
+let marketplaceowner = "unity-sds"
+let marketplacerepo = "unity-marketplace"
 const unsubscribe = config.subscribe(configValue => {
     if (configValue && configValue.applicationConfig && configValue.applicationConfig.GithubToken) {
         headers = {
             'Authorization': `token ${configValue.applicationConfig.GithubToken}`
         };
+
+    if(configValue && configValue.applicationConfig.MarketplaceOwner){
+        marketplaceowner = configValue.applicationConfig.MarketplaceOwner
+    }
+    if(configValue && configValue.applicationConfig.MarketplaceUser){
+        marketplacerepo = configValue.applicationConfig.MarketplaceUser
+    }
     } else {
         // default or error headers if GithubToken is not available
         headers = {};
@@ -276,11 +284,11 @@ interface GithubContent {
 async function generateMarketplace(): Promise<Product[]> {
 
 
-    const c = await getRepoContents("unity-sds", "unity-marketplace");
+    const c = await getRepoContents(marketplaceowner, marketplacerepo);
 
     const products: Product[] = []
     for (const p of c) {
-        const content = await getGitHubFileContents("unity-sds", "unity-marketplace", p)
+        const content = await getGitHubFileContents(marketplaceowner, marketplacerepo, p)
         const prod: Product = JSON.parse(content)
         products.push(prod)
     }

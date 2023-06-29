@@ -16,7 +16,8 @@ type SSMParameter struct {
 
 type AppConfig struct {
 	GithubToken          string
-	MarketplaceUrl       string
+	MarketplaceOwner     string
+	MarketplaceRepo      string
 	WorkflowBasePath     string
 	AWSRegion            string
 	BucketName           string
