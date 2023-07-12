@@ -3,10 +3,10 @@ package processes
 import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-control-plane/backend/internal/action"
-	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
-	"github.com/unity-sds/unity-control-plane/backend/internal/database"
-	websocket2 "github.com/unity-sds/unity-control-plane/backend/internal/websocket"
+	"github.com/unity-sds/unity-management-console/backend/internal/action"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/database"
+	websocket2 "github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"os"
 	"strings"
 )

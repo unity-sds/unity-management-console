@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"encoding/json"
-	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
+	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 )
 
 type BareMessage struct {

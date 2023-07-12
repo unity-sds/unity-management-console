@@ -6,8 +6,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
+	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 )
 
 func ReadSSMParameter(path string) (*ssm.GetParameterOutput, error) {

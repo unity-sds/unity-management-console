@@ -4,7 +4,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-control-plane/backend/internal/models"
+	"github.com/unity-sds/unity-management-console/backend/internal/models"
 	"net/http"
 )
 

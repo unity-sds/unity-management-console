@@ -3,7 +3,7 @@ package act
 import (
 	"github.com/gorilla/websocket"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"testing"
 )
 

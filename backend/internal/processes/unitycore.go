@@ -2,12 +2,12 @@ package processes
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-control-plane/backend/internal/action"
-	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
-	"github.com/unity-sds/unity-control-plane/backend/internal/database"
-	"github.com/unity-sds/unity-control-plane/backend/internal/metadata"
-	"github.com/unity-sds/unity-control-plane/backend/internal/websocket"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
+	"github.com/unity-sds/unity-management-console/backend/internal/action"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/database"
+	"github.com/unity-sds/unity-management-console/backend/internal/metadata"
+	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 )
 
 func GenerateMetadata(appname string, install *marketplace.Install, meta *marketplace.MarketplaceMetadata) ([]byte, error) {

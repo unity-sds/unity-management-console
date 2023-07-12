@@ -2,8 +2,8 @@ package database
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
-	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 	"gorm.io/gorm/clause"
 )
 

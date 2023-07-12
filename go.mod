@@ -1,4 +1,4 @@
-module github.com/unity-sds/unity-control-plane
+module github.com/unity-sds/unity-management-console
 
 go 1.20
 

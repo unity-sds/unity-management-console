@@ -1,10 +1,10 @@
 package action
 
 import (
-	"github.com/unity-sds/unity-control-plane/backend/internal/act"
-	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
-	"github.com/unity-sds/unity-control-plane/backend/internal/websocket"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
+	"github.com/unity-sds/unity-management-console/backend/internal/act"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 )
 
 type ActRunner interface {

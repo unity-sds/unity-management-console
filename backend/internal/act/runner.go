@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"context"
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
-	"github.com/unity-sds/unity-control-plane/backend/internal/websocket"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"strings"
 
 	"github.com/nektos/act/pkg/common"

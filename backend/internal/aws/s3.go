@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"math/rand"
 	"time"
 )
