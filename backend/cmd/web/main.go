@@ -63,8 +63,6 @@ func provisionS3(appConfig config.AppConfig) {
 }
 
 func installGateway(store database.Datastore, appConfig config.AppConfig) {
-	runner := action.NewActRunner()
-
 	applications := marketplace.Install_Applications{
 		Name:      "unity-apigateway",
 		Version:   "0.1",
@@ -72,10 +70,9 @@ func installGateway(store database.Datastore, appConfig config.AppConfig) {
 	}
 	install := marketplace.Install{
 		Applications:   &applications,
-		Extensions:     nil,
 		DeploymentName: "Core API Gateway",
 	}
-	err := processes.TriggerInstall(nil, store, install, appConfig, *runner)
+	err := processes.TriggerInstall(nil, "", store, &install, appConfig)
 	if err != nil {
 		log.WithError(err).Error("Issue installing API Gateway")
 	}

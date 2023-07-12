@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "backend/internal/models";
+
+message Message {
+  oneof content {
+    CoreMessage coremessage = 1;
+    ConnectionSetup connectionsetup = 2;
+  }
+}
+
+message CoreMessage {
+  string operation = 1;
+  string payload = 2;
+  map<string, string> options = 3;
+}
+
+message ConnectionSetup {
+  string type = 1;
+  string userID = 2;
+}

@@ -1,8 +1,6 @@
 package web
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
@@ -14,20 +12,21 @@ import (
 	"github.com/unity-sds/unity-control-plane/backend/internal/database"
 	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
 	"github.com/unity-sds/unity-control-plane/backend/internal/processes"
-	ws "github.com/unity-sds/unity-control-plane/backend/internal/websocket"
+	websocket2 "github.com/unity-sds/unity-control-plane/backend/internal/websocket"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"net/http"
 )
 
 var conf config.AppConfig
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool {
-		return true // or check the origin if you want to add more security
-	},
-}
 
+var wsManager = websocket2.NewWebSocketManager()
+
+var clients = make(map[*websocket.Conn]bool)
+var broadcast = make(chan websocket2.ClientMessage)
+
+// setupFeatureFlags sets up feature flags for the application.
+// It uses the username from the gin context to create a new user for the feature flag client.
+// It then checks the value of the "test-flag" for the user and logs the result.
 func setupFeatureFlags(c *gin.Context) {
 	log.Info("Setting up feature flags")
 
@@ -42,16 +41,22 @@ func setupFeatureFlags(c *gin.Context) {
 	}
 }
 
+// handleRoot redirects the root URL to "/ui".
 func handleRoot(c *gin.Context) {
 	c.Redirect(http.StatusMovedPermanently, "/ui")
 }
 
+// handlePing responds with a JSON message containing "pong".
+// This can be used to check if the server is running.
 func handlePing(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "pong",
 	})
 }
 
+// handleConfigPOST handles POST requests to "/config".
+// It binds the JSON body of the request to a slice of CoreConfig models.
+// If the binding is successful, it stores the configuration in the database and triggers an environment update.
 func handleConfigPOST(c *gin.Context) {
 	var configjson []models.CoreConfig
 	store := database.GormDatastore{}
@@ -76,76 +81,29 @@ func handleConfigPOST(c *gin.Context) {
 	}
 }
 
+// handleConfigGET responds with the current application configuration.
 func handleConfigGET(c *gin.Context) {
 	c.JSON(http.StatusOK, conf)
 }
 
+// handleWebsocket handles websocket connections.
+// It upgrades the HTTP connection to a websocket connection and reads messages from the client.
+// Each message is unmarshalled into a WebsocketMessage and sent to the broadcast channel.
 func handleWebsocket(c *gin.Context) {
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
-	store, err := database.NewGormDatastore()
-	if err != nil {
-		log.Print("upgrade error:", err)
-		return
-	}
-	for {
-		_, msg, err := conn.ReadMessage()
-		if err != nil {
-			log.Println("Error during message reading:", err)
-			break
-		}
-
-		var received ws.BareMessage
-		err = json.Unmarshal(msg, &received)
-		if err != nil {
-			log.Println("Error during message unmarshalling:", err)
-			err := decodeProtobuf(msg, conn, conf, store)
-			if err != nil {
-				log.Errorf("Error decoding protobuf %v", err)
-			}
-			break
-		}
-
-		log.Infof("Message received : %v", received.Payload)
-		log.Infof("Action received: %v", received.Action)
-		if received.Action == "config upgrade" {
-			runner := &action.ActRunnerImpl{}
-			processes.UpdateCoreConfig(conn, store, conf, runner)
-		} else if received.Action == "install software" {
-
-		} else if received.Action == "request config" {
-			msg, err := fetchConfig(conf)
-			if err != nil {
-				log.Errorf("Problem requesting config: %v", err)
-			}
-			log.Info("Writing config to websocket")
-			if err := conn.WriteMessage(websocket.BinaryMessage, msg); err != nil {
-				log.Errorf("Issue writing websocket message: %v", err)
-				break
-			}
-		} else if received.Action == "request parameters" {
-			existingparams, err := store.FetchSSMParams()
-
-			params, err := aws.ReadSSMParameters(existingparams)
-
-			if err != nil {
-				log.Errorf("Problem requesting config: %v", err)
-			}
-			log.Info("Writing params to websocket")
-			msg, err := proto.Marshal(params)
-			if err := conn.WriteMessage(websocket.BinaryMessage, msg); err != nil {
-				log.Errorf("Issue writing websocket message: %v", err)
-				break
-			}
-		}
-
-	}
+	wsManager.HandleConnections(c.Writer, c.Request)
 }
 
+// handleNoRoute serves the index.html file for any routes that are not defined.
 func handleNoRoute(c *gin.Context) {
 	c.File("./build/index.html")
 }
 
+// DefineRoutes defines the routes for the gin engine.
+// It sets up basic authentication and defines handlers for various routes.
+// It also starts a goroutine to handle messages from the broadcast channel.
 func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
+	go wsManager.Start()
+
 	router := gin.Default()
 	conf = appConfig
 
@@ -162,8 +120,15 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	authorized.GET("/ws", handleWebsocket)
 	router.NoRoute(handleNoRoute)
 
+	router.Use(LoggingMiddleware())
+	router.Use(ErrorHandlingMiddleware())
+
+	go handleMessages()
+
 	return router
 }
+
+// fetchConfig fetches the application and network configuration from AWS and marshals it into a protobuf message.
 func fetchConfig(conf config.AppConfig) ([]byte, error) {
 
 	pub, priv, err := aws.FetchSubnets()
@@ -201,19 +166,32 @@ func fetchConfig(conf config.AppConfig) ([]byte, error) {
 	return data, nil
 }
 
-func decodeProtobuf(msg []byte, conn *websocket.Conn, conf config.AppConfig, store database.Datastore) error {
-	pb := &marketplace.Install{}
-	runner := action.NewActRunner() // using a constructor function
-
-	log.Info("Attempting to decode the message...")
-	if err := proto.Unmarshal(msg, pb); err != nil {
-		return fmt.Errorf("failed to unmarshal message: %v, error: %w", msg, err)
+// handleMessages reads messages from the broadcast channel and handles them based on their type.
+// It creates a new datastore and uses it to handle install messages.
+func handleMessages() error {
+	store, err := database.NewGormDatastore()
+	if err != nil {
+		log.WithError(err).Error("Error creating datastore")
+		return err
 	}
+	for message := range wsManager.Broadcast {
+		// Unmarshal the message into a WebsocketMessage
+		clientMessage := &marketplace.WebsocketMessage{}
+		if err := proto.Unmarshal(message.Message, clientMessage); err != nil {
+			log.WithError(err).Error("Error unmarshalling websocket message")
+			continue
+		}
 
-	log.Infof("Message decoded successfully: %+v", pb)
-
-	if err := processes.TriggerInstall(conn, store, *pb, conf, *runner); err != nil {
-		return fmt.Errorf("failed to trigger install: %v", err)
+		switch content := clientMessage.Content.(type) {
+		case *marketplace.WebsocketMessage_Install:
+			installMessage := content.Install
+			// Handle install message
+			if err := processes.TriggerInstall(wsManager, message.Client.UserID, store, installMessage, conf); err != nil {
+				log.WithError(err).Error("Error triggering install")
+			}
+		default:
+			log.Error("Unknown message type")
+		}
 	}
 
 	return nil

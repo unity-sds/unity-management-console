@@ -5,11 +5,11 @@ import (
 	"testing"
 )
 
-func TestFetchSubnets(t *testing.T) {
+func TestCreateBucket(t *testing.T) {
 	Convey("Given an AWS account and an AWS connection", t, func() {
-		Convey("When FetchSubnets is called", func() {
+		Convey("When CreateBucket is called", func() {
 
-			Convey("Then a list of subnets should be returned", func() {
+			Convey("Then a new bucket should be created", func() {
 
 			})
 		})

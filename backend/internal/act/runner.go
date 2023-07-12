@@ -5,9 +5,9 @@ import (
 	"context"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
+	"github.com/unity-sds/unity-control-plane/backend/internal/websocket"
 	"strings"
 
-	"github.com/gorilla/websocket"
 	"github.com/nektos/act/pkg/common"
 	"github.com/nektos/act/pkg/model"
 	"github.com/nektos/act/pkg/runner"
@@ -21,7 +21,7 @@ type ActRunner struct {
 	Inputs        map[string]string
 	Env           map[string]string
 	Secrets       map[string]string
-	Conn          *websocket.Conn
+	Conn          *websocket.WebSocketManager
 	Workdir       string
 	RunnerConfig  *runner.Config
 	Plan          *model.Plan
@@ -58,7 +58,7 @@ func (m *MyLogger) WithJobLogger() *logrus.Logger {
 	logger.SetOutput(&m.Output)
 	return logger
 }
-func NewActRunner(workflow string, inputs, env, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) *ActRunner {
+func NewActRunner(workflow string, inputs, env, secrets map[string]string, conn *websocket.WebSocketManager, appConfig config.AppConfig) *ActRunner {
 	// setup the default ActRunner here
 	return &ActRunner{Workflow: workflow, Inputs: inputs, Env: env, Secrets: secrets, Conn: conn, AppConfig: appConfig, Workdir: appConfig.Workdir}
 }
@@ -187,10 +187,8 @@ func (ar *ActRunner) CaptureOutput() (stopCapture func()) {
 				return
 			}
 			if ar.Conn != nil {
-				if err := ar.Conn.WriteMessage(websocket.TextMessage, buf[:n]); err != nil {
-					// log.Println("write:", err)
-					return
-				}
+				id := "test"
+				ar.Conn.SendMessageToUserID(id, buf[:n])
 			}
 		}
 		done <- true
@@ -229,7 +227,7 @@ func (ar *ActRunner) PrintOutput() {
 // Then it creates the workflow plan, runner configuration, and sets up the logger for the ActRunner instance.
 // After this setup, it runs the workflow, captures the output and prints the captured output.
 // If an error occurs at any point during this process, it is returned.
-func RunAct(workflow string, inputs map[string]string, env map[string]string, secrets map[string]string, conn *websocket.Conn, appConfig config.AppConfig) error {
+func RunAct(workflow string, inputs map[string]string, env map[string]string, secrets map[string]string, conn *websocket.WebSocketManager, appConfig config.AppConfig) error {
 	log.Info("Creating runner")
 	ar := NewActRunner(workflow, inputs, env, secrets, conn, appConfig)
 

@@ -26,7 +26,7 @@ func (m *MockStore) StoreSSMParams(p []config.SSMParameter, owner string) error 
 	return nil
 }
 
-func (m *MockStore) FetchSSMParams() ([]models.SSMParameters, error) { // Replace YourProject.YourPackage.SSMParam with the appropriate type
+func (m *MockStore) FetchSSMParams() ([]models.SSMParameters, error) {
 	args := m.Called()
 	return args.Get(0).([]models.SSMParameters), args.Error(1)
 }
@@ -138,14 +138,6 @@ func fetchConfig() {
 	if err := viper.Unmarshal(&conf); err != nil {
 		log.Errorf("Unable to decode into struct, %v", err)
 	}
-}
-func TestRunSPSDemo(t *testing.T) {
-	r := action.ActRunnerImpl{}
-
-	fetchConfig()
-	meta := "{\n\t\"metadata\": {\n\t\t\"metadataversion\": \"unity-cs-0.1\",\n\t\t\"exectarget\": \"act\",\n\t\t\"deploymentname\": \"managementdashboard\",\n\t\t\"services\": [\n\t\t\t{\"name\":\"ryantestdeploy\",\"source\":\"unity-sds/unity-sps-prototype\",\"version\":\"xxx\",\"branch\":\"main\"}\n\t\t],\n\t\t\"extensions\":{\n\t\t\t\"kubernetes\":{\n\t\t\t\t\"clustername\":\"unity-sps-managementdashboard\",\n\t\t\t\t\"owner\":\"ryan\",\n\t\t\t\t\"projectname\":\"testproject\",\n\t\t\t\t\"nodegroups\":{\n\t\t\t\t\t\"group1\": {\n\t\t\t\t\t\t\"instancetype\": \"m5.xlarge\",\n\t\t\t\t\t\t\"nodecount\":\"1\"\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}"
-	err := InstallMarketplaceApplication(nil, meta, conf, "", r)
-	log.Errorf("Error: %v", err)
 }
 
 func TestRun(t *testing.T) {

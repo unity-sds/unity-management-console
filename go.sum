@@ -273,6 +273,11 @@ github.com/gopherjs/gopherjs v1.17.2 h1:fQnZVsXk8uxXIStYb0N4bGk7jeyTalG/wsZjQ25d
 github.com/gopherjs/gopherjs v1.17.2/go.mod h1:pRRIvn/QzFLrKfvEz3qUuEhtE/zLCWfreZ6J5gM2i+k=
 github.com/gorilla/websocket v1.5.0 h1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWmnc=
 github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
+github.com/hashicorp/errwrap v1.0.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
+github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY2I=
+github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
+github.com/hashicorp/go-multierror v1.1.1 h1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo=
+github.com/hashicorp/go-multierror v1.1.1/go.mod h1:iw975J/qwKPdAO1clOe2L8331t/9/fmwbPZ6JB6eMoM=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/hcl v1.0.0 h1:0Anlzjpi4vEasTeNFn2mLJgTSwt0+6sfsiTG8qcWGx4=
@@ -470,6 +475,10 @@ github.com/unity-sds/unity-cs-manager v0.0.0-20230629110835-62d1c98502b6 h1:ro8K
 github.com/unity-sds/unity-cs-manager v0.0.0-20230629110835-62d1c98502b6/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
 github.com/unity-sds/unity-cs-manager v0.0.0-20230629112238-3f844df4139c h1:kfjG2eVHs18Z6zVWdWWAJxKOYPtVGOyT/x0FYZnKQrc=
 github.com/unity-sds/unity-cs-manager v0.0.0-20230629112238-3f844df4139c/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230711143130-a319ce02c8c3 h1:xTiijTwLvG6bvDqIQz1F6gqYQYmNGtnO1wDM/+NzUy4=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230711143130-a319ce02c8c3/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230711143306-8998045228dc h1:6Zwo5Oqbted18ZAAG8pUx6xdWelxnmwCrQuvMKTxxxg=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230711143306-8998045228dc/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/vishvananda/netlink v1.1.0/go.mod h1:cTgwzPIzzgDAYoQrMm0EdrjRUBkTqKYppBueQtXaqoE=
 github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df/go.mod h1:JP3t17pCcGlemwknint6hfoeCVQrEMVwxRLRjXpq+BU=
