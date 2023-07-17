@@ -8,7 +8,7 @@ import (
 )
 
 type ActRunner interface {
-	RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.WebSocketManager, appConfig config.AppConfig) error
+	RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.WebSocketManager, appConfig *config.AppConfig) error
 }
 
 type ActRunnerImpl struct {
@@ -18,10 +18,10 @@ type ActRunnerImpl struct {
 func NewActRunner() *ActRunnerImpl {
 	return &ActRunnerImpl{}
 }
-func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.WebSocketManager, appConfig config.AppConfig) error {
+func (r *ActRunnerImpl) RunAct(path string, inputs, env, secrets map[string]string, conn *websocket.WebSocketManager, appConfig *config.AppConfig) error {
 	return act.RunAct(path, inputs, env, secrets, conn, appConfig)
 }
-func RunInstall(wsmanager *websocket.WebSocketManager, userid string, install *marketplace.Install, appConfig config.AppConfig) error {
+func RunInstall(wsmanager *websocket.WebSocketManager, userid string, install *marketplace.Install, appConfig *config.AppConfig) error {
 
 	/*if install.Extensions != nil {
 		err := spinUpExtensions(conn, appConfig, install.Extensions, r)

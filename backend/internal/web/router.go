@@ -7,7 +7,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/thomaspoignant/go-feature-flag/ffuser"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
-	"github.com/unity-sds/unity-management-console/backend/internal/action"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
@@ -59,7 +58,6 @@ func handlePing(c *gin.Context) {
 // If the binding is successful, it stores the configuration in the database and triggers an environment update.
 func handleConfigPOST(c *gin.Context) {
 	var configjson []models.CoreConfig
-	store := database.GormDatastore{}
 
 	if err := c.ShouldBindJSON(&configjson); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -75,8 +73,7 @@ func handleConfigPOST(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": configjson})
 
 	// Trigger environment update via act
-	runner := &action.ActRunnerImpl{}
-	if err := processes.UpdateCoreConfig(nil, store, conf, runner); err != nil {
+	if err := processes.UpdateCoreConfig(nil, nil); err != nil {
 		log.WithError(err).Error("error updating core configuration")
 	}
 }
@@ -186,7 +183,7 @@ func handleMessages() error {
 		case *marketplace.WebsocketMessage_Install:
 			installMessage := content.Install
 			// Handle install message
-			if err := processes.TriggerInstall(wsManager, message.Client.UserID, store, installMessage, conf); err != nil {
+			if err := processes.TriggerInstall(wsManager, message.Client.UserID, store, installMessage, &conf); err != nil {
 				log.WithError(err).Error("Error triggering install")
 			}
 		default:

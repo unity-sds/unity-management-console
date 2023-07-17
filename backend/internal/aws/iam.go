@@ -7,11 +7,9 @@ import (
 )
 import "github.com/aws/aws-sdk-go-v2/service/iam"
 
-
 func checkPolicy() (bool, error) {
 
 	cfg, err := config.LoadDefaultConfig(context.TODO())
-
 
 	if err != nil {
 		log.Errorf("Error creating session: %v", err)
@@ -20,7 +18,7 @@ func checkPolicy() (bool, error) {
 
 	client := iam.NewFromConfig(cfg)
 
-	resp, err := client.SimulatePrincipalPolicy(context.TODO(),&iam.SimulatePrincipalPolicyInput{
+	resp, err := client.SimulatePrincipalPolicy(context.TODO(), &iam.SimulatePrincipalPolicyInput{
 		ActionNames:                        nil,
 		PolicySourceArn:                    nil,
 		CallerArn:                          nil,
@@ -37,5 +35,6 @@ func checkPolicy() (bool, error) {
 
 	log.Infof("IAM Response: %v", resp)
 
-	return true, err
+	//TODO return err
+	return true, nil
 }

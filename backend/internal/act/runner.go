@@ -30,7 +30,7 @@ type ActRunner struct {
 	StdoutBuffer  bytes.Buffer
 	StderrBuffer  bytes.Buffer
 	PlanExecutor  common.Executor
-	AppConfig     config.AppConfig
+	AppConfig     *config.AppConfig
 }
 
 type MyLogger struct {
@@ -58,7 +58,7 @@ func (m *MyLogger) WithJobLogger() *logrus.Logger {
 	logger.SetOutput(&m.Output)
 	return logger
 }
-func NewActRunner(workflow string, inputs, env, secrets map[string]string, conn *websocket.WebSocketManager, appConfig config.AppConfig) *ActRunner {
+func NewActRunner(workflow string, inputs, env, secrets map[string]string, conn *websocket.WebSocketManager, appConfig *config.AppConfig) *ActRunner {
 	// setup the default ActRunner here
 	return &ActRunner{Workflow: workflow, Inputs: inputs, Env: env, Secrets: secrets, Conn: conn, AppConfig: appConfig, Workdir: appConfig.Workdir}
 }
@@ -227,7 +227,7 @@ func (ar *ActRunner) PrintOutput() {
 // Then it creates the workflow plan, runner configuration, and sets up the logger for the ActRunner instance.
 // After this setup, it runs the workflow, captures the output and prints the captured output.
 // If an error occurs at any point during this process, it is returned.
-func RunAct(workflow string, inputs map[string]string, env map[string]string, secrets map[string]string, conn *websocket.WebSocketManager, appConfig config.AppConfig) error {
+func RunAct(workflow string, inputs map[string]string, env map[string]string, secrets map[string]string, conn *websocket.WebSocketManager, appConfig *config.AppConfig) error {
 	log.Info("Creating runner")
 	ar := NewActRunner(workflow, inputs, env, secrets, conn, appConfig)
 

@@ -23,7 +23,7 @@ func GenerateMetadata(appname string, install *marketplace.Install, meta *market
 	return metaarr, err
 }
 
-func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid string, meta []byte, config config.AppConfig, entrypoint string, appName string, install *marketplace.Install) error {
+func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid string, meta []byte, config *config.AppConfig, entrypoint string, appName string, install *marketplace.Install) error {
 
 	if appName == "unity-apigateway" {
 		return action.RunInstall(conn, userid, install, config)
@@ -62,7 +62,7 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 	}
 }
 
-func TriggerInstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Install, conf config.AppConfig) error {
+func TriggerInstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Install, conf *config.AppConfig) error {
 	t := received.Applications
 
 	meta, err := validateAndPrepareInstallation(t)

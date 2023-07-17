@@ -18,7 +18,6 @@ type AppConfig struct {
 	GithubToken          string
 	MarketplaceOwner     string
 	MarketplaceRepo      string
-	WorkflowBasePath     string
 	AWSRegion            string
 	BucketName           string
 	Workdir              string

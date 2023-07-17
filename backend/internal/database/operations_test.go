@@ -3,7 +3,7 @@ package database
 import (
 	"github.com/DATA-DOG/go-sqlmock"
 	. "github.com/smartystreets/goconvey/convey"
-	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
+	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"testing"

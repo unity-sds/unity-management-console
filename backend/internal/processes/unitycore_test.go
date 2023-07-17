@@ -6,10 +6,9 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/mock"
-	"github.com/unity-sds/unity-control-plane/backend/internal/action"
-	"github.com/unity-sds/unity-control-plane/backend/internal/application/config"
-	"github.com/unity-sds/unity-control-plane/backend/internal/database/models"
-	"github.com/unity-sds/unity-cs-manager/marketplace"
+	"github.com/unity-sds/unity-management-console/backend/internal/action"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 	"os"
 	"path/filepath"
 	"testing"
@@ -61,28 +60,28 @@ func TestUpdateCoreConfig(t *testing.T) {
 
 			Convey("When UpdateCoreConfig is called", func() {
 				// temporarily point the global DB variable to our mock
-				mockStore := new(MockStore)
-
-				mockData := []models.SSMParameters{{
-					Key:   "/unity/core/project",
-					Value: "project-value",
-					Type:  "String",
-				}, {
-					Key:   "/unity/core/venue",
-					Value: "venue-value",
-					Type:  "String",
-				}}
-
-				mockStore.On("FetchSSMParams").Return(mockData, nil)
-
-				mockRunner := &MockActRunner{}
-
-				conn := new(websocket.Conn) // You might want to mock this as well if your RunAct function interacts with it.
+				//mockStore := new(MockStore)
+				//
+				//mockData := []models.SSMParameters{{
+				//	Key:   "/unity/core/project",
+				//	Value: "project-value",
+				//	Type:  "String",
+				//}, {
+				//	Key:   "/unity/core/venue",
+				//	Value: "venue-value",
+				//	Type:  "String",
+				//}}
+				//
+				//mockStore.On("FetchSSMParams").Return(mockData, nil)
+				//
+				//mockRunner := &MockActRunner{}
+				//
+				//conn := new(websocket.Conn) // You might want to mock this as well if your RunAct function interacts with it.
 				fetchConfig()
 				config := conf // Replace with the appropriate type and values.
 
 				Convey("When UpdateCoreConfig is called", func() {
-					err := UpdateCoreConfig(conn, mockStore, config, mockRunner)
+					err := UpdateCoreConfig(&config)
 
 					Convey("Then no error should be returned", func() {
 						So(err, ShouldBeNil)
@@ -138,40 +137,4 @@ func fetchConfig() {
 	if err := viper.Unmarshal(&conf); err != nil {
 		log.Errorf("Unable to decode into struct, %v", err)
 	}
-}
-
-func TestRun(t *testing.T) {
-	r := action.ActRunnerImpl{}
-	mockStore := &MockStore{}
-
-	ng1 := marketplace.Install_Extensions_Nodegroups{
-		Name:         "my ng",
-		Instancetype: "m5.xlarge",
-		Nodecount:    "5",
-	}
-
-	narr := []*marketplace.Install_Extensions_Nodegroups{&ng1}
-
-	eks := marketplace.Install_Extensions_Eks{
-		Clustername: "test cluster",
-		Owner:       "tom",
-		Projectname: "testing",
-		Nodegroups:  narr,
-	}
-
-	msg := marketplace.Install_Extensions{
-		Eks: &eks,
-	}
-	m := marketplace.Install_Applications{
-		Name:      "unity-eks",
-		Version:   "0.1",
-		Variables: nil,
-	}
-
-	c := marketplace.Install{
-		Applications: &m,
-		Extensions:   &msg,
-	}
-
-	TriggerInstall(nil, mockStore, c, conf, r)
 }

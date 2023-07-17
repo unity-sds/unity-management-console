@@ -1,12 +1,14 @@
 package aws
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"context"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	appconfig "github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"math/rand"
 	"time"
 )
@@ -15,17 +17,16 @@ const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-func CreateBucket(conf config.AppConfig) {
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(conf.AWSRegion),
-	})
+func CreateBucket(conf *appconfig.AppConfig) {
+	cfg, err := config.LoadDefaultConfig(context.TODO())
 
 	if err != nil {
-		log.Errorf("Error creating session: %v", err)
-		return
+		log.Fatalf("failed to load AWS configuration: %v", err)
 	}
 
-	svc := s3.New(sess)
+	cfg.Region = conf.AWSRegion
+
+	svc := s3.NewFromConfig(cfg)
 
 	bucket := ""
 	if conf.BucketName != "" {
@@ -33,33 +34,37 @@ func CreateBucket(conf config.AppConfig) {
 	} else {
 		bucket = generateBucketName()
 		conf.BucketName = bucket
-		err := viper.WriteConfig()
+		viper.Set("bucketname", bucket)
+		err = viper.WriteConfigAs(viper.ConfigFileUsed())
 		if err != nil {
 			log.WithError(err).Error("Could not write config file")
 		}
 	}
 
-	// check bucket exists
-	_, err = svc.HeadBucket(&s3.HeadBucketInput{
+	// Check if bucket exists
+	_, err = svc.HeadBucket(context.TODO(), &s3.HeadBucketInput{
 		Bucket: aws.String(bucket),
 	})
 
 	if err != nil {
-		// create bucket
-		pass, err := checkPolicy()
-		if pass == false || err != nil {
+		// Create bucket
+		pass, perr := checkPolicy()
+		if !pass || perr != nil {
 			log.Warnf("Policy Check Failed, following actions may not work correctly. %v", err)
 		}
-		_, err = svc.CreateBucket(&s3.CreateBucketInput{
+		_, berr := svc.CreateBucket(context.TODO(), &s3.CreateBucketInput{
 			Bucket: aws.String(bucket),
+			CreateBucketConfiguration: &types.CreateBucketConfiguration{
+				LocationConstraint: types.BucketLocationConstraint(conf.AWSRegion),
+			},
 		})
 
-		if err != nil {
-			log.Errorf("Error creating bucket, %v", err)
+		if berr != nil {
+			log.Errorf("Error creating bucket: %v", berr)
 			return
 		}
 	} else {
-		log.Infof("Bucket %v exists", bucket)
+		log.Infof("Bucket %s exists", bucket)
 	}
 }
 
@@ -76,5 +81,5 @@ func stringf(length int) string {
 }
 
 func generateBucketName() string {
-	return "mgmt_" + stringf(8)
+	return "mgmt-" + stringf(8)
 }

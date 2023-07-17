@@ -23,24 +23,3 @@ func GenerateApplicationMetadata(appname string, install *marketplace.Install, m
 
 	return proto.Marshal(actionmeta)
 }
-
-func GenerateApiGatewayMetadata() ([]byte, error) {
-
-	api := marketplace.ActionMeta_Extensions_Apis{Name: "test"}
-	a := marketplace.ActionMeta_Extensions_Apigateway{Apis: []*marketplace.ActionMeta_Extensions_Apis{&api}}
-
-	apis := marketplace.ActionMeta_Extensions{
-		Eks:  nil,
-		Apis: &a,
-	}
-	actionmeta := marketplace.ActionMeta{
-		MetadataVersion: "0.1",
-		Exectarget:      "act",
-		DeploymentName:  "gateway",
-		Services:        nil,
-		Extensions:      &apis,
-	}
-
-	return proto.Marshal(&actionmeta)
-
-}

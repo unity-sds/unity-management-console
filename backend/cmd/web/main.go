@@ -4,11 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/unity-sds/unity-cs-manager/marketplace"
-	"github.com/unity-sds/unity-management-console/backend/internal/action"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
-	"github.com/unity-sds/unity-management-console/backend/internal/aws"
-	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
 	"github.com/unity-sds/unity-management-console/backend/internal/web"
 	"os"
@@ -16,7 +12,7 @@ import (
 )
 
 var (
-	conf config.AppConfig
+	appConfig config.AppConfig
 
 	cfgFile   string
 	bootstrap bool
@@ -26,22 +22,14 @@ var (
 		Short: "Execute management console commands",
 		Long:  `Management console startup configuration commands`,
 		Run: func(cmd *cobra.Command, args []string) {
-			store, err := database.NewGormDatastore()
 			if bootstrap == true {
 				//appLauncher(bootstrapApplication)
-				storeDefaultSSMParameters(conf, store)
-				r := action.ActRunnerImpl{}
-				err := processes.UpdateCoreConfig(nil, store, conf, &r)
-				if err != nil {
-					log.WithError(err).Error("Problem updating ssm config")
-				}
-				provisionS3(conf)
-				installGateway(store, conf)
+				processes.BootstrapEnv(&appConfig)
 
 			}
-			router := web.DefineRoutes(conf)
+			router := web.DefineRoutes(appConfig)
 
-			err = router.Run()
+			err := router.Run()
 			if err != nil {
 				log.Errorf("Failed to launch API. %v", err)
 				return
@@ -49,34 +37,6 @@ var (
 		},
 	}
 )
-
-func storeDefaultSSMParameters(appConfig config.AppConfig, store database.Datastore) {
-
-	err := store.StoreSSMParams(appConfig.DefaultSSMParameters, "bootstrap")
-	if err != nil {
-		log.WithError(err).Error("Problem storing parameters in database.")
-	}
-}
-
-func provisionS3(appConfig config.AppConfig) {
-	aws.CreateBucket(appConfig)
-}
-
-func installGateway(store database.Datastore, appConfig config.AppConfig) {
-	applications := marketplace.Install_Applications{
-		Name:      "unity-apigateway",
-		Version:   "0.1",
-		Variables: nil,
-	}
-	install := marketplace.Install{
-		Applications:   &applications,
-		DeploymentName: "Core API Gateway",
-	}
-	err := processes.TriggerInstall(nil, "", store, &install, appConfig)
-	if err != nil {
-		log.WithError(err).Error("Issue installing API Gateway")
-	}
-}
 
 func main() {
 	log.Info("Launching Unity Management Console")
@@ -123,8 +83,8 @@ func initConfig() {
 		viper.SetDefault("GithubToken", "unset")
 		viper.SetDefault("MarketplaceOwner", "unity-sds")
 		viper.SetDefault("MarketplaceRepo", "unity-marketplace")
-		viper.SetDefault("WorkflowBasePath", "unset")
-		viper.SetDefault("Workdir", "unset")
+		viper.SetDefault("Workdir", "./workdir")
+		viper.SetDefault("AWSRegion", "us-west-2")
 
 	}
 
@@ -134,17 +94,17 @@ func initConfig() {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			file, createErr := os.Create(filepath.Join(configdir, "unity.yaml"))
 			if createErr != nil {
-				log.Fatalf("Failed to create config file: %v", createErr)
+				log.WithError(createErr).Panicf("Failed to create config file")
 			}
 			defer file.Close()
 			log.Infof("Created config file: %s", viper.ConfigFileUsed())
 		} else {
 			// Config file was found but another error was produced
-			log.Errorf("Failed to read config file: %v", err)
+			log.WithError(err).Panicf("Failed to read config file")
 		}
 	}
-	if err := viper.Unmarshal(&conf); err != nil {
-		log.Errorf("Unable to decode into struct, %v", err)
+	if err := viper.Unmarshal(&appConfig); err != nil {
+		log.WithError(err).Panicf("Unable to decode into struct")
 	}
 
 }
