@@ -3,9 +3,21 @@ import * as _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "";
 
+export interface UnityWebsocketMessage {
+  install?: Install | undefined;
+  simplemessage?: SimpleMessage | undefined;
+  connectionsetup?: ConnectionSetup | undefined;
+  config?: Config | undefined;
+  parameters?: Parameters | undefined;
+}
+
+export interface ConnectionSetup {
+  type: string;
+  userID: string;
+}
+
 export interface Install {
   applications: Install_Applications | undefined;
-  extensions: Install_Extensions | undefined;
   DeploymentName: string;
 }
 
@@ -20,95 +32,251 @@ export interface Install_Applications_VariablesEntry {
   value: string;
 }
 
-export interface Install_Extensions {
-  eks: Install_Extensions_Eks | undefined;
-  apigateway: Install_Extensions_Apigateway | undefined;
+export interface SimpleMessage {
+  operation: string;
+  payload: string;
 }
 
-export interface Install_Extensions_Apigateway {
-  name: string[];
+export interface Config {
+  applicationConfig: Config_ApplicationConfig | undefined;
+  networkConfig: Config_NetworkConfig | undefined;
 }
 
-export interface Install_Extensions_Nodegroups {
-  name: string;
-  instancetype: string;
-  nodecount: string;
+export interface Config_ApplicationConfig {
+  GithubToken: string;
+  MarketplaceOwner: string;
+  MarketplaceUser: string;
 }
 
-export interface Install_Extensions_Eks {
-  clustername: string;
-  owner: string;
-  projectname: string;
-  nodegroups: Install_Extensions_Nodegroups[];
-  EKSServiceArn: string;
-  EKSClusterRegion: string;
-  EKSClusterVersion: string;
-  EKSClusterAMI: string;
-  EKSInstanceRoleArn: string;
-  EKSKubeProxyVersion: string;
-  EKSCoreDNSVersion: string;
-  EKSEBSCSIVersion: string;
-  EKSPublicSubnetA: string;
-  EKSPublicSubnetB: string;
-  EKSPrivateSubnetA: string;
-  EKSPrivateSubnetB: string;
-  EKSSecurityGroup: string;
-  EKSSharedNodeSecurityGroup: string;
+export interface Config_NetworkConfig {
+  publicsubnets: string[];
+  privatesubnets: string[];
 }
 
-export interface ActionMeta {
-  metadataVersion: string;
-  exectarget: string;
-  deploymentName: string;
-  services: ActionMeta_Services[];
-  extensions: ActionMeta_Extensions | undefined;
-  deploymentType: string;
+export interface Parameters {
+  parameterlist: { [key: string]: Parameters_Parameter };
 }
 
-export interface ActionMeta_Services {
-  name: string;
-  source: string;
-  version: string;
-  branch: string;
+export interface Parameters_Parameter {
+  value: string;
+  type: string;
+  tracked: boolean;
+  insync: boolean;
 }
 
-export interface ActionMeta_Extensions {
-  eks: ActionMeta_Extensions_Eks | undefined;
-  apis: ActionMeta_Extensions_Apigateway | undefined;
+export interface Parameters_ParameterlistEntry {
+  key: string;
+  value: Parameters_Parameter | undefined;
 }
 
-export interface ActionMeta_Extensions_Apis {
-  name: string;
+function createBaseUnityWebsocketMessage(): UnityWebsocketMessage {
+  return {
+    install: undefined,
+    simplemessage: undefined,
+    connectionsetup: undefined,
+    config: undefined,
+    parameters: undefined,
+  };
 }
 
-export interface ActionMeta_Extensions_Apigateway {
-  apis: ActionMeta_Extensions_Apis[];
+export const UnityWebsocketMessage = {
+  encode(message: UnityWebsocketMessage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.install !== undefined) {
+      Install.encode(message.install, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.simplemessage !== undefined) {
+      SimpleMessage.encode(message.simplemessage, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.connectionsetup !== undefined) {
+      ConnectionSetup.encode(message.connectionsetup, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.config !== undefined) {
+      Config.encode(message.config, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.parameters !== undefined) {
+      Parameters.encode(message.parameters, writer.uint32(42).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UnityWebsocketMessage {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUnityWebsocketMessage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.install = Install.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.simplemessage = SimpleMessage.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.connectionsetup = ConnectionSetup.decode(reader, reader.uint32());
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.config = Config.decode(reader, reader.uint32());
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.parameters = Parameters.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UnityWebsocketMessage {
+    return {
+      install: isSet(object.install) ? Install.fromJSON(object.install) : undefined,
+      simplemessage: isSet(object.simplemessage) ? SimpleMessage.fromJSON(object.simplemessage) : undefined,
+      connectionsetup: isSet(object.connectionsetup) ? ConnectionSetup.fromJSON(object.connectionsetup) : undefined,
+      config: isSet(object.config) ? Config.fromJSON(object.config) : undefined,
+      parameters: isSet(object.parameters) ? Parameters.fromJSON(object.parameters) : undefined,
+    };
+  },
+
+  toJSON(message: UnityWebsocketMessage): unknown {
+    const obj: any = {};
+    message.install !== undefined && (obj.install = message.install ? Install.toJSON(message.install) : undefined);
+    message.simplemessage !== undefined &&
+      (obj.simplemessage = message.simplemessage ? SimpleMessage.toJSON(message.simplemessage) : undefined);
+    message.connectionsetup !== undefined &&
+      (obj.connectionsetup = message.connectionsetup ? ConnectionSetup.toJSON(message.connectionsetup) : undefined);
+    message.config !== undefined && (obj.config = message.config ? Config.toJSON(message.config) : undefined);
+    message.parameters !== undefined &&
+      (obj.parameters = message.parameters ? Parameters.toJSON(message.parameters) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UnityWebsocketMessage>, I>>(base?: I): UnityWebsocketMessage {
+    return UnityWebsocketMessage.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<UnityWebsocketMessage>, I>>(object: I): UnityWebsocketMessage {
+    const message = createBaseUnityWebsocketMessage();
+    message.install = (object.install !== undefined && object.install !== null)
+      ? Install.fromPartial(object.install)
+      : undefined;
+    message.simplemessage = (object.simplemessage !== undefined && object.simplemessage !== null)
+      ? SimpleMessage.fromPartial(object.simplemessage)
+      : undefined;
+    message.connectionsetup = (object.connectionsetup !== undefined && object.connectionsetup !== null)
+      ? ConnectionSetup.fromPartial(object.connectionsetup)
+      : undefined;
+    message.config = (object.config !== undefined && object.config !== null)
+      ? Config.fromPartial(object.config)
+      : undefined;
+    message.parameters = (object.parameters !== undefined && object.parameters !== null)
+      ? Parameters.fromPartial(object.parameters)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseConnectionSetup(): ConnectionSetup {
+  return { type: "", userID: "" };
 }
 
-export interface ActionMeta_Extensions_Nodegroups {
-  name: string;
-  instancetype: string;
-  nodecount: string;
-}
+export const ConnectionSetup = {
+  encode(message: ConnectionSetup, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.type !== "") {
+      writer.uint32(10).string(message.type);
+    }
+    if (message.userID !== "") {
+      writer.uint32(18).string(message.userID);
+    }
+    return writer;
+  },
 
-export interface ActionMeta_Extensions_Eks {
-  clustername: string;
-  owner: string;
-  projectname: string;
-  nodegroups: ActionMeta_Extensions_Nodegroups[];
-}
+  decode(input: _m0.Reader | Uint8Array, length?: number): ConnectionSetup {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConnectionSetup();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userID = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ConnectionSetup {
+    return {
+      type: isSet(object.type) ? String(object.type) : "",
+      userID: isSet(object.userID) ? String(object.userID) : "",
+    };
+  },
+
+  toJSON(message: ConnectionSetup): unknown {
+    const obj: any = {};
+    message.type !== undefined && (obj.type = message.type);
+    message.userID !== undefined && (obj.userID = message.userID);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ConnectionSetup>, I>>(base?: I): ConnectionSetup {
+    return ConnectionSetup.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ConnectionSetup>, I>>(object: I): ConnectionSetup {
+    const message = createBaseConnectionSetup();
+    message.type = object.type ?? "";
+    message.userID = object.userID ?? "";
+    return message;
+  },
+};
 
 function createBaseInstall(): Install {
-  return { applications: undefined, extensions: undefined, DeploymentName: "" };
+  return { applications: undefined, DeploymentName: "" };
 }
 
 export const Install = {
   encode(message: Install, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.applications !== undefined) {
       Install_Applications.encode(message.applications, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.extensions !== undefined) {
-      Install_Extensions.encode(message.extensions, writer.uint32(18).fork()).ldelim();
     }
     if (message.DeploymentName !== "") {
       writer.uint32(26).string(message.DeploymentName);
@@ -130,13 +298,6 @@ export const Install = {
 
           message.applications = Install_Applications.decode(reader, reader.uint32());
           continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.extensions = Install_Extensions.decode(reader, reader.uint32());
-          continue;
         case 3:
           if (tag !== 26) {
             break;
@@ -156,7 +317,6 @@ export const Install = {
   fromJSON(object: any): Install {
     return {
       applications: isSet(object.applications) ? Install_Applications.fromJSON(object.applications) : undefined,
-      extensions: isSet(object.extensions) ? Install_Extensions.fromJSON(object.extensions) : undefined,
       DeploymentName: isSet(object.DeploymentName) ? String(object.DeploymentName) : "",
     };
   },
@@ -165,8 +325,6 @@ export const Install = {
     const obj: any = {};
     message.applications !== undefined &&
       (obj.applications = message.applications ? Install_Applications.toJSON(message.applications) : undefined);
-    message.extensions !== undefined &&
-      (obj.extensions = message.extensions ? Install_Extensions.toJSON(message.extensions) : undefined);
     message.DeploymentName !== undefined && (obj.DeploymentName = message.DeploymentName);
     return obj;
   },
@@ -179,9 +337,6 @@ export const Install = {
     const message = createBaseInstall();
     message.applications = (object.applications !== undefined && object.applications !== null)
       ? Install_Applications.fromPartial(object.applications)
-      : undefined;
-    message.extensions = (object.extensions !== undefined && object.extensions !== null)
-      ? Install_Extensions.fromPartial(object.extensions)
       : undefined;
     message.DeploymentName = object.DeploymentName ?? "";
     return message;
@@ -365,25 +520,25 @@ export const Install_Applications_VariablesEntry = {
   },
 };
 
-function createBaseInstall_Extensions(): Install_Extensions {
-  return { eks: undefined, apigateway: undefined };
+function createBaseSimpleMessage(): SimpleMessage {
+  return { operation: "", payload: "" };
 }
 
-export const Install_Extensions = {
-  encode(message: Install_Extensions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.eks !== undefined) {
-      Install_Extensions_Eks.encode(message.eks, writer.uint32(10).fork()).ldelim();
+export const SimpleMessage = {
+  encode(message: SimpleMessage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.operation !== "") {
+      writer.uint32(10).string(message.operation);
     }
-    if (message.apigateway !== undefined) {
-      Install_Extensions_Apigateway.encode(message.apigateway, writer.uint32(18).fork()).ldelim();
+    if (message.payload !== "") {
+      writer.uint32(18).string(message.payload);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Install_Extensions {
+  decode(input: _m0.Reader | Uint8Array, length?: number): SimpleMessage {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInstall_Extensions();
+    const message = createBaseSimpleMessage();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -392,14 +547,14 @@ export const Install_Extensions = {
             break;
           }
 
-          message.eks = Install_Extensions_Eks.decode(reader, reader.uint32());
+          message.operation = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.apigateway = Install_Extensions_Apigateway.decode(reader, reader.uint32());
+          message.payload = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -410,53 +565,215 @@ export const Install_Extensions = {
     return message;
   },
 
-  fromJSON(object: any): Install_Extensions {
+  fromJSON(object: any): SimpleMessage {
     return {
-      eks: isSet(object.eks) ? Install_Extensions_Eks.fromJSON(object.eks) : undefined,
-      apigateway: isSet(object.apigateway) ? Install_Extensions_Apigateway.fromJSON(object.apigateway) : undefined,
+      operation: isSet(object.operation) ? String(object.operation) : "",
+      payload: isSet(object.payload) ? String(object.payload) : "",
     };
   },
 
-  toJSON(message: Install_Extensions): unknown {
+  toJSON(message: SimpleMessage): unknown {
     const obj: any = {};
-    message.eks !== undefined && (obj.eks = message.eks ? Install_Extensions_Eks.toJSON(message.eks) : undefined);
-    message.apigateway !== undefined &&
-      (obj.apigateway = message.apigateway ? Install_Extensions_Apigateway.toJSON(message.apigateway) : undefined);
+    message.operation !== undefined && (obj.operation = message.operation);
+    message.payload !== undefined && (obj.payload = message.payload);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Install_Extensions>, I>>(base?: I): Install_Extensions {
-    return Install_Extensions.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<SimpleMessage>, I>>(base?: I): SimpleMessage {
+    return SimpleMessage.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Install_Extensions>, I>>(object: I): Install_Extensions {
-    const message = createBaseInstall_Extensions();
-    message.eks = (object.eks !== undefined && object.eks !== null)
-      ? Install_Extensions_Eks.fromPartial(object.eks)
+  fromPartial<I extends Exact<DeepPartial<SimpleMessage>, I>>(object: I): SimpleMessage {
+    const message = createBaseSimpleMessage();
+    message.operation = object.operation ?? "";
+    message.payload = object.payload ?? "";
+    return message;
+  },
+};
+
+function createBaseConfig(): Config {
+  return { applicationConfig: undefined, networkConfig: undefined };
+}
+
+export const Config = {
+  encode(message: Config, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.applicationConfig !== undefined) {
+      Config_ApplicationConfig.encode(message.applicationConfig, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.networkConfig !== undefined) {
+      Config_NetworkConfig.encode(message.networkConfig, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Config {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConfig();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.applicationConfig = Config_ApplicationConfig.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.networkConfig = Config_NetworkConfig.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Config {
+    return {
+      applicationConfig: isSet(object.applicationConfig)
+        ? Config_ApplicationConfig.fromJSON(object.applicationConfig)
+        : undefined,
+      networkConfig: isSet(object.networkConfig) ? Config_NetworkConfig.fromJSON(object.networkConfig) : undefined,
+    };
+  },
+
+  toJSON(message: Config): unknown {
+    const obj: any = {};
+    message.applicationConfig !== undefined && (obj.applicationConfig = message.applicationConfig
+      ? Config_ApplicationConfig.toJSON(message.applicationConfig)
+      : undefined);
+    message.networkConfig !== undefined &&
+      (obj.networkConfig = message.networkConfig ? Config_NetworkConfig.toJSON(message.networkConfig) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Config>, I>>(base?: I): Config {
+    return Config.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Config>, I>>(object: I): Config {
+    const message = createBaseConfig();
+    message.applicationConfig = (object.applicationConfig !== undefined && object.applicationConfig !== null)
+      ? Config_ApplicationConfig.fromPartial(object.applicationConfig)
       : undefined;
-    message.apigateway = (object.apigateway !== undefined && object.apigateway !== null)
-      ? Install_Extensions_Apigateway.fromPartial(object.apigateway)
+    message.networkConfig = (object.networkConfig !== undefined && object.networkConfig !== null)
+      ? Config_NetworkConfig.fromPartial(object.networkConfig)
       : undefined;
     return message;
   },
 };
 
-function createBaseInstall_Extensions_Apigateway(): Install_Extensions_Apigateway {
-  return { name: [] };
+function createBaseConfig_ApplicationConfig(): Config_ApplicationConfig {
+  return { GithubToken: "", MarketplaceOwner: "", MarketplaceUser: "" };
 }
 
-export const Install_Extensions_Apigateway = {
-  encode(message: Install_Extensions_Apigateway, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.name) {
+export const Config_ApplicationConfig = {
+  encode(message: Config_ApplicationConfig, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.GithubToken !== "") {
+      writer.uint32(10).string(message.GithubToken);
+    }
+    if (message.MarketplaceOwner !== "") {
+      writer.uint32(18).string(message.MarketplaceOwner);
+    }
+    if (message.MarketplaceUser !== "") {
+      writer.uint32(26).string(message.MarketplaceUser);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Config_ApplicationConfig {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConfig_ApplicationConfig();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.GithubToken = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.MarketplaceOwner = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.MarketplaceUser = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Config_ApplicationConfig {
+    return {
+      GithubToken: isSet(object.GithubToken) ? String(object.GithubToken) : "",
+      MarketplaceOwner: isSet(object.MarketplaceOwner) ? String(object.MarketplaceOwner) : "",
+      MarketplaceUser: isSet(object.MarketplaceUser) ? String(object.MarketplaceUser) : "",
+    };
+  },
+
+  toJSON(message: Config_ApplicationConfig): unknown {
+    const obj: any = {};
+    message.GithubToken !== undefined && (obj.GithubToken = message.GithubToken);
+    message.MarketplaceOwner !== undefined && (obj.MarketplaceOwner = message.MarketplaceOwner);
+    message.MarketplaceUser !== undefined && (obj.MarketplaceUser = message.MarketplaceUser);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Config_ApplicationConfig>, I>>(base?: I): Config_ApplicationConfig {
+    return Config_ApplicationConfig.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Config_ApplicationConfig>, I>>(object: I): Config_ApplicationConfig {
+    const message = createBaseConfig_ApplicationConfig();
+    message.GithubToken = object.GithubToken ?? "";
+    message.MarketplaceOwner = object.MarketplaceOwner ?? "";
+    message.MarketplaceUser = object.MarketplaceUser ?? "";
+    return message;
+  },
+};
+
+function createBaseConfig_NetworkConfig(): Config_NetworkConfig {
+  return { publicsubnets: [], privatesubnets: [] };
+}
+
+export const Config_NetworkConfig = {
+  encode(message: Config_NetworkConfig, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.publicsubnets) {
       writer.uint32(10).string(v!);
     }
+    for (const v of message.privatesubnets) {
+      writer.uint32(18).string(v!);
+    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Install_Extensions_Apigateway {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Config_NetworkConfig {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInstall_Extensions_Apigateway();
+    const message = createBaseConfig_NetworkConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -465,89 +782,14 @@ export const Install_Extensions_Apigateway = {
             break;
           }
 
-          message.name.push(reader.string());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Install_Extensions_Apigateway {
-    return { name: Array.isArray(object?.name) ? object.name.map((e: any) => String(e)) : [] };
-  },
-
-  toJSON(message: Install_Extensions_Apigateway): unknown {
-    const obj: any = {};
-    if (message.name) {
-      obj.name = message.name.map((e) => e);
-    } else {
-      obj.name = [];
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Install_Extensions_Apigateway>, I>>(base?: I): Install_Extensions_Apigateway {
-    return Install_Extensions_Apigateway.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Install_Extensions_Apigateway>, I>>(
-    object: I,
-  ): Install_Extensions_Apigateway {
-    const message = createBaseInstall_Extensions_Apigateway();
-    message.name = object.name?.map((e) => e) || [];
-    return message;
-  },
-};
-
-function createBaseInstall_Extensions_Nodegroups(): Install_Extensions_Nodegroups {
-  return { name: "", instancetype: "", nodecount: "" };
-}
-
-export const Install_Extensions_Nodegroups = {
-  encode(message: Install_Extensions_Nodegroups, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    if (message.instancetype !== "") {
-      writer.uint32(18).string(message.instancetype);
-    }
-    if (message.nodecount !== "") {
-      writer.uint32(26).string(message.nodecount);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Install_Extensions_Nodegroups {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInstall_Extensions_Nodegroups();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.name = reader.string();
+          message.publicsubnets.push(reader.string());
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.instancetype = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.nodecount = reader.string();
+          message.privatesubnets.push(reader.string());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -558,123 +800,56 @@ export const Install_Extensions_Nodegroups = {
     return message;
   },
 
-  fromJSON(object: any): Install_Extensions_Nodegroups {
+  fromJSON(object: any): Config_NetworkConfig {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
-      instancetype: isSet(object.instancetype) ? String(object.instancetype) : "",
-      nodecount: isSet(object.nodecount) ? String(object.nodecount) : "",
+      publicsubnets: Array.isArray(object?.publicsubnets) ? object.publicsubnets.map((e: any) => String(e)) : [],
+      privatesubnets: Array.isArray(object?.privatesubnets) ? object.privatesubnets.map((e: any) => String(e)) : [],
     };
   },
 
-  toJSON(message: Install_Extensions_Nodegroups): unknown {
+  toJSON(message: Config_NetworkConfig): unknown {
     const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    message.instancetype !== undefined && (obj.instancetype = message.instancetype);
-    message.nodecount !== undefined && (obj.nodecount = message.nodecount);
+    if (message.publicsubnets) {
+      obj.publicsubnets = message.publicsubnets.map((e) => e);
+    } else {
+      obj.publicsubnets = [];
+    }
+    if (message.privatesubnets) {
+      obj.privatesubnets = message.privatesubnets.map((e) => e);
+    } else {
+      obj.privatesubnets = [];
+    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Install_Extensions_Nodegroups>, I>>(base?: I): Install_Extensions_Nodegroups {
-    return Install_Extensions_Nodegroups.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<Config_NetworkConfig>, I>>(base?: I): Config_NetworkConfig {
+    return Config_NetworkConfig.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Install_Extensions_Nodegroups>, I>>(
-    object: I,
-  ): Install_Extensions_Nodegroups {
-    const message = createBaseInstall_Extensions_Nodegroups();
-    message.name = object.name ?? "";
-    message.instancetype = object.instancetype ?? "";
-    message.nodecount = object.nodecount ?? "";
+  fromPartial<I extends Exact<DeepPartial<Config_NetworkConfig>, I>>(object: I): Config_NetworkConfig {
+    const message = createBaseConfig_NetworkConfig();
+    message.publicsubnets = object.publicsubnets?.map((e) => e) || [];
+    message.privatesubnets = object.privatesubnets?.map((e) => e) || [];
     return message;
   },
 };
 
-function createBaseInstall_Extensions_Eks(): Install_Extensions_Eks {
-  return {
-    clustername: "",
-    owner: "",
-    projectname: "",
-    nodegroups: [],
-    EKSServiceArn: "",
-    EKSClusterRegion: "",
-    EKSClusterVersion: "",
-    EKSClusterAMI: "",
-    EKSInstanceRoleArn: "",
-    EKSKubeProxyVersion: "",
-    EKSCoreDNSVersion: "",
-    EKSEBSCSIVersion: "",
-    EKSPublicSubnetA: "",
-    EKSPublicSubnetB: "",
-    EKSPrivateSubnetA: "",
-    EKSPrivateSubnetB: "",
-    EKSSecurityGroup: "",
-    EKSSharedNodeSecurityGroup: "",
-  };
+function createBaseParameters(): Parameters {
+  return { parameterlist: {} };
 }
 
-export const Install_Extensions_Eks = {
-  encode(message: Install_Extensions_Eks, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.clustername !== "") {
-      writer.uint32(10).string(message.clustername);
-    }
-    if (message.owner !== "") {
-      writer.uint32(18).string(message.owner);
-    }
-    if (message.projectname !== "") {
-      writer.uint32(26).string(message.projectname);
-    }
-    for (const v of message.nodegroups) {
-      Install_Extensions_Nodegroups.encode(v!, writer.uint32(34).fork()).ldelim();
-    }
-    if (message.EKSServiceArn !== "") {
-      writer.uint32(42).string(message.EKSServiceArn);
-    }
-    if (message.EKSClusterRegion !== "") {
-      writer.uint32(50).string(message.EKSClusterRegion);
-    }
-    if (message.EKSClusterVersion !== "") {
-      writer.uint32(58).string(message.EKSClusterVersion);
-    }
-    if (message.EKSClusterAMI !== "") {
-      writer.uint32(66).string(message.EKSClusterAMI);
-    }
-    if (message.EKSInstanceRoleArn !== "") {
-      writer.uint32(74).string(message.EKSInstanceRoleArn);
-    }
-    if (message.EKSKubeProxyVersion !== "") {
-      writer.uint32(82).string(message.EKSKubeProxyVersion);
-    }
-    if (message.EKSCoreDNSVersion !== "") {
-      writer.uint32(90).string(message.EKSCoreDNSVersion);
-    }
-    if (message.EKSEBSCSIVersion !== "") {
-      writer.uint32(98).string(message.EKSEBSCSIVersion);
-    }
-    if (message.EKSPublicSubnetA !== "") {
-      writer.uint32(106).string(message.EKSPublicSubnetA);
-    }
-    if (message.EKSPublicSubnetB !== "") {
-      writer.uint32(114).string(message.EKSPublicSubnetB);
-    }
-    if (message.EKSPrivateSubnetA !== "") {
-      writer.uint32(122).string(message.EKSPrivateSubnetA);
-    }
-    if (message.EKSPrivateSubnetB !== "") {
-      writer.uint32(130).string(message.EKSPrivateSubnetB);
-    }
-    if (message.EKSSecurityGroup !== "") {
-      writer.uint32(138).string(message.EKSSecurityGroup);
-    }
-    if (message.EKSSharedNodeSecurityGroup !== "") {
-      writer.uint32(146).string(message.EKSSharedNodeSecurityGroup);
-    }
+export const Parameters = {
+  encode(message: Parameters, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    Object.entries(message.parameterlist).forEach(([key, value]) => {
+      Parameters_ParameterlistEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
+    });
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Install_Extensions_Eks {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Parameters {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInstall_Extensions_Eks();
+    const message = createBaseParameters();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -683,126 +858,116 @@ export const Install_Extensions_Eks = {
             break;
           }
 
-          message.clustername = reader.string();
+          const entry1 = Parameters_ParameterlistEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.parameterlist[entry1.key] = entry1.value;
+          }
           continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Parameters {
+    return {
+      parameterlist: isObject(object.parameterlist)
+        ? Object.entries(object.parameterlist).reduce<{ [key: string]: Parameters_Parameter }>((acc, [key, value]) => {
+          acc[key] = Parameters_Parameter.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
+    };
+  },
+
+  toJSON(message: Parameters): unknown {
+    const obj: any = {};
+    obj.parameterlist = {};
+    if (message.parameterlist) {
+      Object.entries(message.parameterlist).forEach(([k, v]) => {
+        obj.parameterlist[k] = Parameters_Parameter.toJSON(v);
+      });
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Parameters>, I>>(base?: I): Parameters {
+    return Parameters.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Parameters>, I>>(object: I): Parameters {
+    const message = createBaseParameters();
+    message.parameterlist = Object.entries(object.parameterlist ?? {}).reduce<{ [key: string]: Parameters_Parameter }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = Parameters_Parameter.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseParameters_Parameter(): Parameters_Parameter {
+  return { value: "", type: "", tracked: false, insync: false };
+}
+
+export const Parameters_Parameter = {
+  encode(message: Parameters_Parameter, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    if (message.type !== "") {
+      writer.uint32(26).string(message.type);
+    }
+    if (message.tracked === true) {
+      writer.uint32(32).bool(message.tracked);
+    }
+    if (message.insync === true) {
+      writer.uint32(40).bool(message.insync);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Parameters_Parameter {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseParameters_Parameter();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.owner = reader.string();
+          message.value = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.projectname = reader.string();
+          message.type = reader.string();
           continue;
         case 4:
-          if (tag !== 34) {
+          if (tag !== 32) {
             break;
           }
 
-          message.nodegroups.push(Install_Extensions_Nodegroups.decode(reader, reader.uint32()));
+          message.tracked = reader.bool();
           continue;
         case 5:
-          if (tag !== 42) {
+          if (tag !== 40) {
             break;
           }
 
-          message.EKSServiceArn = reader.string();
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.EKSClusterRegion = reader.string();
-          continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.EKSClusterVersion = reader.string();
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.EKSClusterAMI = reader.string();
-          continue;
-        case 9:
-          if (tag !== 74) {
-            break;
-          }
-
-          message.EKSInstanceRoleArn = reader.string();
-          continue;
-        case 10:
-          if (tag !== 82) {
-            break;
-          }
-
-          message.EKSKubeProxyVersion = reader.string();
-          continue;
-        case 11:
-          if (tag !== 90) {
-            break;
-          }
-
-          message.EKSCoreDNSVersion = reader.string();
-          continue;
-        case 12:
-          if (tag !== 98) {
-            break;
-          }
-
-          message.EKSEBSCSIVersion = reader.string();
-          continue;
-        case 13:
-          if (tag !== 106) {
-            break;
-          }
-
-          message.EKSPublicSubnetA = reader.string();
-          continue;
-        case 14:
-          if (tag !== 114) {
-            break;
-          }
-
-          message.EKSPublicSubnetB = reader.string();
-          continue;
-        case 15:
-          if (tag !== 122) {
-            break;
-          }
-
-          message.EKSPrivateSubnetA = reader.string();
-          continue;
-        case 16:
-          if (tag !== 130) {
-            break;
-          }
-
-          message.EKSPrivateSubnetB = reader.string();
-          continue;
-        case 17:
-          if (tag !== 138) {
-            break;
-          }
-
-          message.EKSSecurityGroup = reader.string();
-          continue;
-        case 18:
-          if (tag !== 146) {
-            break;
-          }
-
-          message.EKSSharedNodeSecurityGroup = reader.string();
+          message.insync = reader.bool();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -813,127 +978,57 @@ export const Install_Extensions_Eks = {
     return message;
   },
 
-  fromJSON(object: any): Install_Extensions_Eks {
+  fromJSON(object: any): Parameters_Parameter {
     return {
-      clustername: isSet(object.clustername) ? String(object.clustername) : "",
-      owner: isSet(object.owner) ? String(object.owner) : "",
-      projectname: isSet(object.projectname) ? String(object.projectname) : "",
-      nodegroups: Array.isArray(object?.nodegroups)
-        ? object.nodegroups.map((e: any) => Install_Extensions_Nodegroups.fromJSON(e))
-        : [],
-      EKSServiceArn: isSet(object.EKSServiceArn) ? String(object.EKSServiceArn) : "",
-      EKSClusterRegion: isSet(object.EKSClusterRegion) ? String(object.EKSClusterRegion) : "",
-      EKSClusterVersion: isSet(object.EKSClusterVersion) ? String(object.EKSClusterVersion) : "",
-      EKSClusterAMI: isSet(object.EKSClusterAMI) ? String(object.EKSClusterAMI) : "",
-      EKSInstanceRoleArn: isSet(object.EKSInstanceRoleArn) ? String(object.EKSInstanceRoleArn) : "",
-      EKSKubeProxyVersion: isSet(object.EKSKubeProxyVersion) ? String(object.EKSKubeProxyVersion) : "",
-      EKSCoreDNSVersion: isSet(object.EKSCoreDNSVersion) ? String(object.EKSCoreDNSVersion) : "",
-      EKSEBSCSIVersion: isSet(object.EKSEBSCSIVersion) ? String(object.EKSEBSCSIVersion) : "",
-      EKSPublicSubnetA: isSet(object.EKSPublicSubnetA) ? String(object.EKSPublicSubnetA) : "",
-      EKSPublicSubnetB: isSet(object.EKSPublicSubnetB) ? String(object.EKSPublicSubnetB) : "",
-      EKSPrivateSubnetA: isSet(object.EKSPrivateSubnetA) ? String(object.EKSPrivateSubnetA) : "",
-      EKSPrivateSubnetB: isSet(object.EKSPrivateSubnetB) ? String(object.EKSPrivateSubnetB) : "",
-      EKSSecurityGroup: isSet(object.EKSSecurityGroup) ? String(object.EKSSecurityGroup) : "",
-      EKSSharedNodeSecurityGroup: isSet(object.EKSSharedNodeSecurityGroup)
-        ? String(object.EKSSharedNodeSecurityGroup)
-        : "",
+      value: isSet(object.value) ? String(object.value) : "",
+      type: isSet(object.type) ? String(object.type) : "",
+      tracked: isSet(object.tracked) ? Boolean(object.tracked) : false,
+      insync: isSet(object.insync) ? Boolean(object.insync) : false,
     };
   },
 
-  toJSON(message: Install_Extensions_Eks): unknown {
+  toJSON(message: Parameters_Parameter): unknown {
     const obj: any = {};
-    message.clustername !== undefined && (obj.clustername = message.clustername);
-    message.owner !== undefined && (obj.owner = message.owner);
-    message.projectname !== undefined && (obj.projectname = message.projectname);
-    if (message.nodegroups) {
-      obj.nodegroups = message.nodegroups.map((e) => e ? Install_Extensions_Nodegroups.toJSON(e) : undefined);
-    } else {
-      obj.nodegroups = [];
-    }
-    message.EKSServiceArn !== undefined && (obj.EKSServiceArn = message.EKSServiceArn);
-    message.EKSClusterRegion !== undefined && (obj.EKSClusterRegion = message.EKSClusterRegion);
-    message.EKSClusterVersion !== undefined && (obj.EKSClusterVersion = message.EKSClusterVersion);
-    message.EKSClusterAMI !== undefined && (obj.EKSClusterAMI = message.EKSClusterAMI);
-    message.EKSInstanceRoleArn !== undefined && (obj.EKSInstanceRoleArn = message.EKSInstanceRoleArn);
-    message.EKSKubeProxyVersion !== undefined && (obj.EKSKubeProxyVersion = message.EKSKubeProxyVersion);
-    message.EKSCoreDNSVersion !== undefined && (obj.EKSCoreDNSVersion = message.EKSCoreDNSVersion);
-    message.EKSEBSCSIVersion !== undefined && (obj.EKSEBSCSIVersion = message.EKSEBSCSIVersion);
-    message.EKSPublicSubnetA !== undefined && (obj.EKSPublicSubnetA = message.EKSPublicSubnetA);
-    message.EKSPublicSubnetB !== undefined && (obj.EKSPublicSubnetB = message.EKSPublicSubnetB);
-    message.EKSPrivateSubnetA !== undefined && (obj.EKSPrivateSubnetA = message.EKSPrivateSubnetA);
-    message.EKSPrivateSubnetB !== undefined && (obj.EKSPrivateSubnetB = message.EKSPrivateSubnetB);
-    message.EKSSecurityGroup !== undefined && (obj.EKSSecurityGroup = message.EKSSecurityGroup);
-    message.EKSSharedNodeSecurityGroup !== undefined &&
-      (obj.EKSSharedNodeSecurityGroup = message.EKSSharedNodeSecurityGroup);
+    message.value !== undefined && (obj.value = message.value);
+    message.type !== undefined && (obj.type = message.type);
+    message.tracked !== undefined && (obj.tracked = message.tracked);
+    message.insync !== undefined && (obj.insync = message.insync);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Install_Extensions_Eks>, I>>(base?: I): Install_Extensions_Eks {
-    return Install_Extensions_Eks.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<Parameters_Parameter>, I>>(base?: I): Parameters_Parameter {
+    return Parameters_Parameter.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Install_Extensions_Eks>, I>>(object: I): Install_Extensions_Eks {
-    const message = createBaseInstall_Extensions_Eks();
-    message.clustername = object.clustername ?? "";
-    message.owner = object.owner ?? "";
-    message.projectname = object.projectname ?? "";
-    message.nodegroups = object.nodegroups?.map((e) => Install_Extensions_Nodegroups.fromPartial(e)) || [];
-    message.EKSServiceArn = object.EKSServiceArn ?? "";
-    message.EKSClusterRegion = object.EKSClusterRegion ?? "";
-    message.EKSClusterVersion = object.EKSClusterVersion ?? "";
-    message.EKSClusterAMI = object.EKSClusterAMI ?? "";
-    message.EKSInstanceRoleArn = object.EKSInstanceRoleArn ?? "";
-    message.EKSKubeProxyVersion = object.EKSKubeProxyVersion ?? "";
-    message.EKSCoreDNSVersion = object.EKSCoreDNSVersion ?? "";
-    message.EKSEBSCSIVersion = object.EKSEBSCSIVersion ?? "";
-    message.EKSPublicSubnetA = object.EKSPublicSubnetA ?? "";
-    message.EKSPublicSubnetB = object.EKSPublicSubnetB ?? "";
-    message.EKSPrivateSubnetA = object.EKSPrivateSubnetA ?? "";
-    message.EKSPrivateSubnetB = object.EKSPrivateSubnetB ?? "";
-    message.EKSSecurityGroup = object.EKSSecurityGroup ?? "";
-    message.EKSSharedNodeSecurityGroup = object.EKSSharedNodeSecurityGroup ?? "";
+  fromPartial<I extends Exact<DeepPartial<Parameters_Parameter>, I>>(object: I): Parameters_Parameter {
+    const message = createBaseParameters_Parameter();
+    message.value = object.value ?? "";
+    message.type = object.type ?? "";
+    message.tracked = object.tracked ?? false;
+    message.insync = object.insync ?? false;
     return message;
   },
 };
 
-function createBaseActionMeta(): ActionMeta {
-  return {
-    metadataVersion: "",
-    exectarget: "",
-    deploymentName: "",
-    services: [],
-    extensions: undefined,
-    deploymentType: "",
-  };
+function createBaseParameters_ParameterlistEntry(): Parameters_ParameterlistEntry {
+  return { key: "", value: undefined };
 }
 
-export const ActionMeta = {
-  encode(message: ActionMeta, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.metadataVersion !== "") {
-      writer.uint32(10).string(message.metadataVersion);
+export const Parameters_ParameterlistEntry = {
+  encode(message: Parameters_ParameterlistEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
     }
-    if (message.exectarget !== "") {
-      writer.uint32(18).string(message.exectarget);
-    }
-    if (message.deploymentName !== "") {
-      writer.uint32(26).string(message.deploymentName);
-    }
-    for (const v of message.services) {
-      ActionMeta_Services.encode(v!, writer.uint32(34).fork()).ldelim();
-    }
-    if (message.extensions !== undefined) {
-      ActionMeta_Extensions.encode(message.extensions, writer.uint32(42).fork()).ldelim();
-    }
-    if (message.deploymentType !== "") {
-      writer.uint32(50).string(message.deploymentType);
+    if (message.value !== undefined) {
+      Parameters_Parameter.encode(message.value, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): ActionMeta {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Parameters_ParameterlistEntry {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseActionMeta();
+    const message = createBaseParameters_ParameterlistEntry();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -942,42 +1037,14 @@ export const ActionMeta = {
             break;
           }
 
-          message.metadataVersion = reader.string();
+          message.key = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.exectarget = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.deploymentName = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.services.push(ActionMeta_Services.decode(reader, reader.uint32()));
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.extensions = ActionMeta_Extensions.decode(reader, reader.uint32());
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.deploymentType = reader.string();
+          message.value = Parameters_Parameter.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -988,533 +1055,32 @@ export const ActionMeta = {
     return message;
   },
 
-  fromJSON(object: any): ActionMeta {
+  fromJSON(object: any): Parameters_ParameterlistEntry {
     return {
-      metadataVersion: isSet(object.metadataVersion) ? String(object.metadataVersion) : "",
-      exectarget: isSet(object.exectarget) ? String(object.exectarget) : "",
-      deploymentName: isSet(object.deploymentName) ? String(object.deploymentName) : "",
-      services: Array.isArray(object?.services) ? object.services.map((e: any) => ActionMeta_Services.fromJSON(e)) : [],
-      extensions: isSet(object.extensions) ? ActionMeta_Extensions.fromJSON(object.extensions) : undefined,
-      deploymentType: isSet(object.deploymentType) ? String(object.deploymentType) : "",
+      key: isSet(object.key) ? String(object.key) : "",
+      value: isSet(object.value) ? Parameters_Parameter.fromJSON(object.value) : undefined,
     };
   },
 
-  toJSON(message: ActionMeta): unknown {
+  toJSON(message: Parameters_ParameterlistEntry): unknown {
     const obj: any = {};
-    message.metadataVersion !== undefined && (obj.metadataVersion = message.metadataVersion);
-    message.exectarget !== undefined && (obj.exectarget = message.exectarget);
-    message.deploymentName !== undefined && (obj.deploymentName = message.deploymentName);
-    if (message.services) {
-      obj.services = message.services.map((e) => e ? ActionMeta_Services.toJSON(e) : undefined);
-    } else {
-      obj.services = [];
-    }
-    message.extensions !== undefined &&
-      (obj.extensions = message.extensions ? ActionMeta_Extensions.toJSON(message.extensions) : undefined);
-    message.deploymentType !== undefined && (obj.deploymentType = message.deploymentType);
+    message.key !== undefined && (obj.key = message.key);
+    message.value !== undefined && (obj.value = message.value ? Parameters_Parameter.toJSON(message.value) : undefined);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ActionMeta>, I>>(base?: I): ActionMeta {
-    return ActionMeta.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<Parameters_ParameterlistEntry>, I>>(base?: I): Parameters_ParameterlistEntry {
+    return Parameters_ParameterlistEntry.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<ActionMeta>, I>>(object: I): ActionMeta {
-    const message = createBaseActionMeta();
-    message.metadataVersion = object.metadataVersion ?? "";
-    message.exectarget = object.exectarget ?? "";
-    message.deploymentName = object.deploymentName ?? "";
-    message.services = object.services?.map((e) => ActionMeta_Services.fromPartial(e)) || [];
-    message.extensions = (object.extensions !== undefined && object.extensions !== null)
-      ? ActionMeta_Extensions.fromPartial(object.extensions)
-      : undefined;
-    message.deploymentType = object.deploymentType ?? "";
-    return message;
-  },
-};
-
-function createBaseActionMeta_Services(): ActionMeta_Services {
-  return { name: "", source: "", version: "", branch: "" };
-}
-
-export const ActionMeta_Services = {
-  encode(message: ActionMeta_Services, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    if (message.source !== "") {
-      writer.uint32(18).string(message.source);
-    }
-    if (message.version !== "") {
-      writer.uint32(26).string(message.version);
-    }
-    if (message.branch !== "") {
-      writer.uint32(34).string(message.branch);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ActionMeta_Services {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseActionMeta_Services();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.source = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.version = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.branch = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ActionMeta_Services {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      source: isSet(object.source) ? String(object.source) : "",
-      version: isSet(object.version) ? String(object.version) : "",
-      branch: isSet(object.branch) ? String(object.branch) : "",
-    };
-  },
-
-  toJSON(message: ActionMeta_Services): unknown {
-    const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    message.source !== undefined && (obj.source = message.source);
-    message.version !== undefined && (obj.version = message.version);
-    message.branch !== undefined && (obj.branch = message.branch);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ActionMeta_Services>, I>>(base?: I): ActionMeta_Services {
-    return ActionMeta_Services.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ActionMeta_Services>, I>>(object: I): ActionMeta_Services {
-    const message = createBaseActionMeta_Services();
-    message.name = object.name ?? "";
-    message.source = object.source ?? "";
-    message.version = object.version ?? "";
-    message.branch = object.branch ?? "";
-    return message;
-  },
-};
-
-function createBaseActionMeta_Extensions(): ActionMeta_Extensions {
-  return { eks: undefined, apis: undefined };
-}
-
-export const ActionMeta_Extensions = {
-  encode(message: ActionMeta_Extensions, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.eks !== undefined) {
-      ActionMeta_Extensions_Eks.encode(message.eks, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.apis !== undefined) {
-      ActionMeta_Extensions_Apigateway.encode(message.apis, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ActionMeta_Extensions {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseActionMeta_Extensions();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.eks = ActionMeta_Extensions_Eks.decode(reader, reader.uint32());
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.apis = ActionMeta_Extensions_Apigateway.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ActionMeta_Extensions {
-    return {
-      eks: isSet(object.eks) ? ActionMeta_Extensions_Eks.fromJSON(object.eks) : undefined,
-      apis: isSet(object.apis) ? ActionMeta_Extensions_Apigateway.fromJSON(object.apis) : undefined,
-    };
-  },
-
-  toJSON(message: ActionMeta_Extensions): unknown {
-    const obj: any = {};
-    message.eks !== undefined && (obj.eks = message.eks ? ActionMeta_Extensions_Eks.toJSON(message.eks) : undefined);
-    message.apis !== undefined &&
-      (obj.apis = message.apis ? ActionMeta_Extensions_Apigateway.toJSON(message.apis) : undefined);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ActionMeta_Extensions>, I>>(base?: I): ActionMeta_Extensions {
-    return ActionMeta_Extensions.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ActionMeta_Extensions>, I>>(object: I): ActionMeta_Extensions {
-    const message = createBaseActionMeta_Extensions();
-    message.eks = (object.eks !== undefined && object.eks !== null)
-      ? ActionMeta_Extensions_Eks.fromPartial(object.eks)
-      : undefined;
-    message.apis = (object.apis !== undefined && object.apis !== null)
-      ? ActionMeta_Extensions_Apigateway.fromPartial(object.apis)
-      : undefined;
-    return message;
-  },
-};
-
-function createBaseActionMeta_Extensions_Apis(): ActionMeta_Extensions_Apis {
-  return { name: "" };
-}
-
-export const ActionMeta_Extensions_Apis = {
-  encode(message: ActionMeta_Extensions_Apis, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ActionMeta_Extensions_Apis {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseActionMeta_Extensions_Apis();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ActionMeta_Extensions_Apis {
-    return { name: isSet(object.name) ? String(object.name) : "" };
-  },
-
-  toJSON(message: ActionMeta_Extensions_Apis): unknown {
-    const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ActionMeta_Extensions_Apis>, I>>(base?: I): ActionMeta_Extensions_Apis {
-    return ActionMeta_Extensions_Apis.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ActionMeta_Extensions_Apis>, I>>(object: I): ActionMeta_Extensions_Apis {
-    const message = createBaseActionMeta_Extensions_Apis();
-    message.name = object.name ?? "";
-    return message;
-  },
-};
-
-function createBaseActionMeta_Extensions_Apigateway(): ActionMeta_Extensions_Apigateway {
-  return { apis: [] };
-}
-
-export const ActionMeta_Extensions_Apigateway = {
-  encode(message: ActionMeta_Extensions_Apigateway, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.apis) {
-      ActionMeta_Extensions_Apis.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ActionMeta_Extensions_Apigateway {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseActionMeta_Extensions_Apigateway();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.apis.push(ActionMeta_Extensions_Apis.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ActionMeta_Extensions_Apigateway {
-    return {
-      apis: Array.isArray(object?.apis) ? object.apis.map((e: any) => ActionMeta_Extensions_Apis.fromJSON(e)) : [],
-    };
-  },
-
-  toJSON(message: ActionMeta_Extensions_Apigateway): unknown {
-    const obj: any = {};
-    if (message.apis) {
-      obj.apis = message.apis.map((e) => e ? ActionMeta_Extensions_Apis.toJSON(e) : undefined);
-    } else {
-      obj.apis = [];
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ActionMeta_Extensions_Apigateway>, I>>(
-    base?: I,
-  ): ActionMeta_Extensions_Apigateway {
-    return ActionMeta_Extensions_Apigateway.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ActionMeta_Extensions_Apigateway>, I>>(
+  fromPartial<I extends Exact<DeepPartial<Parameters_ParameterlistEntry>, I>>(
     object: I,
-  ): ActionMeta_Extensions_Apigateway {
-    const message = createBaseActionMeta_Extensions_Apigateway();
-    message.apis = object.apis?.map((e) => ActionMeta_Extensions_Apis.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseActionMeta_Extensions_Nodegroups(): ActionMeta_Extensions_Nodegroups {
-  return { name: "", instancetype: "", nodecount: "" };
-}
-
-export const ActionMeta_Extensions_Nodegroups = {
-  encode(message: ActionMeta_Extensions_Nodegroups, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    if (message.instancetype !== "") {
-      writer.uint32(18).string(message.instancetype);
-    }
-    if (message.nodecount !== "") {
-      writer.uint32(26).string(message.nodecount);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ActionMeta_Extensions_Nodegroups {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseActionMeta_Extensions_Nodegroups();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.instancetype = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.nodecount = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ActionMeta_Extensions_Nodegroups {
-    return {
-      name: isSet(object.name) ? String(object.name) : "",
-      instancetype: isSet(object.instancetype) ? String(object.instancetype) : "",
-      nodecount: isSet(object.nodecount) ? String(object.nodecount) : "",
-    };
-  },
-
-  toJSON(message: ActionMeta_Extensions_Nodegroups): unknown {
-    const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    message.instancetype !== undefined && (obj.instancetype = message.instancetype);
-    message.nodecount !== undefined && (obj.nodecount = message.nodecount);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ActionMeta_Extensions_Nodegroups>, I>>(
-    base?: I,
-  ): ActionMeta_Extensions_Nodegroups {
-    return ActionMeta_Extensions_Nodegroups.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ActionMeta_Extensions_Nodegroups>, I>>(
-    object: I,
-  ): ActionMeta_Extensions_Nodegroups {
-    const message = createBaseActionMeta_Extensions_Nodegroups();
-    message.name = object.name ?? "";
-    message.instancetype = object.instancetype ?? "";
-    message.nodecount = object.nodecount ?? "";
-    return message;
-  },
-};
-
-function createBaseActionMeta_Extensions_Eks(): ActionMeta_Extensions_Eks {
-  return { clustername: "", owner: "", projectname: "", nodegroups: [] };
-}
-
-export const ActionMeta_Extensions_Eks = {
-  encode(message: ActionMeta_Extensions_Eks, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.clustername !== "") {
-      writer.uint32(10).string(message.clustername);
-    }
-    if (message.owner !== "") {
-      writer.uint32(18).string(message.owner);
-    }
-    if (message.projectname !== "") {
-      writer.uint32(26).string(message.projectname);
-    }
-    for (const v of message.nodegroups) {
-      ActionMeta_Extensions_Nodegroups.encode(v!, writer.uint32(34).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ActionMeta_Extensions_Eks {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseActionMeta_Extensions_Eks();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.clustername = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.owner = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.projectname = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.nodegroups.push(ActionMeta_Extensions_Nodegroups.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ActionMeta_Extensions_Eks {
-    return {
-      clustername: isSet(object.clustername) ? String(object.clustername) : "",
-      owner: isSet(object.owner) ? String(object.owner) : "",
-      projectname: isSet(object.projectname) ? String(object.projectname) : "",
-      nodegroups: Array.isArray(object?.nodegroups)
-        ? object.nodegroups.map((e: any) => ActionMeta_Extensions_Nodegroups.fromJSON(e))
-        : [],
-    };
-  },
-
-  toJSON(message: ActionMeta_Extensions_Eks): unknown {
-    const obj: any = {};
-    message.clustername !== undefined && (obj.clustername = message.clustername);
-    message.owner !== undefined && (obj.owner = message.owner);
-    message.projectname !== undefined && (obj.projectname = message.projectname);
-    if (message.nodegroups) {
-      obj.nodegroups = message.nodegroups.map((e) => e ? ActionMeta_Extensions_Nodegroups.toJSON(e) : undefined);
-    } else {
-      obj.nodegroups = [];
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ActionMeta_Extensions_Eks>, I>>(base?: I): ActionMeta_Extensions_Eks {
-    return ActionMeta_Extensions_Eks.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ActionMeta_Extensions_Eks>, I>>(object: I): ActionMeta_Extensions_Eks {
-    const message = createBaseActionMeta_Extensions_Eks();
-    message.clustername = object.clustername ?? "";
-    message.owner = object.owner ?? "";
-    message.projectname = object.projectname ?? "";
-    message.nodegroups = object.nodegroups?.map((e) => ActionMeta_Extensions_Nodegroups.fromPartial(e)) || [];
+  ): Parameters_ParameterlistEntry {
+    const message = createBaseParameters_ParameterlistEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? Parameters_Parameter.fromPartial(object.value)
+      : undefined;
     return message;
   },
 };

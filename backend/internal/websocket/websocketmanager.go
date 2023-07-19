@@ -4,7 +4,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-management-console/backend/internal/models"
+	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"net/http"
 )
 
@@ -87,7 +87,7 @@ func (manager *WebSocketManager) HandleConnections(w http.ResponseWriter, r *htt
 	}
 
 	// Unmarshal the message into a map
-	var msgMap models.ConnectionSetup
+	var msgMap marketplace.ConnectionSetup
 	if err := proto.Unmarshal(message, &msgMap); err != nil {
 		log.WithError(err).Error("Error unmarshalling message")
 		conn.Close()
@@ -111,6 +111,7 @@ func (manager *WebSocketManager) HandleConnections(w http.ResponseWriter, r *htt
 
 	client := &Client{Conn: conn, Send: make(chan []byte)}
 
+	log.Info("Registering client")
 	manager.Register <- client
 
 	go manager.HandleSending(client)
@@ -127,11 +128,18 @@ func (manager *WebSocketManager) HandleSending(client *Client) {
 		select {
 		case message, ok := <-client.Send:
 			if !ok {
-				client.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				err := client.Conn.WriteMessage(websocket.CloseMessage, []byte{})
+				if err != nil {
+					log.WithError(err).Error("Error writing message to websocket")
+				}
 				return
 			}
 
-			client.Conn.WriteMessage(websocket.TextMessage, message)
+			err := client.Conn.WriteMessage(websocket.BinaryMessage, message)
+			if err != nil {
+				log.WithError(err).Error("Error writing message to websocket")
+			}
+
 		}
 	}
 }

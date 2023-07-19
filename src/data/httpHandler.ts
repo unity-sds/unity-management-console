@@ -2,16 +2,23 @@ import type {Product, Order} from './entities';
 import Axios from 'axios';
 import {dev} from '$app/environment';
 import {fetchline} from "../routes/progress/text";
-import { messageStore, parametersStore } from "../store/stores";
+import { marketplaceStore, messageStore, parametersStore } from "../store/stores";
 import {config} from "../store/stores"
-import { Config, Parameters } from "./unity-cs-manager/protobuf/config";
-
+import { createWebsocketStore } from '../store/websocketstore'
+import { ConnectionSetup, SimpleMessage, UnityWebsocketMessage } from "./unity-cs-manager/protobuf/extensions";
+import type { WebsocketStore } from "../store/websocketstore";
 let text = '';
 let lines = 0;
 const maxLines = 100;
 let headers = {};
 let marketplaceowner = "unity-sds"
 let marketplacerepo = "unity-marketplace"
+
+let messages: WebsocketStore
+if (typeof window !== 'undefined') {
+    messages = createWebsocketStore('ws://' + window.location.host + '/ws');
+}
+
 const unsubscribe = config.subscribe(configValue => {
     if (configValue && configValue.applicationConfig && configValue.applicationConfig.GithubToken) {
         headers = {
@@ -19,10 +26,15 @@ const unsubscribe = config.subscribe(configValue => {
         };
 
     if(configValue && configValue.applicationConfig.MarketplaceOwner){
+        console.log("Setting marketplace owner: "+configValue.applicationConfig.MarketplaceOwner)
         marketplaceowner = configValue.applicationConfig.MarketplaceOwner
+        generateMarketplace()
     }
     if(configValue && configValue.applicationConfig.MarketplaceUser){
+        console.log("Setting marketplace user: "+configValue.applicationConfig.MarketplaceUser)
+
         marketplacerepo = configValue.applicationConfig.MarketplaceUser
+        generateMarketplace()
     }
     } else {
         // default or error headers if GithubToken is not available
@@ -38,17 +50,6 @@ const urls = {
 export class HttpHandler {
     private websocket: WebSocket | null = null;
     public message = '';
-    async loadProducts(): Promise<Product[]> {
-        if (!dev) {
-            //const response = await Axios.get<Product[]>(urls.products);
-            //return response.data;
-            const c = generateMarketplace()
-            console.log(c);
-            return c;
-        } else {
-            return mock_products;
-        }
-    }
 
     installSoftwareSocket(meta: string) {
         if (!dev){
@@ -132,90 +133,6 @@ export class HttpHandler {
         }
     }
 
-    async fetchParams(): Promise<string> {
-        if (!dev) {
-            const relativePath = '/ws'; // Relative path to the WebSocket endpoint
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const host = window.location.host;
-            const websocketUrl = `${protocol}//${host}${relativePath}`;
-            this.websocket = new WebSocket(websocketUrl);
-
-            this.websocket.onmessage = async (event) => {
-                console.log("Parameter message received: " + event.data)
-                const arrayBuffer = await new Response(event.data).arrayBuffer();
-                const encodedConfig = new Uint8Array(arrayBuffer);
-                const decodeConfig = Parameters.decode(encodedConfig)
-                console.log(decodeConfig)
-                parametersStore.set(decodeConfig)
-            };
-
-            this.websocket.onerror = (error) => {
-                console.log('WebSocket error: ' + error);
-            };
-
-            this.websocket.onclose = () => {
-                console.log('WebSocket connection closed');
-            };
-            console.log("Sending message")
-            const message = {
-                action: "request parameters",
-                payload: null
-            }
-
-            this.websocket.onopen = () => {
-                if (this.websocket!=null){
-                    this.websocket.send(JSON.stringify(message));
-                    console.log("Config requested")
-                }
-            }
-            return "";
-        } else {
-            return "abc";
-        }
-    }
-    async fetchConfig(): Promise<string> {
-        if (!dev) {
-            const relativePath = '/ws'; // Relative path to the WebSocket endpoint
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const host = window.location.host;
-            const websocketUrl = `${protocol}//${host}${relativePath}`;
-            //const response = await Axios.post<{ id: string }>(urls.install, installData);
-            this.websocket = new WebSocket(websocketUrl);
-
-            this.websocket.onmessage = async (event) => {
-                console.log("Config message received: " + event.data)
-                const arrayBuffer = await new Response(event.data).arrayBuffer();
-                const encodedConfig = new Uint8Array(arrayBuffer);
-                const decodeConfig = Config.decode(encodedConfig)
-                console.log(decodeConfig)
-                config.set(decodeConfig)
-            };
-
-            this.websocket.onerror = (error) => {
-                console.log('WebSocket error: ' + error);
-            };
-
-            this.websocket.onclose = () => {
-                console.log('WebSocket connection closed');
-            };
-            console.log("Sending message")
-            const message = {
-                action: "request config",
-                payload: null
-            }
-
-            this.websocket.onopen = () => {
-                if (this.websocket!=null){
-                    this.websocket.send(JSON.stringify(message));
-                    console.log("Config requested")
-                }
-            }
-            return "";
-        } else {
-            return "abc";
-        }
-    }
-
     async installSoftware(install: any): Promise<string> {
         console.log("installing: "+JSON.stringify(install))
         if (!dev) {
@@ -272,6 +189,28 @@ export class HttpHandler {
             return "abc";
         }
     }
+
+    async setupws() {
+        const set = ConnectionSetup.create({type: "register", userID: "test"})
+        messages.send(ConnectionSetup.encode(set).finish())
+        const configrequest = SimpleMessage.create({operation: "request config", payload:""})
+        const wsm = UnityWebsocketMessage.create({simplemessage: configrequest})
+        messages.send(UnityWebsocketMessage.encode(wsm).finish())
+
+        const unsubscribe = messages.subscribe(receivedMessages => {
+            // loop through the received messages
+            for (const message of receivedMessages) {
+                // add the logic to update the other store based on the received message
+                // this is just an example, replace with your actual logic
+                if (message.parameters) {
+                    parametersStore.set(message.parameters);
+                } else if (message.config) {
+                    config.set(message.config);
+                    generateMarketplace()
+                }
+            }
+        });
+    }
 }
 
 interface GithubContent {
@@ -281,9 +220,9 @@ interface GithubContent {
 }
 
 
-async function generateMarketplace(): Promise<Product[]> {
+async function generateMarketplace(){
 
-
+		console.log("fetching repo contents: "+marketplaceowner)
     const c = await getRepoContents(marketplaceowner, marketplacerepo);
 
     const products: Product[] = []
@@ -293,12 +232,13 @@ async function generateMarketplace(): Promise<Product[]> {
         products.push(prod)
     }
 
-    return products
+    marketplaceStore.set(products)
 }
 
 async function getRepoContents(user: string, repo: string, path = ''): Promise<string[]> {
     const url = `/repos/${user}/${repo}/contents/${path}`;
 
+    console.log("fetching: "+url)
     const paths: string[] = [];
     try {
         const api = Axios.create({
@@ -337,6 +277,7 @@ function decodeBase64(data: string): string {
 async function getGitHubFileContents(user: string, repo: string, path: string): Promise<string> {
     const url = `/repos/${user}/${repo}/contents/${path}`;
 
+    console.log("fetching: "+url)
     try {
         const api = Axios.create({
             baseURL: 'https://api.github.com',

@@ -1,10 +1,8 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
 	import { projectStore, venueStore } from '../../store/stores';
 	import ProgressFeedback from '../../components/ProgressFeedback.svelte';
 	import { config, parametersStore } from '../../store/stores';
   import { get } from "svelte/store";
-	import { onMount } from "svelte";
 	import { HttpHandler } from "../../data/httpHandler";
 	let project = '';
   let venue = '';
@@ -33,12 +31,6 @@
 			console.log("Key does not exist or parameters is null/undefined.");
 		}
 	});
-
-	onMount(async () => {
-		await httpHandler.fetchParams()
-	})
-
-
 
   let privateSubnets: string[] = [];
 	let publicSubnets: string[] = [];

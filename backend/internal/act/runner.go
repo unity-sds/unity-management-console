@@ -187,6 +187,7 @@ func (ar *ActRunner) CaptureOutput() (stopCapture func()) {
 				return
 			}
 			if ar.Conn != nil {
+				//TODO FIX TEST
 				id := "test"
 				ar.Conn.SendMessageToUserID(id, buf[:n])
 			}

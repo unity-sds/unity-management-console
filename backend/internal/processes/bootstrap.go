@@ -27,6 +27,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 
 func provisionS3(appConfig *config.AppConfig) {
 	aws.CreateBucket(appConfig)
+	aws.CreateTable(appConfig)
 }
 
 func initTerraform(appconf *config.AppConfig) {
@@ -40,6 +41,7 @@ func writeInitTemplate(appConfig *config.AppConfig) {
 	// Define the terraform configuration
 	tfconfig := `terraform {
   backend "s3" {
+    dynamodb_table = "terraform_state"
   }
 }`
 

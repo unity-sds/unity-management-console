@@ -11,7 +11,8 @@
 	onMount(async () => {
 		const httpHandler = new HttpHandler();
 
-		await httpHandler.fetchConfig();
+		await httpHandler.setupws()
+		//await httpHandler.fetchConfig();
 	});
 </script>
 

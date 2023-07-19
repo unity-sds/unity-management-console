@@ -8,8 +8,6 @@
 	import {Install} from "../../data/unity-cs-manager/protobuf/extensions"
 	import type {
 		Install_Applications,
-		Install_Extensions,
-		Install_Extensions_Eks, Install_Extensions_Nodegroups
 	} from "../../data/unity-cs-manager/protobuf/extensions";
 	import VariablesForm from "../../components/VariablesForm.svelte";
 	import EKSSettings from "../../components/EKSSettings.svelte";
@@ -35,39 +33,6 @@
 	});
 
 
-	const generateNodeGroup = (nodegroup: NodeGroupType): Install_Extensions_Nodegroups => {
-		return {
-			name: nodegroup.name,
-			nodecount: nodegroup.settings.DesiredNodes.toString(),
-			instancetype: nodegroup.settings.InstanceType,
-		}
-	}
-
-	const generateExtensions = (): Install_Extensions => {
-		const eks: Install_Extensions_Eks = {
-			EKSClusterAMI: "",
-			EKSClusterRegion: "",
-			EKSClusterVersion: "",
-			EKSCoreDNSVersion: "",
-			EKSEBSCSIVersion: "",
-			EKSInstanceRoleArn: "",
-			EKSKubeProxyVersion: "",
-			EKSPrivateSubnetA: "",
-			EKSPrivateSubnetB: "",
-			EKSPublicSubnetA: "",
-			EKSPublicSubnetB: "",
-			EKSSecurityGroup: "",
-			EKSServiceArn: "",
-			EKSSharedNodeSecurityGroup: "",
-			nodegroups: nodeGroups.map(generateNodeGroup),
-			owner: "tom",
-			clustername: generateRandomString(10),
-			projectname: "test"
-		};
-
-
-		return { apigateway: undefined, eks: eks };
-	}
 
 	function generateRandomString(length = 10): string {
 		let result = '';
@@ -93,11 +58,10 @@
 			variables: {}
 		};
 
-		const extensions: Install_Extensions = generateExtensions();
-
 		const inst = Install.create();
 		inst.applications = app
-		inst.extensions = extensions
+		//inst.extensions = extensions
+
 
 		install.set(inst);
 

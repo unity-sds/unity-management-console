@@ -8,7 +8,6 @@ import (
 	"github.com/thomaspoignant/go-feature-flag/ffuser"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
-	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
@@ -112,8 +111,6 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router.GET("/", handleRoot)
 	router.GET("/ping", handlePing)
 	authorized.StaticFS("/ui", http.Dir("./build"))
-	authorized.POST("/config", handleConfigPOST)
-	authorized.GET("/config", handleConfigGET)
 	authorized.GET("/ws", handleWebsocket)
 	router.NoRoute(handleNoRoute)
 
@@ -123,44 +120,6 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	go handleMessages()
 
 	return router
-}
-
-// fetchConfig fetches the application and network configuration from AWS and marshals it into a protobuf message.
-func fetchConfig(conf config.AppConfig) ([]byte, error) {
-
-	pub, priv, err := aws.FetchSubnets()
-	if err != nil {
-		log.WithError(err).Error("Error fetching subnets")
-		return nil, err
-	}
-
-	netconfig := marketplace.Config_NetworkConfig{
-		Publicsubnets:  pub,
-		Privatesubnets: priv,
-	}
-
-	appConfig := marketplace.Config_ApplicationConfig{
-		GithubToken:      conf.GithubToken,
-		MarketplaceOwner: conf.MarketplaceOwner,
-		MarketplaceUser:  conf.MarketplaceRepo,
-	}
-
-	genconfig := &marketplace.Config{
-		ApplicationConfig: &appConfig,
-		NetworkConfig:     &netconfig,
-	}
-
-	log.WithFields(log.Fields{
-		"Config": genconfig,
-	}).Info("Config Generated")
-
-	data, err := proto.Marshal(genconfig)
-	if err != nil {
-		log.WithError(err).Error("Failed to marshal config")
-		return nil, err
-	}
-
-	return data, nil
 }
 
 // handleMessages reads messages from the broadcast channel and handles them based on their type.
@@ -173,19 +132,29 @@ func handleMessages() error {
 	}
 	for message := range wsManager.Broadcast {
 		// Unmarshal the message into a WebsocketMessage
-		clientMessage := &marketplace.WebsocketMessage{}
+		clientMessage := &marketplace.UnityWebsocketMessage{}
 		if err := proto.Unmarshal(message.Message, clientMessage); err != nil {
 			log.WithError(err).Error("Error unmarshalling websocket message")
 			continue
 		}
 
 		switch content := clientMessage.Content.(type) {
-		case *marketplace.WebsocketMessage_Install:
+		case *marketplace.UnityWebsocketMessage_Install:
 			installMessage := content.Install
 			// Handle install message
 			if err := processes.TriggerInstall(wsManager, message.Client.UserID, store, installMessage, &conf); err != nil {
 				log.WithError(err).Error("Error triggering install")
 			}
+		case *marketplace.UnityWebsocketMessage_Simplemessage:
+			simpleMessage := content.Simplemessage
+			resp, err := processes.ProcessSimpleMessage(simpleMessage, conf)
+			if err != nil {
+				log.WithError(err).Error("Problems parsing simple message")
+			}
+			wsManager.SendMessageToClient(message.Client, resp)
+		case *marketplace.UnityWebsocketMessage_Parameters:
+			params := content.Parameters
+			processes.UpdateParameters(params, store)
 		default:
 			log.Error("Unknown message type")
 		}

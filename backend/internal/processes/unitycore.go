@@ -6,7 +6,6 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/action"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
-	"github.com/unity-sds/unity-management-console/backend/internal/metadata"
 	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 )
 
@@ -19,8 +18,8 @@ func GenerateMetadata(appname string, install *marketplace.Install, meta *market
 	if appname == "unity-apigateway" {
 		return []byte{}, nil
 	}
-	metaarr, err := metadata.GenerateApplicationMetadata(appname, install, meta)
-	return metaarr, err
+	//metaarr, err := metadata.GenerateApplicationMetadata(appname, install, meta)
+	return nil, nil
 }
 
 func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid string, meta []byte, config *config.AppConfig, entrypoint string, appName string, install *marketplace.Install) error {
