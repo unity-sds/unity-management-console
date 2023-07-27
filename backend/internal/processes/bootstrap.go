@@ -18,7 +18,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 
 	storeDefaultSSMParameters(appconf, store)
 	//r := action.ActRunnerImpl{}
-	err = UpdateCoreConfig(appconf, store)
+	err = UpdateCoreConfig(appconf, store, nil, "")
 	if err != nil {
 		log.WithError(err).Error("Problem updating ssm config")
 	}
@@ -33,7 +33,7 @@ func provisionS3(appConfig *config.AppConfig) {
 func initTerraform(appconf *config.AppConfig) {
 
 	writeInitTemplate(appconf)
-	terraform.RunTerraform(appconf)
+	terraform.RunTerraform(appconf, nil, "")
 
 }
 

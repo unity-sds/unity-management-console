@@ -6,8 +6,10 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/terraform"
+	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"github.com/zclconf/go-cty/cty"
 	"os"
+	"path/filepath"
 )
 
 func updateAutotfvars(appConf *config.AppConfig) {
@@ -37,37 +39,14 @@ ssm_parameters = [{name  = "parameter1dev", type  = "String", value = "value1"}]
 
 	log.Println("File '.auto.tf' has been written")
 }
-func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore) error {
+func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore, websocketmgr *websocket.WebSocketManager, userid string) error {
 
-	//
-	//varstr := ""
-	//for _, v := range cParams {
-	//	if v.Key == "/unity/core/project" {
-	//		env["TF_VAR_project"] = v.Value
-	//	} else if v.Key == "/unity/core/venue" {
-	//		env["TF_VAR_venue"] = v.Value
-	//
-	//	} else {
-	//		varstr = varstr + fmt.Sprintf("{name  = \"%v\", type  = \"%v\", value = \"%v\"},", v.Key, v.Type, v.Value)
-	//	}
-	//}
-	//
-	//if varstr != "" {
-	//	varstr = strings.TrimRight(varstr, ",")
-	//	varstr = fmt.Sprintf("[%v]", varstr)
-	//
-	//	env["TF_VAR_ssm_parameters"] = varstr
-	//
-	//}
-	//secrets := map[string]string{}
-	//return r.RunAct(config.Workdir+"/environment-provisioner.yml", inputs, env, secrets, conn, config)
-
-	updateAutotfvars(appConfig)
+	//updateAutotfvars(appConfig)
 	// create new empty hcl file object
 	hclFile := hclwrite.NewEmptyFile()
 
 	// create new file on system
-	tfFile, err := os.Create(appConfig.Workdir + "/bservelist.tf")
+	tfFile, err := os.Create(appConfig.Workdir + "/params.tf")
 	if err != nil {
 		log.WithError(err).Error("Problem creating tf file")
 		return err
@@ -75,23 +54,31 @@ func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore) error 
 	// initialize the body of the new file object
 	rootBody := hclFile.Body()
 
-	cloudenv := rootBody.AppendNewBlock("module", []string{"example_module"})
+	venue, err := getSSMParameterValueFromDatabase("venue", db)
+	project, err := getSSMParameterValueFromDatabase("project", db)
+	publicsubnets, err := getSSMParameterValueFromDatabase("publicsubnets", db)
+	privatesubnets, err := getSSMParameterValueFromDatabase("privatesubnets", db)
+
+	cloudenv := rootBody.AppendNewBlock("module", []string{"unity-cloud-env"})
 	cloudenvBody := cloudenv.Body()
-	cloudenvBody.SetAttributeValue("source", cty.StringVal(appConfig.Workdir+"/../terraform/modules/unity-cloud-env"))
-	cloudenvBody.SetAttributeValue("venue", cty.StringVal("ami-123"))
-	cloudenvBody.SetAttributeValue("project", cty.StringVal("t2.micro"))
-	cloudenvBody.SetAttributeValue("publicsubnets", cty.StringVal("123"))
-	cloudenvBody.SetAttributeValue("privatesubnets", cty.StringVal("123"))
+	cloudenvBody.SetAttributeValue("source", cty.StringVal(filepath.Join(appConfig.Workdir, "..", "terraform", "modules", "unity-cloud-env")))
+	cloudenvBody.SetAttributeValue("venue", cty.StringVal(venue))
+	cloudenvBody.SetAttributeValue("project", cty.StringVal(project))
+	cloudenvBody.SetAttributeValue("publicsubnets", cty.StringVal(publicsubnets))
+	cloudenvBody.SetAttributeValue("privatesubnets", cty.StringVal(privatesubnets))
+
 	ssmParameters, err := generateSSMParameters(db)
 	if err != nil {
 		log.WithError(err).Error("Problem fetching params")
 		return err
 	}
-	cloudenvBody.SetAttributeValue("ssm_parameters", cty.ListVal(ssmParameters))
+	if ssmParameters != nil {
+		cloudenvBody.SetAttributeValue("ssm_parameters", cty.ListVal(ssmParameters))
+	}
 
 	_, err = tfFile.Write(hclFile.Bytes())
 
-	terraform.RunTerraform(appConfig)
+	terraform.RunTerraform(appConfig, websocketmgr, userid)
 	return err
 }
 
@@ -114,4 +101,21 @@ func generateSSMParameters(db database.Datastore) ([]cty.Value, error) {
 	}
 
 	return ssmParameters, err
+}
+
+func getSSMParameterValueFromDatabase(paramName string, db database.Datastore) (string, error) {
+
+	params, err := db.FetchSSMParams()
+	if err != nil {
+		log.WithError(err).Error("Error fetching ssm parameters")
+		return "", err
+	}
+	for _, p := range params {
+		if p.Key == paramName {
+			return p.Value, nil
+		}
+	}
+
+	return "", nil
+
 }

@@ -12,7 +12,7 @@ func FetchSubnets() ([]string, []string, error) {
 	var publicsubnets []string
 	var privatesubnets []string
 
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 	if err != nil {
 		log.Errorf("Failed to load AWS config: %v", err)
 		return publicsubnets, privatesubnets, err

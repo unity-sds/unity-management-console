@@ -7,6 +7,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
+	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 )
 
 func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf config.AppConfig) ([]byte, error) {
@@ -17,8 +18,9 @@ func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf config.AppCon
 	return nil, nil
 }
 
-func UpdateParameters(params *marketplace.Parameters, store database.Datastore) {
+func UpdateParameters(params *marketplace.Parameters, store database.Datastore, appconf *config.AppConfig, wsmgr *websocket.WebSocketManager, userid string) {
 
+	log.Info("Storing parameters")
 	var parr []config.SSMParameter
 	for _, p := range params.Parameterlist {
 		np := config.SSMParameter{
@@ -28,9 +30,17 @@ func UpdateParameters(params *marketplace.Parameters, store database.Datastore) 
 		}
 		parr = append(parr, np)
 	}
+	log.Infof("Saving %v parameters", len(parr))
 	err := store.StoreSSMParams(parr, "test")
 	if err != nil {
 		log.WithError(err).Error("Error storing parameters")
+		return
+	}
+
+	err = UpdateCoreConfig(appconf, store, wsmgr, userid)
+	if err != nil {
+		log.WithError(err).Error("Error updating config")
+		return
 	}
 
 }

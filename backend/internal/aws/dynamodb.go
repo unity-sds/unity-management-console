@@ -11,7 +11,7 @@ import (
 )
 
 func CreateTable(appConfig *config.AppConfig) error {
-	cfg, err := awsconfig.LoadDefaultConfig(context.TODO())
+	cfg, err := awsconfig.LoadDefaultConfig(context.TODO(), awsconfig.WithRegion("us-west-2"))
 	if err != nil {
 		panic("unable to load SDK config, " + err.Error())
 	}

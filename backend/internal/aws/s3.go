@@ -18,7 +18,7 @@ const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
 var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func CreateBucket(conf *appconfig.AppConfig) {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 
 	if err != nil {
 		log.Fatalf("failed to load AWS configuration: %v", err)

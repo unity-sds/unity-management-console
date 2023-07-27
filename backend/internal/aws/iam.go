@@ -9,7 +9,7 @@ import "github.com/aws/aws-sdk-go-v2/service/iam"
 
 func checkPolicy() (bool, error) {
 
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 
 	if err != nil {
 		log.Errorf("Error creating session: %v", err)

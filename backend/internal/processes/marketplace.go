@@ -5,10 +5,12 @@ import (
 	"github.com/go-git/go-git/v5"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -35,23 +37,25 @@ func fetchMarketplaceMetadata(name string, version string) (marketplace.Marketpl
 	return *req, err
 }
 
-func FetchPackage(meta *marketplace.MarketplaceMetadata) (string, error) {
+func FetchPackage(meta *marketplace.MarketplaceMetadata, appConfig *config.AppConfig) (string, error) {
 	// Get package
-
-	locationdir := ""
+	basedir := "/tmp"
+	if meta.Backend == "terraform" {
+		basedir = filepath.Join(appConfig.Workdir, "..", "terraform", "modules")
+	}
 	if strings.HasSuffix(meta.Package, ".zip") {
 		// Fetch from zip
-
+		return "", nil
 	} else {
 		// Checkout git repo
-		locationdir, err := gitclone(meta.Package)
+		locationdir, err := gitclone(meta.Package, basedir)
 		return locationdir, err
 	}
-	return locationdir, nil
+
 }
 
-func gitclone(url string) (string, error) {
-	tempDir, err := os.MkdirTemp("", "git-")
+func gitclone(url string, basedir string) (string, error) {
+	tempDir, err := os.MkdirTemp(basedir, "git-")
 	if err != nil {
 		return tempDir, err
 	}

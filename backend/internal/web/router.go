@@ -72,7 +72,7 @@ func handleConfigPOST(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": configjson})
 
 	// Trigger environment update via act
-	if err := processes.UpdateCoreConfig(nil, nil); err != nil {
+	if err := processes.UpdateCoreConfig(nil, nil, nil, ""); err != nil {
 		log.WithError(err).Error("error updating core configuration")
 	}
 }
@@ -154,7 +154,7 @@ func handleMessages() error {
 			wsManager.SendMessageToClient(message.Client, resp)
 		case *marketplace.UnityWebsocketMessage_Parameters:
 			params := content.Parameters
-			processes.UpdateParameters(params, store)
+			processes.UpdateParameters(params, store, &conf, wsManager, message.Client.UserID)
 		default:
 			log.Error("Unknown message type")
 		}
