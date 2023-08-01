@@ -15,12 +15,22 @@ import (
 var stdoutBuffer bytes.Buffer
 var stderrBuffer bytes.Buffer
 
-func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string) {
+type TerraformExecutor interface {
+	NewTerraform(string, string) (*tfexec.Terraform, error)
+	Init(context.Context, ...tfexec.InitOption) error
+	Plan(context.Context, ...tfexec.PlanOption) (bool, error)
+	Apply(context.Context, ...tfexec.ApplyOption) error
+	SetStdout(io.Writer)
+	SetStderr(io.Writer)
+	SetLogger(*log.Logger)
+}
+
+func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string, executor TerraformExecutor) {
 	bucket := fmt.Sprintf("bucket=%s", appconf.BucketName)
 	key := fmt.Sprintf("key=%s", "default")
 	region := fmt.Sprintf("region=%s", appconf.AWSRegion)
 
-	tf, err := tfexec.NewTerraform(appconf.Workdir, "/usr/bin/terraform")
+	tf, err := executor.NewTerraform(appconf.Workdir, "/usr/bin/terraform")
 	if err != nil {
 		log.Fatalf("error running NewTerraform: %s", err)
 	}
@@ -33,13 +43,13 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 		stopCapture := CaptureOutput(id, wsmgr)
 		defer stopCapture() // Ensure that we stop capturing even if an error occurs
 	}
-	err = tf.Init(context.Background(), tfexec.Upgrade(true), tfexec.BackendConfig(bucket), tfexec.BackendConfig(key), tfexec.BackendConfig(region))
+	err = executor.Init(context.Background(), tfexec.Upgrade(true), tfexec.BackendConfig(bucket), tfexec.BackendConfig(key), tfexec.BackendConfig(region))
 
 	if err != nil {
 		log.WithError(err).Error("error initialising terraform")
 	}
 
-	change, err := tf.Plan(context.Background())
+	change, err := executor.Plan(context.Background())
 
 	if err != nil {
 		log.WithError(err).Error("error running plan")
@@ -48,7 +58,7 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 	fmt.Printf("change: %v", change)
 
 	if change {
-		err = tf.Apply(context.Background())
+		err = executor.Apply(context.Background())
 
 		if err != nil {
 			log.WithError(err).Error("error running apply")

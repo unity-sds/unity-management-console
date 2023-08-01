@@ -2,12 +2,12 @@ package processes
 
 import (
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/terraform"
-	"os"
 )
 
 func BootstrapEnv(appconf *config.AppConfig) {
@@ -26,18 +26,23 @@ func BootstrapEnv(appconf *config.AppConfig) {
 }
 
 func provisionS3(appConfig *config.AppConfig) {
-	aws.CreateBucket(appConfig)
-	aws.CreateTable(appConfig)
+	aws.CreateBucket(nil, appConfig)
+	err := aws.CreateTable(appConfig)
+	if err != nil {
+		log.WithError(err).Error("Error creating table")
+		return
+	}
 }
 
 func initTerraform(appconf *config.AppConfig) {
 
-	writeInitTemplate(appconf)
+	fs := afero.NewOsFs()
+	writeInitTemplate(fs, appconf)
 	terraform.RunTerraform(appconf, nil, "")
 
 }
 
-func writeInitTemplate(appConfig *config.AppConfig) {
+func writeInitTemplate(fs afero.Fs, appConfig *config.AppConfig) {
 	// Define the terraform configuration
 	tfconfig := `terraform {
   backend "s3" {
@@ -45,13 +50,13 @@ func writeInitTemplate(appConfig *config.AppConfig) {
   }
 }`
 
-	err := os.MkdirAll(appConfig.Workdir, 0755)
+	err := fs.MkdirAll(appConfig.Workdir, 0755)
 	if err != nil {
 		log.WithError(err).Error("Couldn't create new working directory")
 	}
 
 	// Create a new file
-	file, err := os.Create(appConfig.Workdir + "/provider.tf")
+	file, err := fs.Create(appConfig.Workdir + "/provider.tf")
 	if err != nil {
 		log.WithError(err).Error("Couldn't create new provider.tf file")
 	}

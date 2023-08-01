@@ -12,38 +12,7 @@ import (
 	"path/filepath"
 )
 
-func updateAutotfvars(appConf *config.AppConfig) {
-	file, err := os.Create(appConf.Workdir + "/.auto.tfvars")
-	if err != nil {
-		log.WithError(err).Error("Failed to create tfvars file")
-	}
-	defer file.Close()
-
-	varconfig := `project = "unity-nightly"
-
-privatesubnets = "subnet-059bc4f467275b59d,subnet-0ebdd997cc3ebe58d"
-publicsubnets = "subnet-087b54673c7549e2d,subnet-009c32904a8bf3b92"
-
-venue = "dev"
-ssm_parameters = [{name  = "parameter1dev", type  = "String", value = "value1"}]`
-	_, err = file.WriteString(varconfig)
-	if err != nil {
-		log.WithError(err).Error("Failed to write string to tfvars file")
-	}
-
-	// Save changes to the file
-	err = file.Sync()
-	if err != nil {
-		log.WithError(err).Error("Failed to sync tfvars file")
-	}
-
-	log.Println("File '.auto.tf' has been written")
-}
 func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore, websocketmgr *websocket.WebSocketManager, userid string) error {
-
-	//updateAutotfvars(appConfig)
-	// create new empty hcl file object
-	hclFile := hclwrite.NewEmptyFile()
 
 	// create new file on system
 	tfFile, err := os.Create(appConfig.Workdir + "/params.tf")
@@ -51,13 +20,47 @@ func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore, websoc
 		log.WithError(err).Error("Problem creating tf file")
 		return err
 	}
-	// initialize the body of the new file object
-	rootBody := hclFile.Body()
+	defer tfFile.Close()
 
 	venue, err := getSSMParameterValueFromDatabase("venue", db)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching venue")
+		return err
+	}
 	project, err := getSSMParameterValueFromDatabase("project", db)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching project")
+		return err
+	}
 	publicsubnets, err := getSSMParameterValueFromDatabase("publicsubnets", db)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching public subnets")
+		return err
+	}
 	privatesubnets, err := getSSMParameterValueFromDatabase("privatesubnets", db)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching private subnets")
+		return err
+	}
+
+	ssmParameters, err := generateSSMParameters(db)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching params")
+		return err
+	}
+
+	hclFile := generateFileStructure(appConfig, venue, project, publicsubnets, privatesubnets, ssmParameters)
+
+	_, err = tfFile.Write(hclFile.Bytes())
+
+	terraform.RunTerraform(appConfig, websocketmgr, userid)
+	return err
+}
+
+func generateFileStructure(appConfig *config.AppConfig, venue, project, publicsubnets, privatesubnets string, ssmParameters []cty.Value) *hclwrite.File {
+	hclFile := hclwrite.NewEmptyFile()
+	// initialize the body of the new file object
+	rootBody := hclFile.Body()
 
 	cloudenv := rootBody.AppendNewBlock("module", []string{"unity-cloud-env"})
 	cloudenvBody := cloudenv.Body()
@@ -67,19 +70,10 @@ func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore, websoc
 	cloudenvBody.SetAttributeValue("publicsubnets", cty.StringVal(publicsubnets))
 	cloudenvBody.SetAttributeValue("privatesubnets", cty.StringVal(privatesubnets))
 
-	ssmParameters, err := generateSSMParameters(db)
-	if err != nil {
-		log.WithError(err).Error("Problem fetching params")
-		return err
-	}
 	if ssmParameters != nil {
 		cloudenvBody.SetAttributeValue("ssm_parameters", cty.ListVal(ssmParameters))
 	}
-
-	_, err = tfFile.Write(hclFile.Bytes())
-
-	terraform.RunTerraform(appConfig, websocketmgr, userid)
-	return err
+	return hclFile
 }
 
 func generateSSMParameters(db database.Datastore) ([]cty.Value, error) {
@@ -117,5 +111,4 @@ func getSSMParameterValueFromDatabase(paramName string, db database.Datastore) (
 	}
 
 	return "", nil
-
 }
