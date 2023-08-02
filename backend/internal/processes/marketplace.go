@@ -44,7 +44,7 @@ func FetchPackage(meta *marketplace.MarketplaceMetadata, appConfig *config.AppCo
 	// Get package
 	basedir := "/tmp"
 	if meta.Backend == "terraform" {
-		basedir = filepath.Join(appConfig.Workdir, "..", "terraform", "modules")
+		basedir = filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version)
 	}
 	if strings.HasSuffix(meta.Package, ".zip") {
 		// Fetch from zip
@@ -58,14 +58,15 @@ func FetchPackage(meta *marketplace.MarketplaceMetadata, appConfig *config.AppCo
 }
 
 func gitclone(url string, basedir string) (string, error) {
-	tempDir, err := os.MkdirTemp(basedir, "git-")
+	//tempDir, err := os.MkdirTemp(basedir, "git-")
+	err := os.MkdirAll(basedir, 0755)
 	if err != nil {
-		return tempDir, err
+		return "", err
 	}
-	_, err = git.PlainClone(tempDir, false, &git.CloneOptions{
+	_, err = git.PlainClone(basedir, false, &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
 	})
 
-	return tempDir, err
+	return basedir, err
 }

@@ -10,10 +10,13 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 )
 
-func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf config.AppConfig) ([]byte, error) {
+func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppConfig) ([]byte, error) {
 	if message.Operation == "request config" {
 		log.Info("Request Config received")
 		return fetchConfig(conf)
+	} else if message.Operation == "request parameters" {
+		log.Info("Request Parameters received")
+		return fetchParameters(conf)
 	}
 	return nil, nil
 }
@@ -45,7 +48,24 @@ func UpdateParameters(params *marketplace.Parameters, store database.Datastore, 
 
 }
 
-func fetchConfig(conf config.AppConfig) ([]byte, error) {
+func fetchParameters(conf *config.AppConfig) ([]byte, error) {
+	db, err := database.NewGormDatastore()
+
+	params, err := db.FetchSSMParams()
+
+	ssm, err := aws.ReadSSMParameters(params)
+
+	paramwrap := marketplace.UnityWebsocketMessage_Parameters{Parameters: ssm}
+	msg := &marketplace.UnityWebsocketMessage{Content: &paramwrap}
+	data, err := proto.Marshal(msg)
+	if err != nil {
+		log.WithError(err).Error("Failed to marshal config")
+		return nil, err
+	}
+
+	return data, nil
+}
+func fetchConfig(conf *config.AppConfig) ([]byte, error) {
 
 	pub, priv, err := aws.FetchSubnets()
 	if err != nil {

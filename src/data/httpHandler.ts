@@ -195,13 +195,15 @@ export class HttpHandler {
         messages.send(ConnectionSetup.encode(set).finish())
         const configrequest = SimpleMessage.create({operation: "request config", payload:""})
         const wsm = UnityWebsocketMessage.create({simplemessage: configrequest})
+        const paramrequest = SimpleMessage.create({operation: "request parameters", payload:""})
+        const wsm2 = UnityWebsocketMessage.create({simplemessage: paramrequest})
+
         messages.send(UnityWebsocketMessage.encode(wsm).finish())
+        messages.send(UnityWebsocketMessage.encode(wsm2).finish())
 
         const unsubscribe = messages.subscribe(receivedMessages => {
             // loop through the received messages
             for (const message of receivedMessages) {
-                // add the logic to update the other store based on the received message
-                // this is just an example, replace with your actual logic
                 if (message.parameters) {
                     parametersStore.set(message.parameters);
                 } else if (message.config) {

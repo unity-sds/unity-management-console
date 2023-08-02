@@ -34,8 +34,12 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	s := String(8)
 	hclFile := hclwrite.NewEmptyFile()
 
+	err := os.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
+	if err != nil {
+		log.WithError(err).Error("Could not create workspace directory")
+	}
 	// create new file on system
-	tfFile, err := os.Create(filepath.Join(appConfig.Workdir, fmt.Sprintf("%v%v%v", meta.Name, s, ".tf")))
+	tfFile, err := os.Create(filepath.Join(appConfig.Workdir, "workspace", fmt.Sprintf("%v%v%v", meta.Name, s, ".tf")))
 	if err != nil {
 		log.WithError(err).Error("Problem creating tf file")
 		return err

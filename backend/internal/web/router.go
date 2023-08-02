@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
@@ -13,6 +14,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
 	websocket2 "github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"net/http"
+	"time"
 )
 
 var conf config.AppConfig
@@ -117,7 +119,12 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router.Use(LoggingMiddleware())
 	router.Use(ErrorHandlingMiddleware())
 
-	go handleMessages()
+	go func() {
+		err := handleMessages()
+		if err != nil {
+			log.WithError(err).Error("Go routine crashed handling messages")
+		}
+	}()
 
 	return router
 }
@@ -130,6 +137,20 @@ func handleMessages() error {
 		log.WithError(err).Error("Error creating datastore")
 		return err
 	}
+	go func() {
+		ticker := time.NewTicker(time.Second * 5) // prints every 5 seconds
+		for {
+			select {
+			case <-ticker.C:
+				fmt.Println("Goroutine is alive")
+			default:
+				err := handleMessages()
+				if err != nil {
+					log.WithError(err).Error("Go routine crashed handling messages")
+				}
+			}
+		}
+	}()
 	for message := range wsManager.Broadcast {
 		// Unmarshal the message into a WebsocketMessage
 		clientMessage := &marketplace.UnityWebsocketMessage{}
@@ -147,7 +168,7 @@ func handleMessages() error {
 			}
 		case *marketplace.UnityWebsocketMessage_Simplemessage:
 			simpleMessage := content.Simplemessage
-			resp, err := processes.ProcessSimpleMessage(simpleMessage, conf)
+			resp, err := processes.ProcessSimpleMessage(simpleMessage, &conf)
 			if err != nil {
 				log.WithError(err).Error("Problems parsing simple message")
 			}

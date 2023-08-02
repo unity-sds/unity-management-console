@@ -53,6 +53,7 @@ func FetchSubnets() ([]string, []string, error) {
 		routeTable := routeTableMap[*subnet.SubnetId]
 		if routeTable == nil {
 			log.Infof("Subnet ID: %s is private (no route table found)\n", *subnet.SubnetId)
+			privatesubnets = append(privatesubnets, *subnet.SubnetId)
 		} else {
 			isPublic := false
 			for _, route := range routeTable.Routes {

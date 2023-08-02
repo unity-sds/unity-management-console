@@ -109,7 +109,7 @@ func (manager *WebSocketManager) HandleConnections(w http.ResponseWriter, r *htt
 		return
 	}
 
-	client := &Client{Conn: conn, Send: make(chan []byte)}
+	client := &Client{Conn: conn, Send: make(chan []byte), UserID: msgMap.UserID}
 
 	log.Info("Registering client")
 	manager.Register <- client

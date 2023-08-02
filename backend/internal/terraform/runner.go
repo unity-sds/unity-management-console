@@ -10,6 +10,7 @@ import (
 	ws "github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 var stdoutBuffer bytes.Buffer
@@ -67,7 +68,8 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 	key := fmt.Sprintf("key=%s", "default")
 	region := fmt.Sprintf("region=%s", appconf.AWSRegion)
 
-	tf, err := executor.NewTerraform(appconf.Workdir, "/usr/bin/terraform")
+	p := filepath.Join(appconf.Workdir, "workspace")
+	tf, err := executor.NewTerraform(p, "/usr/bin/terraform")
 	if err != nil {
 		log.Fatalf("error running NewTerraform: %s", err)
 	}
