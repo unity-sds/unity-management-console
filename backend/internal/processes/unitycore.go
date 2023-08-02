@@ -18,7 +18,10 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 		if err != nil {
 			return err
 		}
-		terraform.RunTerraform(appConfig, conn, userid)
+
+		executor := &terraform.RealTerraformExecutor{}
+
+		terraform.RunTerraform(appConfig, conn, userid, executor)
 		return nil
 	} else {
 		return errors.New("backend not implemented")

@@ -25,6 +25,43 @@ type TerraformExecutor interface {
 	SetLogger(*log.Logger)
 }
 
+type RealTerraformExecutor struct {
+	tf *tfexec.Terraform
+}
+
+func (r *RealTerraformExecutor) NewTerraform(dir string, execPath string) (*tfexec.Terraform, error) {
+	tf, err := tfexec.NewTerraform(dir, execPath)
+	if err != nil {
+		return nil, err
+	}
+
+	r.tf = tf
+	return tf, nil
+}
+
+func (r *RealTerraformExecutor) Init(ctx context.Context, opts ...tfexec.InitOption) error {
+	return r.tf.Init(ctx, opts...)
+}
+
+func (r *RealTerraformExecutor) Plan(ctx context.Context, opts ...tfexec.PlanOption) (bool, error) {
+	return r.tf.Plan(ctx, opts...)
+}
+
+func (r *RealTerraformExecutor) Apply(ctx context.Context, opts ...tfexec.ApplyOption) error {
+	return r.tf.Apply(ctx, opts...)
+}
+
+func (r *RealTerraformExecutor) SetStdout(w io.Writer) {
+	r.tf.SetStdout(w)
+}
+
+func (r *RealTerraformExecutor) SetStderr(w io.Writer) {
+	r.tf.SetStderr(w)
+}
+
+func (r *RealTerraformExecutor) SetLogger(l *log.Logger) {
+	r.tf.SetLogger(l)
+}
 func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string, executor TerraformExecutor) {
 	bucket := fmt.Sprintf("bucket=%s", appconf.BucketName)
 	key := fmt.Sprintf("key=%s", "default")

@@ -4,7 +4,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
-	"testing"
 )
 
 type mockDB struct{}
@@ -34,19 +33,4 @@ func (db *mockDB) FetchConfig() ([]models.CoreConfig, error) {
 		{Key: "privateSubnets", Value: "testPrivateSubnets"},
 		{Key: "publicSubnets", Value: "testPublicSubnets"},
 	}, nil
-}
-
-func TestGateway(t *testing.T) {
-
-	appConfig := config.AppConfig{
-		GithubToken:          "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",
-		WorkflowBasePath:     "/home/barber/Projects/unity-cs-infra/.github/workflows",
-		AWSRegion:            "",
-		BucketName:           "",
-		Workdir:              "",
-		DefaultSSMParameters: nil,
-	}
-	mockStore := new(MockStore)
-
-	installGateway(mockStore, appConfig)
 }

@@ -52,8 +52,9 @@ func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore, websoc
 	hclFile := generateFileStructure(appConfig, venue, project, publicsubnets, privatesubnets, ssmParameters)
 
 	_, err = tfFile.Write(hclFile.Bytes())
+	executor := &terraform.RealTerraformExecutor{}
 
-	terraform.RunTerraform(appConfig, websocketmgr, userid)
+	terraform.RunTerraform(appConfig, websocketmgr, userid, executor)
 	return err
 }
 
