@@ -85,6 +85,7 @@ func initConfig() {
 		viper.SetDefault("MarketplaceRepo", "unity-marketplace")
 		viper.SetDefault("Workdir", "./workdir")
 		viper.SetDefault("AWSRegion", "us-west-2")
+		viper.SetDefault("MarketplaceBaseUrl", "https://raw.githubusercontent.com/")
 
 	}
 

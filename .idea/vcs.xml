@@ -4,6 +4,7 @@
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/terraform/modules/git-1383081998" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/terraform/modules/git-2930158968" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/terraform/modules/git-739270822" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/unity-cs-manager" vcs="Git" />
   </component>
 </project>

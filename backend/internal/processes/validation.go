@@ -3,6 +3,7 @@ package processes
 import (
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 )
 
 func CheckIAMPolicies() error {
@@ -14,11 +15,11 @@ func CheckIAMPolicies() error {
 	return nil
 }
 
-func ValidateMarketplaceInstallation(name string, version string) (bool, marketplace.MarketplaceMetadata, error) {
+func ValidateMarketplaceInstallation(name string, version string, appConfig *config.AppConfig) (bool, marketplace.MarketplaceMetadata, error) {
 	// Validate installation
 
 	// Check Marketplace Installation Exists
-	meta, err := fetchMarketplaceMetadata(name, version)
+	meta, err := fetchMarketplaceMetadata(name, version, appConfig)
 	if err != nil {
 		return false, meta, err
 	}
@@ -38,9 +39,9 @@ func ValidateMarketplaceInstallation(name string, version string) (bool, marketp
 	return true, meta, nil
 }
 
-func validateAndPrepareInstallation(app *marketplace.Install_Applications) (*marketplace.MarketplaceMetadata, error) {
+func validateAndPrepareInstallation(app *marketplace.Install_Applications, appConfig *config.AppConfig) (*marketplace.MarketplaceMetadata, error) {
 	log.Info("Validating installation")
-	validMarket, meta, err := ValidateMarketplaceInstallation(app.Name, app.Version)
+	validMarket, meta, err := ValidateMarketplaceInstallation(app.Name, app.Version, appConfig)
 	if err != nil || !validMarket {
 		log.Error("Invalid marketplace installation:", err)
 		return &marketplace.MarketplaceMetadata{}, err

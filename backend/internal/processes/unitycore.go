@@ -31,7 +31,7 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 func TriggerInstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Install, conf *config.AppConfig) error {
 	t := received.Applications
 
-	meta, err := validateAndPrepareInstallation(t)
+	meta, err := validateAndPrepareInstallation(t, conf)
 	if err != nil {
 		return err
 	}
