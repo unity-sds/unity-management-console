@@ -30,6 +30,12 @@
 		} else {
 			console.log("Key does not exist or parameters is null/undefined.");
 		}
+
+		for (const key in parameters.parameterlist) {
+			if (key !== '/unity/core/venue' && key !== '/unity/core/project') {
+				list = [...list, { key: key, value: parameters.parameterlist[key].value }];
+			}
+		}
 	});
 
   let privateSubnets: string[] = [];
