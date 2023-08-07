@@ -1,11 +1,22 @@
-<script>
-    import {onDestroy} from "svelte";
-    import {HttpHandler} from "../data/httpHandler";
+<script lang="ts">
     import { installComplete, messageStore } from "../store/stores";
-    let socket = new HttpHandler();
-    onDestroy(() => {
-        socket.closeSocket();
+    import { tick } from 'svelte';
+
+    let textarea : HTMLTextAreaElement;
+
+    const unsubscribe = messageStore.subscribe((value) => {
+        // This code runs whenever messageStore changes
+        if (textarea) {
+            // Use nextTick to ensure that the DOM has been updated
+            tick().then(() => {
+                textarea.scrollTop = textarea.scrollHeight;
+            });
+        }
     });
+
+    // Clean up the subscription when the component is destroyed
+    import { onDestroy } from 'svelte';
+    onDestroy(unsubscribe);
 </script>
 
 <div class="container d-flex align-items-center justify-content-center vh-100">
@@ -15,8 +26,7 @@
         </div>
         <div class="row">
             <div class="form-group col-md-12">
-                <textarea class="form-control" id="console" rows="10" bind:value={$messageStore} readonly></textarea>
-
+                <textarea bind:this={textarea} class="form-control" id="console" rows="10" bind:value={$messageStore} readonly></textarea>
             </div>
         </div>
         <div class="row mt-3">

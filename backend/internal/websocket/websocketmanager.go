@@ -109,7 +109,7 @@ func (manager *WebSocketManager) HandleConnections(w http.ResponseWriter, r *htt
 		return
 	}
 
-	client := &Client{Conn: conn, Send: make(chan []byte), UserID: msgMap.UserID}
+	client := &Client{Conn: conn, Send: make(chan []byte, 10000), UserID: msgMap.UserID}
 
 	log.Info("Registering client")
 	manager.Register <- client
@@ -168,6 +168,7 @@ func (manager *WebSocketManager) SendMessageToClient(client *Client, message []b
 		select {
 		case client.Send <- message:
 		default:
+			log.Error("Closing socket block sender")
 			close(client.Send)
 			delete(manager.Clients, client)
 		}

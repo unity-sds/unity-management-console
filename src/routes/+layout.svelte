@@ -7,12 +7,30 @@
 
 	import Navbar from '../components/Navbar.svelte';
 	import { onMount } from 'svelte';
+	import { initialized } from "../store/stores";
+	import { createWebsocketStore } from "../store/websocketstore";
 
 	onMount(async () => {
-		const httpHandler = new HttpHandler();
+		let hasInitialized;
 
-		await httpHandler.setupws()
-		//await httpHandler.fetchConfig();
+		// Subscribe to the store to get its current value
+		initialized.subscribe(value => {
+			hasInitialized = value;
+		})();
+
+		// If the initialization has not yet run, run it now
+		if (!hasInitialized) {
+			const httpHandler = new HttpHandler();
+			if (typeof window !== 'undefined') {
+				createWebsocketStore('ws://' + window.location.host + '/ws');
+			}
+			await httpHandler.setupws();
+			// await httpHandler.fetchConfig();
+
+			// Update the store to indicate that the initialization has run
+			initialized.set(true);
+		}
+
 	});
 </script>
 

@@ -17,6 +17,9 @@ func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppCo
 	} else if message.Operation == "request parameters" {
 		log.Info("Request Parameters received")
 		return fetchParameters(conf)
+	} else if message.Operation == "update config" {
+		log.Info("Update config received")
+		//return updateParameters()
 	}
 	return nil, nil
 }

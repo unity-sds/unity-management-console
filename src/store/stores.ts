@@ -13,3 +13,5 @@ export const parametersStore = writable<Parameters>({} as Parameters)
 export const messageStore = writable<string>('')
 export const installComplete = writable<boolean>(false)
 export const marketplaceStore = writable<Product[]>([])
+
+export const initialized = writable<boolean>(false)

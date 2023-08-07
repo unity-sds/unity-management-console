@@ -1,23 +1,22 @@
 import type {Product, Order} from './entities';
 import Axios from 'axios';
 import {dev} from '$app/environment';
-import {fetchline} from "../routes/progress/text";
 import { marketplaceStore, messageStore, parametersStore } from "../store/stores";
 import {config} from "../store/stores"
-import { createWebsocketStore } from '../store/websocketstore'
-import { ConnectionSetup, SimpleMessage, UnityWebsocketMessage } from "./unity-cs-manager/protobuf/extensions";
+import { websocketStore } from '../data/websocketStore';
+import {
+    ConnectionSetup,
+    Parameters,
+    SimpleMessage,
+    UnityWebsocketMessage
+} from "./unity-cs-manager/protobuf/extensions";
 import type { WebsocketStore } from "../store/websocketstore";
-let text = '';
-let lines = 0;
-const maxLines = 100;
+// let text = '';
+// let lines = 0;
+// const maxLines = 100;
 let headers = {};
 let marketplaceowner = "unity-sds"
 let marketplacerepo = "unity-marketplace"
-
-let messages: WebsocketStore
-if (typeof window !== 'undefined') {
-    messages = createWebsocketStore('ws://' + window.location.host + '/ws');
-}
 
 const unsubscribe = config.subscribe(configValue => {
     if (configValue && configValue.applicationConfig && configValue.applicationConfig.GithubToken) {
@@ -52,69 +51,63 @@ export class HttpHandler {
     public message = '';
 
     installSoftwareSocket(meta: string) {
-        if (!dev){
-            this.websocket = new WebSocket('ws://localhost:8080/ws');
-
-            this.websocket.onmessage = (event) => {
-                // Append new messages to the existing text
-                this.message += event.data + '\n';
-                messageStore.update(message => message + event.data + '\n');
-            };
-
-            this.websocket.onerror = (error) => {
-                this.message += 'WebSocket error: ' + error + '\n';
-            };
-
-            this.websocket.onclose = () => {
-                this.message += 'WebSocket connection closed\n';
-            };
-            console.log("Sending message")
-            let message: { payload: { value: string; key: string }[]; action: string }
-            if (meta != null) {
-                message = {
-                    action: "install software",
-                    payload: [{"key": "sps", "value": meta}]
-                }
-            } else {
-                message = {
-                    action: "config upgrade",
-                    payload: [{ "key": "abc", "value": "def" }]
-                };
-            }
-
-
-            this.websocket.onopen = () => {
-                if (this.websocket!=null){
-                    this.websocket.send(JSON.stringify(message));
-                    console.log("Message sent")
-                }
-            }
-
-
-        } else {
-            const interval2 = setInterval(() => {
-                lines++;
-                text += fetchline(lines)
-                messageStore.update(message => message + text)
-                // Scroll to the bottom
-                const textarea = document.getElementById('console');
-                if(textarea != null){
-                    textarea.scrollTop = textarea.scrollHeight;
-                }
-                if (lines >= maxLines) {
-                    clearInterval(interval2);
-                }
-            }, 100);
-            return () => {
-                clearInterval(interval2);
-            }
-        }
-    }
-
-    closeSocket(): void{
-        if (this.websocket) {
-        this.websocket.close();
-    }
+        // if (!dev){
+        //     this.websocket = new WebSocket('ws://localhost:8080/ws');
+        //
+        //     this.websocket.onmessage = (event) => {
+        //         // Append new messages to the existing text
+        //         this.message += event.data + '\n';
+        //         messageStore.update(message => message + event.data + '\n');
+        //     };
+        //
+        //     this.websocket.onerror = (error) => {
+        //         this.message += 'WebSocket error: ' + error + '\n';
+        //     };
+        //
+        //     this.websocket.onclose = () => {
+        //         this.message += 'WebSocket connection closed\n';
+        //     };
+        //     console.log("Sending message")
+        //     let message: { payload: { value: string; key: string }[]; action: string }
+        //     if (meta != null) {
+        //         message = {
+        //             action: "install software",
+        //             payload: [{"key": "sps", "value": meta}]
+        //         }
+        //     } else {
+        //         message = {
+        //             action: "config upgrade",
+        //             payload: [{ "key": "abc", "value": "def" }]
+        //         };
+        //     }
+        //
+        //
+        //     this.websocket.onopen = () => {
+        //         if (this.websocket!=null){
+        //             this.websocket.send(JSON.stringify(message));
+        //             console.log("Message sent")
+        //         }
+        //     }
+        //
+        //
+        // } else {
+        //     const interval2 = setInterval(() => {
+        //         lines++;
+        //         text += fetchline(lines)
+        //         messageStore.update(message => message + text)
+        //         // Scroll to the bottom
+        //         const textarea = document.getElementById('console');
+        //         if(textarea != null){
+        //             textarea.scrollTop = textarea.scrollHeight;
+        //         }
+        //         if (lines >= maxLines) {
+        //             clearInterval(interval2);
+        //         }
+        //     }, 100);
+        //     return () => {
+        //         clearInterval(interval2);
+        //     }
+        // }
     }
 
     async storeOrder(order: Order): Promise<number> {
@@ -134,84 +127,101 @@ export class HttpHandler {
     }
 
     async installSoftware(install: any): Promise<string> {
-        console.log("installing: "+JSON.stringify(install))
-        if (!dev) {
-            const relativePath = '/ws'; // Relative path to the WebSocket endpoint
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const host = window.location.host;
-            const websocketUrl = `${protocol}//${host}${relativePath}`;
-            //const response = await Axios.post<{ id: string }>(urls.install, installData);
-            this.websocket = new WebSocket(websocketUrl);
-
-            this.websocket.onmessage = (event) => {
-                // Append new messages to the existing text
-                this.message += event.data + '\n';
-                messageStore.update(message => message + event.data + '\n');
-            };
-
-            this.websocket.onerror = (error) => {
-                this.message += 'WebSocket error: ' + error + '\n';
-            };
-
-            this.websocket.onclose = () => {
-                this.message += 'WebSocket connection closed\n';
-            };
-            console.log("Sending message")
-            let message: { payload: any; action: string }
-            let extrapayload = new Uint8Array
-            if (install != null) {
-                message = {
-                    action: "install software",
-                    payload: null
-                }
-                extrapayload = install
-            } else {
-                message = {
-                    action: "config upgrade",
-                    payload: install
-                };
-            }
-
-
-            this.websocket.onopen = () => {
-                if (this.websocket!=null){
-                    this.websocket.send(JSON.stringify(message));
-                    console.log("Message sent")
-                    if (extrapayload != null && extrapayload.length>0){
-                        console.log("Other Message sent")
-
-                        this.websocket.send(extrapayload)
-                    }
-                }
-            }
-            return "";
-        } else {
-            return "abc";
-        }
+        // console.log("installing: "+JSON.stringify(install))
+        // if (!dev) {
+        //     const relativePath = '/ws'; // Relative path to the WebSocket endpoint
+        //     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        //     const host = window.location.host;
+        //     const websocketUrl = `${protocol}//${host}${relativePath}`;
+        //     //const response = await Axios.post<{ id: string }>(urls.install, installData);
+        //     this.websocket = new WebSocket(websocketUrl);
+        //
+        //     this.websocket.onmessage = (event) => {
+        //         // Append new messages to the existing text
+        //         this.message += event.data + '\n';
+        //         messageStore.update(message => message + event.data + '\n');
+        //     };
+        //
+        //     this.websocket.onerror = (error) => {
+        //         this.message += 'WebSocket error: ' + error + '\n';
+        //     };
+        //
+        //     this.websocket.onclose = () => {
+        //         this.message += 'WebSocket connection closed\n';
+        //     };
+        //     console.log("Sending message")
+        //     let message: { payload: any; action: string }
+        //     let extrapayload = new Uint8Array
+        //     if (install != null) {
+        //         message = {
+        //             action: "install software",
+        //             payload: null
+        //         }
+        //         extrapayload = install
+        //     } else {
+        //         message = {
+        //             action: "config upgrade",
+        //             payload: install
+        //         };
+        //     }
+        //
+        //
+        //     this.websocket.onopen = () => {
+        //         if (this.websocket!=null){
+        //             this.websocket.send(JSON.stringify(message));
+        //             console.log("Message sent")
+        //             if (extrapayload != null && extrapayload.length>0){
+        //                 console.log("Other Message sent")
+        //
+        //                 this.websocket.send(extrapayload)
+        //             }
+        //         }
+        //     }
+        //     return "";
+        // } else {
+        //     return "abc";
+        // }
+        return ""
     }
 
     async setupws() {
+        const messages =
+        console.log("Setting up connection")
         const set = ConnectionSetup.create({type: "register", userID: "test"})
-        messages.send(ConnectionSetup.encode(set).finish())
+        websocketStore.send(ConnectionSetup.encode(set).finish())
         const configrequest = SimpleMessage.create({operation: "request config", payload:""})
         const wsm = UnityWebsocketMessage.create({simplemessage: configrequest})
         const paramrequest = SimpleMessage.create({operation: "request parameters", payload:""})
         const wsm2 = UnityWebsocketMessage.create({simplemessage: paramrequest})
 
-        messages.send(UnityWebsocketMessage.encode(wsm).finish())
-        messages.send(UnityWebsocketMessage.encode(wsm2).finish())
-
-        const unsubscribe = messages.subscribe(receivedMessages => {
+        websocketStore.send(UnityWebsocketMessage.encode(wsm).finish())
+        websocketStore.send(UnityWebsocketMessage.encode(wsm2).finish())
+        let lastProcessedIndex = -1;
+        const unsubscribe = websocketStore.subscribe(receivedMessages => {
             // loop through the received messages
-            for (const message of receivedMessages) {
+            for (let i = lastProcessedIndex + 1; i < receivedMessages.length; i++) {
+                const message = receivedMessages[i];
                 if (message.parameters) {
                     parametersStore.set(message.parameters);
                 } else if (message.config) {
                     config.set(message.config);
                     generateMarketplace()
+                } else if(message.logs) {
+                    if(message.logs.line != undefined) {
+                        console.log(message.logs?.line)
+                        messageStore.update(messages => `${messages}[${message.logs?.level}] ${message.logs?.line}\n`);
+                    }
                 }
+                lastProcessedIndex = i; // Update the last processed index
             }
         });
+    }
+
+    updateParameters() {
+        const paramMessage = Parameters.create({})
+        const message = UnityWebsocketMessage.create({parameters: paramMessage})
+
+        websocketStore.send(UnityWebsocketMessage.encode(message).finish())
     }
 }
 

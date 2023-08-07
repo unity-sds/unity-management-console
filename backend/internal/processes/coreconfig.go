@@ -14,8 +14,13 @@ import (
 
 func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore, websocketmgr *websocket.WebSocketManager, userid string) error {
 
+	err := os.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
+	if err != nil {
+		log.WithError(err).Error("Couldn't create workdir for core config")
+		return err
+	}
 	// create new file on system
-	tfFile, err := os.Create(appConfig.Workdir + "/params.tf")
+	tfFile, err := os.Create(filepath.Join(appConfig.Workdir, "workspace", "params.tf"))
 	if err != nil {
 		log.WithError(err).Error("Problem creating tf file")
 		return err

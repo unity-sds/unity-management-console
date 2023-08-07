@@ -18,7 +18,7 @@ function createWebsocketStore(url: string) : WebsocketStore  {
 
   function connect() {
     if (typeof WebSocket === 'undefined') {
-      console.log('WebSocket is not available in this environment');
+      console.error('WebSocket is not available in this environment');
       return;
     }
     socket = new WebSocket(url);
@@ -37,7 +37,7 @@ function createWebsocketStore(url: string) : WebsocketStore  {
     };
 
     socket.onerror = (error) => {
-      console.log('WebSocket error: ', error);
+      console.error('WebSocket error: ', error);
     };
 
     socket.onclose = (event) => {

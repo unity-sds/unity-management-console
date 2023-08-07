@@ -70,6 +70,7 @@
 		// After saving, navigate to /saved
 		projectStore.set(project);
 		venueStore.set(venue);
+		httpHandler.updateParameters()
 		//goto('/ui/saved', { replaceState: true });
 	}
 </script>

@@ -9,6 +9,7 @@ export interface UnityWebsocketMessage {
   connectionsetup?: ConnectionSetup | undefined;
   config?: Config | undefined;
   parameters?: Parameters | undefined;
+  logs?: LogLine | undefined;
 }
 
 export interface ConnectionSetup {
@@ -58,6 +59,7 @@ export interface Parameters {
 }
 
 export interface Parameters_Parameter {
+  name: string;
   value: string;
   type: string;
   tracked: boolean;
@@ -69,6 +71,13 @@ export interface Parameters_ParameterlistEntry {
   value: Parameters_Parameter | undefined;
 }
 
+export interface LogLine {
+  line: string;
+  level: string;
+  timestamp: string;
+  type: string;
+}
+
 function createBaseUnityWebsocketMessage(): UnityWebsocketMessage {
   return {
     install: undefined,
@@ -76,6 +85,7 @@ function createBaseUnityWebsocketMessage(): UnityWebsocketMessage {
     connectionsetup: undefined,
     config: undefined,
     parameters: undefined,
+    logs: undefined,
   };
 }
 
@@ -95,6 +105,9 @@ export const UnityWebsocketMessage = {
     }
     if (message.parameters !== undefined) {
       Parameters.encode(message.parameters, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.logs !== undefined) {
+      LogLine.encode(message.logs, writer.uint32(50).fork()).ldelim();
     }
     return writer;
   },
@@ -141,6 +154,13 @@ export const UnityWebsocketMessage = {
 
           message.parameters = Parameters.decode(reader, reader.uint32());
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.logs = LogLine.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -157,6 +177,7 @@ export const UnityWebsocketMessage = {
       connectionsetup: isSet(object.connectionsetup) ? ConnectionSetup.fromJSON(object.connectionsetup) : undefined,
       config: isSet(object.config) ? Config.fromJSON(object.config) : undefined,
       parameters: isSet(object.parameters) ? Parameters.fromJSON(object.parameters) : undefined,
+      logs: isSet(object.logs) ? LogLine.fromJSON(object.logs) : undefined,
     };
   },
 
@@ -170,6 +191,7 @@ export const UnityWebsocketMessage = {
     message.config !== undefined && (obj.config = message.config ? Config.toJSON(message.config) : undefined);
     message.parameters !== undefined &&
       (obj.parameters = message.parameters ? Parameters.toJSON(message.parameters) : undefined);
+    message.logs !== undefined && (obj.logs = message.logs ? LogLine.toJSON(message.logs) : undefined);
     return obj;
   },
 
@@ -194,6 +216,7 @@ export const UnityWebsocketMessage = {
     message.parameters = (object.parameters !== undefined && object.parameters !== null)
       ? Parameters.fromPartial(object.parameters)
       : undefined;
+    message.logs = (object.logs !== undefined && object.logs !== null) ? LogLine.fromPartial(object.logs) : undefined;
     return message;
   },
 };
@@ -914,11 +937,14 @@ export const Parameters = {
 };
 
 function createBaseParameters_Parameter(): Parameters_Parameter {
-  return { value: "", type: "", tracked: false, insync: false };
+  return { name: "", value: "", type: "", tracked: false, insync: false };
 }
 
 export const Parameters_Parameter = {
   encode(message: Parameters_Parameter, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
     if (message.value !== "") {
       writer.uint32(18).string(message.value);
     }
@@ -941,6 +967,13 @@ export const Parameters_Parameter = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
         case 2:
           if (tag !== 18) {
             break;
@@ -980,6 +1013,7 @@ export const Parameters_Parameter = {
 
   fromJSON(object: any): Parameters_Parameter {
     return {
+      name: isSet(object.name) ? String(object.name) : "",
       value: isSet(object.value) ? String(object.value) : "",
       type: isSet(object.type) ? String(object.type) : "",
       tracked: isSet(object.tracked) ? Boolean(object.tracked) : false,
@@ -989,6 +1023,7 @@ export const Parameters_Parameter = {
 
   toJSON(message: Parameters_Parameter): unknown {
     const obj: any = {};
+    message.name !== undefined && (obj.name = message.name);
     message.value !== undefined && (obj.value = message.value);
     message.type !== undefined && (obj.type = message.type);
     message.tracked !== undefined && (obj.tracked = message.tracked);
@@ -1002,6 +1037,7 @@ export const Parameters_Parameter = {
 
   fromPartial<I extends Exact<DeepPartial<Parameters_Parameter>, I>>(object: I): Parameters_Parameter {
     const message = createBaseParameters_Parameter();
+    message.name = object.name ?? "";
     message.value = object.value ?? "";
     message.type = object.type ?? "";
     message.tracked = object.tracked ?? false;
@@ -1081,6 +1117,103 @@ export const Parameters_ParameterlistEntry = {
     message.value = (object.value !== undefined && object.value !== null)
       ? Parameters_Parameter.fromPartial(object.value)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseLogLine(): LogLine {
+  return { line: "", level: "", timestamp: "", type: "" };
+}
+
+export const LogLine = {
+  encode(message: LogLine, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.line !== "") {
+      writer.uint32(10).string(message.line);
+    }
+    if (message.level !== "") {
+      writer.uint32(18).string(message.level);
+    }
+    if (message.timestamp !== "") {
+      writer.uint32(26).string(message.timestamp);
+    }
+    if (message.type !== "") {
+      writer.uint32(34).string(message.type);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): LogLine {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogLine();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.line = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.level = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.timestamp = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LogLine {
+    return {
+      line: isSet(object.line) ? String(object.line) : "",
+      level: isSet(object.level) ? String(object.level) : "",
+      timestamp: isSet(object.timestamp) ? String(object.timestamp) : "",
+      type: isSet(object.type) ? String(object.type) : "",
+    };
+  },
+
+  toJSON(message: LogLine): unknown {
+    const obj: any = {};
+    message.line !== undefined && (obj.line = message.line);
+    message.level !== undefined && (obj.level = message.level);
+    message.timestamp !== undefined && (obj.timestamp = message.timestamp);
+    message.type !== undefined && (obj.type = message.type);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LogLine>, I>>(base?: I): LogLine {
+    return LogLine.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<LogLine>, I>>(object: I): LogLine {
+    const message = createBaseLogLine();
+    message.line = object.line ?? "";
+    message.level = object.level ?? "";
+    message.timestamp = object.timestamp ?? "";
+    message.type = object.type ?? "";
     return message;
   },
 };
