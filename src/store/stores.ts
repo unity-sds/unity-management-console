@@ -11,7 +11,10 @@ export const projectStore = writable('');
 export const venueStore = writable('');
 export const parametersStore = writable<Parameters>({} as Parameters)
 export const messageStore = writable<string>('')
-export const installComplete = writable<boolean>(false)
 export const marketplaceStore = writable<Product[]>([])
 
 export const initialized = writable<boolean>(false)
+
+export const installRunning = writable<boolean>(false)
+
+export const installError = writable<boolean>(false)

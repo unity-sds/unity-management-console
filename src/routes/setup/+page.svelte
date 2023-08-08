@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { config, parametersStore, projectStore, venueStore } from "../../store/stores";
+	import { config, installError, installRunning, parametersStore, projectStore, venueStore } from "../../store/stores";
 	import ProgressFeedback from "../../components/ProgressFeedback.svelte";
 	import { get } from "svelte/store";
 	import { HttpHandler } from "../../data/httpHandler";
@@ -87,6 +87,8 @@
 				value: venue,
 				tracked: true
 			})
+			installRunning.set(true)
+			installError.set(false)
 			httpHandler.updateParameters(items.parameterlist)
 		});
 

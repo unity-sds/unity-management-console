@@ -1,7 +1,7 @@
 import type { Product, Order, Application, InstallationApplication } from "./entities";
 import Axios from 'axios';
 import {dev} from '$app/environment';
-import { marketplaceStore, messageStore, parametersStore } from "../store/stores";
+import { installError, installRunning, marketplaceStore, messageStore, parametersStore } from "../store/stores";
 import {config} from "../store/stores"
 import { websocketStore } from '../data/websocketStore';
 import {
@@ -95,7 +95,19 @@ export class HttpHandler {
 			// loop through the received messages
 			for (let i = lastProcessedIndex + 1; i < receivedMessages.length; i++) {
 				const message = receivedMessages[i];
-				if (message.parameters) {
+        if (message.simplemessage){
+
+          if(message.simplemessage.operation === "terraform"){
+            if(message.simplemessage.payload === "completed"){
+              installRunning.set(false)
+            }
+
+            if(message.simplemessage.payload === "failed"){
+              installError.set(true)
+            }
+
+          }
+        } else if (message.parameters) {
 					parametersStore.set(message.parameters);
 				} else if (message.config) {
 					config.set(message.config);

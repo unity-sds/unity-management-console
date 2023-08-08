@@ -95,7 +95,7 @@ func (w *wsWriter) Write(p []byte) (n int, err error) {
 	return n, err
 }
 
-func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string, executor TerraformExecutor) {
+func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string, executor TerraformExecutor) error {
 	bucket := fmt.Sprintf("bucket=%s", appconf.BucketName)
 	key := fmt.Sprintf("key=%s", "default")
 	region := fmt.Sprintf("region=%s", appconf.AWSRegion)
@@ -123,20 +123,34 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 	tf.SetStderr(writerStderr)
 	tf.SetLogger(log.StandardLogger())
 
-	//if wsmgr != nil {
-	//	stopCapture := CaptureOutput(id, wsmgr)
-	//	defer stopCapture() // Ensure that we stop capturing even if an error occurs
-	//}
 	err = executor.Init(context.Background(), tfexec.Upgrade(true), tfexec.BackendConfig(bucket), tfexec.BackendConfig(key), tfexec.BackendConfig(region))
 
 	if err != nil {
 		log.WithError(err).Error("error initialising terraform")
+		message := marketplace.SimpleMessage{
+			Operation: "terraform",
+			Payload:   "failed",
+		}
+		om := marketplace.UnityWebsocketMessage_Simplemessage{Simplemessage: &message}
+		wrap := marketplace.UnityWebsocketMessage{Content: &om}
+		b, _ := proto.Marshal(&wrap)
+		wsmgr.SendMessageToUserID(id, b)
+		return err
 	}
 
 	change, err := executor.Plan(context.Background())
 
 	if err != nil {
 		log.WithError(err).Error("error running plan")
+		message := marketplace.SimpleMessage{
+			Operation: "terraform",
+			Payload:   "failed",
+		}
+		om := marketplace.UnityWebsocketMessage_Simplemessage{Simplemessage: &message}
+		wrap := marketplace.UnityWebsocketMessage{Content: &om}
+		b, _ := proto.Marshal(&wrap)
+		wsmgr.SendMessageToUserID(id, b)
+		return err
 	}
 
 	fmt.Printf("change: %v", change)
@@ -145,65 +159,26 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 		err = executor.Apply(context.Background())
 
 		if err != nil {
+			message := marketplace.SimpleMessage{
+				Operation: "terraform",
+				Payload:   "failed",
+			}
+			om := marketplace.UnityWebsocketMessage_Simplemessage{Simplemessage: &message}
+			wrap := marketplace.UnityWebsocketMessage{Content: &om}
+			b, _ := proto.Marshal(&wrap)
+			wsmgr.SendMessageToUserID(id, b)
 			log.WithError(err).Error("error running apply")
+			return err
 		}
 
 	}
+	message := marketplace.SimpleMessage{
+		Operation: "terraform",
+		Payload:   "completed",
+	}
+	om := marketplace.UnityWebsocketMessage_Simplemessage{Simplemessage: &message}
+	wrap := marketplace.UnityWebsocketMessage{Content: &om}
+	b, _ := proto.Marshal(&wrap)
+	wsmgr.SendMessageToUserID(id, b)
+	return nil
 }
-
-//func CaptureOutput(id string, wsmgr *ws.WebSocketManager) (stopCapture func()) {
-//
-//	stdoutReader, stdoutWriter, _ := os.Pipe()
-//	stderrReader, stderrWriter, _ := os.Pipe()
-//
-//	oldStdout := os.Stdout
-//	oldStderr := os.Stderr
-//	os.Stdout = stdoutWriter
-//	os.Stderr = stderrWriter
-//
-//	done := make(chan bool, 2)
-//	readAndCapture := func(reader *os.File, buffer *bytes.Buffer) {
-//		buf := make([]byte, 1024)
-//		for {
-//			n, err := reader.Read(buf)
-//			if err != nil {
-//				if err != io.EOF {
-//					// log.Println("read error:", err)
-//				}
-//				break
-//			}
-//
-//			if _, err := buffer.Write(buf[:n]); err != nil {
-//				// log.Println("buffer write:", err)
-//				return
-//			}
-//			m := marketplace.LogLine{
-//				Line:      string(buf[:n]),
-//				Level:     "",
-//				Timestamp: "",
-//				Type:      "",
-//			}
-//			mes := marketplace.UnityWebsocketMessage_Logs{Logs: &m}
-//			mess := &marketplace.UnityWebsocketMessage{Content: &mes}
-//			data, err := proto.Marshal(mess)
-//			if err != nil {
-//				log.WithError(err).Error("Failed to marshal log line")
-//				return
-//			}
-//			wsmgr.SendMessageToUserID(id, data)
-//		}
-//		done <- true
-//	}
-//
-//	go readAndCapture(stdoutReader, &stdoutBuffer)
-//	go readAndCapture(stderrReader, &stderrBuffer)
-//
-//	return func() {
-//		stdoutWriter.Close()
-//		stderrWriter.Close()
-//		os.Stdout = oldStdout
-//		os.Stderr = oldStderr
-//		<-done
-//		<-done
-//	}
-//}
