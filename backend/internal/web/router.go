@@ -10,7 +10,6 @@ import (
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
-	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
 	websocket2 "github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"net/http"
@@ -52,36 +51,6 @@ func handlePing(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "pong",
 	})
-}
-
-// handleConfigPOST handles POST requests to "/config".
-// It binds the JSON body of the request to a slice of CoreConfig models.
-// If the binding is successful, it stores the configuration in the database and triggers an environment update.
-func handleConfigPOST(c *gin.Context) {
-	var configjson []models.CoreConfig
-
-	if err := c.ShouldBindJSON(&configjson); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if _, err := database.StoreConfig(configjson); err != nil {
-		log.WithError(err).Error("error storing configuration")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"data": configjson})
-
-	// Trigger environment update via act
-	if err := processes.UpdateCoreConfig(nil, nil, nil, ""); err != nil {
-		log.WithError(err).Error("error updating core configuration")
-	}
-}
-
-// handleConfigGET responds with the current application configuration.
-func handleConfigGET(c *gin.Context) {
-	c.JSON(http.StatusOK, conf)
 }
 
 // handleWebsocket handles websocket connections.

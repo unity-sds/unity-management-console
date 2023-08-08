@@ -9,7 +9,7 @@ import {
     Parameters,
     SimpleMessage,
     UnityWebsocketMessage,
-    Install_Applications, Install
+    Install_Applications, Install, Parameters_Parameter
 } from "./unity-cs-manager/protobuf/extensions";
 let headers = {};
 let marketplaceowner = "unity-sds"
@@ -42,73 +42,81 @@ const urls = {
 };
 
 export class HttpHandler {
-    public message = '';
+	public message = '';
 
-    async storeOrder(order: Order): Promise<number> {
-        if (!dev) {
-            const orderData = {
-                lines: [...order.orderLines.values()].map((ol) => ({
-                    productId: ol.product.Id,
-                    productName: ol.product.Name,
-                    quantity: ol.quantity
-                }))
-            };
-            const response = await Axios.post<{ id: number }>(urls.orders, orderData);
-            return response.data.id;
-        } else {
-            return 1;
-        }
-    }
+	async storeOrder(order: Order): Promise<number> {
+		if (!dev) {
+			const orderData = {
+				lines: [...order.orderLines.values()].map((ol) => ({
+					productId: ol.product.Id,
+					productName: ol.product.Name,
+					quantity: ol.quantity
+				}))
+			};
+			const response = await Axios.post<{ id: number }>(urls.orders, orderData);
+			return response.data.id;
+		} else {
+			return 1;
+		}
+	}
 
-    async installSoftware(install: InstallationApplication[], deploymentName: string): Promise<string> {
+	async installSoftware(
+		install: InstallationApplication[],
+		deploymentName: string
+	): Promise<string> {
+		const appRequest = Install_Applications.create({
+			name: install[0].name,
+			version: install[0].version,
+			variables: { test: '' }
+		});
+		const installrequest = Install.create({
+			applications: appRequest,
+			DeploymentName: deploymentName
+		});
+		const installSoftware = UnityWebsocketMessage.create({ install: installrequest });
 
-        const appRequest = Install_Applications.create({name:install[0].name, version:install[0].version, variables: {"test":""}})
-        const installrequest = Install.create({applications: appRequest, DeploymentName: deploymentName})
-        const installSoftware = UnityWebsocketMessage.create({install: installrequest})
+		websocketStore.send(UnityWebsocketMessage.encode(installSoftware).finish());
+		return '';
+	}
 
-        websocketStore.send(UnityWebsocketMessage.encode(installSoftware).finish())
-        return ""
-    }
+	async setupws() {
+		const messages = console.log('Setting up connection');
+		const set = ConnectionSetup.create({ type: 'register', userID: 'test' });
+		websocketStore.send(ConnectionSetup.encode(set).finish());
+		const configrequest = SimpleMessage.create({ operation: 'request config', payload: '' });
+		const wsm = UnityWebsocketMessage.create({ simplemessage: configrequest });
+		const paramrequest = SimpleMessage.create({ operation: 'request parameters', payload: '' });
+		const wsm2 = UnityWebsocketMessage.create({ simplemessage: paramrequest });
 
-    async setupws() {
-        const messages =
-        console.log("Setting up connection")
-        const set = ConnectionSetup.create({type: "register", userID: "test"})
-        websocketStore.send(ConnectionSetup.encode(set).finish())
-        const configrequest = SimpleMessage.create({operation: "request config", payload:""})
-        const wsm = UnityWebsocketMessage.create({simplemessage: configrequest})
-        const paramrequest = SimpleMessage.create({operation: "request parameters", payload:""})
-        const wsm2 = UnityWebsocketMessage.create({simplemessage: paramrequest})
+		websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
+		websocketStore.send(UnityWebsocketMessage.encode(wsm2).finish());
+		let lastProcessedIndex = -1;
+		const unsubscribe = websocketStore.subscribe((receivedMessages) => {
+			// loop through the received messages
+			for (let i = lastProcessedIndex + 1; i < receivedMessages.length; i++) {
+				const message = receivedMessages[i];
+				if (message.parameters) {
+					parametersStore.set(message.parameters);
+				} else if (message.config) {
+					config.set(message.config);
+				} else if (message.logs) {
+					if (message.logs.line != undefined) {
+						console.log(message.logs?.line);
+						messageStore.update(
+							(messages) => `${messages}[${message.logs?.level}] ${message.logs?.line}\n`
+						);
+					}
+				}
+				lastProcessedIndex = i; // Update the last processed index
+			}
+		});
+	}
 
-        websocketStore.send(UnityWebsocketMessage.encode(wsm).finish())
-        websocketStore.send(UnityWebsocketMessage.encode(wsm2).finish())
-        let lastProcessedIndex = -1;
-        const unsubscribe = websocketStore.subscribe(receivedMessages => {
-            // loop through the received messages
-            for (let i = lastProcessedIndex + 1; i < receivedMessages.length; i++) {
-                const message = receivedMessages[i];
-                if (message.parameters) {
-                    parametersStore.set(message.parameters);
-                } else if (message.config) {
-                    config.set(message.config);
-                    //generateMarketplace()
-                } else if(message.logs) {
-                    if(message.logs.line != undefined) {
-                        console.log(message.logs?.line)
-                        messageStore.update(messages => `${messages}[${message.logs?.level}] ${message.logs?.line}\n`);
-                    }
-                }
-                lastProcessedIndex = i; // Update the last processed index
-            }
-        });
-    }
-
-    updateParameters() {
-        const paramMessage = Parameters.create({})
-        const message = UnityWebsocketMessage.create({parameters: paramMessage})
-
-        websocketStore.send(UnityWebsocketMessage.encode(message).finish())
-    }
+	updateParameters(p: { [p: string]: Parameters_Parameter }) {
+		const paramMessage = Parameters.fromPartial({parameterlist: p})
+		const message = UnityWebsocketMessage.create({ parameters: paramMessage });
+		websocketStore.send(UnityWebsocketMessage.encode(message).finish());
+	}
 }
 
 interface GithubContent {

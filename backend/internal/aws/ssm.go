@@ -58,7 +58,7 @@ func ReadSSMParameters(ssmParams []models.SSMParameters) (*marketplace.Parameter
 			exists, valuetracks := checkExistsInDatabase(aws.ToString(param.Name), aws.ToString(param.Value), ssmParams)
 			par := marketplace.Parameters_Parameter{
 				Value:   aws.ToString(param.Value),
-				Type:    "fixme",
+				Type:    "String",
 				Tracked: exists,
 				Insync:  valuetracks,
 			}

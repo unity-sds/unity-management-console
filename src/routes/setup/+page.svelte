@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { projectStore, venueStore } from '../../store/stores';
-	import ProgressFeedback from '../../components/ProgressFeedback.svelte';
-	import { config, parametersStore } from '../../store/stores';
-  import { get } from "svelte/store";
+	import { config, parametersStore, projectStore, venueStore } from "../../store/stores";
+	import ProgressFeedback from "../../components/ProgressFeedback.svelte";
+	import { get } from "svelte/store";
 	import { HttpHandler } from "../../data/httpHandler";
+	import type{ Parameters_Parameter } from "../../data/unity-cs-manager/protobuf/extensions";
+
 	let project = '';
   let venue = '';
 
@@ -70,8 +71,38 @@
 		// After saving, navigate to /saved
 		projectStore.set(project);
 		venueStore.set(venue);
-		httpHandler.updateParameters()
+		const unsubscribe = parametersStore.subscribe((items) => {
+			let l = items.parameterlist
+			l["project"] = createBaseParameters_Parameter({
+				name: "project",
+				type: "String",
+				insync: true,
+				value: project,
+				tracked: true
+			})
+			l["venue"] = createBaseParameters_Parameter({
+				name: "venue",
+				type: "String",
+				insync: true,
+				value: venue,
+				tracked: true
+			})
+			httpHandler.updateParameters(items.parameterlist)
+		});
+
+		unsubscribe()
 		//goto('/ui/saved', { replaceState: true });
+	}
+
+
+	function createBaseParameters_Parameter(p: {
+		insync: boolean;
+		name: string;
+		tracked: boolean;
+		type: string;
+		value: string
+	}): Parameters_Parameter {
+		return { name: p.name, value: p.value, type: p.type, tracked: p.tracked, insync: p.insync };
 	}
 </script>
 
