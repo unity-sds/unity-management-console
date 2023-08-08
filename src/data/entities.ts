@@ -46,6 +46,12 @@ interface NodeGroup {
 	};
 }
 
+export interface InstallationApplication {
+	name: string;
+	version: string;
+	variables: Map<string,string>;
+}
+
 export class OrderLine {
 	constructor(public product: Product, public quantity: number) {}
 

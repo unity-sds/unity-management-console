@@ -1,4 +1,4 @@
-import type {Product, Order} from './entities';
+import type { Product, Order, Application, InstallationApplication } from "./entities";
 import Axios from 'axios';
 import {dev} from '$app/environment';
 import { marketplaceStore, messageStore, parametersStore } from "../store/stores";
@@ -8,12 +8,9 @@ import {
     ConnectionSetup,
     Parameters,
     SimpleMessage,
-    UnityWebsocketMessage
+    UnityWebsocketMessage,
+    Install_Applications, Install
 } from "./unity-cs-manager/protobuf/extensions";
-import type { WebsocketStore } from "../store/websocketstore";
-// let text = '';
-// let lines = 0;
-// const maxLines = 100;
 let headers = {};
 let marketplaceowner = "unity-sds"
 let marketplacerepo = "unity-marketplace"
@@ -24,15 +21,13 @@ const unsubscribe = config.subscribe(configValue => {
             'Authorization': `token ${configValue.applicationConfig.GithubToken}`
         };
 
-    if(configValue && configValue.applicationConfig.MarketplaceOwner){
-        console.log("Setting marketplace owner: "+configValue.applicationConfig.MarketplaceOwner)
-        marketplaceowner = configValue.applicationConfig.MarketplaceOwner
-        generateMarketplace()
-    }
-    if(configValue && configValue.applicationConfig.MarketplaceUser){
-        console.log("Setting marketplace user: "+configValue.applicationConfig.MarketplaceUser)
+    if(configValue && configValue.applicationConfig.MarketplaceOwner && configValue.applicationConfig.MarketplaceUser) {
+        console.log("Setting marketplace owner: " + configValue.applicationConfig.MarketplaceOwner)
+        console.log("Setting marketplace user: " + configValue.applicationConfig.MarketplaceUser)
 
+        marketplaceowner = configValue.applicationConfig.MarketplaceOwner
         marketplacerepo = configValue.applicationConfig.MarketplaceUser
+
         generateMarketplace()
     }
     } else {
@@ -47,68 +42,7 @@ const urls = {
 };
 
 export class HttpHandler {
-    private websocket: WebSocket | null = null;
     public message = '';
-
-    installSoftwareSocket(meta: string) {
-        // if (!dev){
-        //     this.websocket = new WebSocket('ws://localhost:8080/ws');
-        //
-        //     this.websocket.onmessage = (event) => {
-        //         // Append new messages to the existing text
-        //         this.message += event.data + '\n';
-        //         messageStore.update(message => message + event.data + '\n');
-        //     };
-        //
-        //     this.websocket.onerror = (error) => {
-        //         this.message += 'WebSocket error: ' + error + '\n';
-        //     };
-        //
-        //     this.websocket.onclose = () => {
-        //         this.message += 'WebSocket connection closed\n';
-        //     };
-        //     console.log("Sending message")
-        //     let message: { payload: { value: string; key: string }[]; action: string }
-        //     if (meta != null) {
-        //         message = {
-        //             action: "install software",
-        //             payload: [{"key": "sps", "value": meta}]
-        //         }
-        //     } else {
-        //         message = {
-        //             action: "config upgrade",
-        //             payload: [{ "key": "abc", "value": "def" }]
-        //         };
-        //     }
-        //
-        //
-        //     this.websocket.onopen = () => {
-        //         if (this.websocket!=null){
-        //             this.websocket.send(JSON.stringify(message));
-        //             console.log("Message sent")
-        //         }
-        //     }
-        //
-        //
-        // } else {
-        //     const interval2 = setInterval(() => {
-        //         lines++;
-        //         text += fetchline(lines)
-        //         messageStore.update(message => message + text)
-        //         // Scroll to the bottom
-        //         const textarea = document.getElementById('console');
-        //         if(textarea != null){
-        //             textarea.scrollTop = textarea.scrollHeight;
-        //         }
-        //         if (lines >= maxLines) {
-        //             clearInterval(interval2);
-        //         }
-        //     }, 100);
-        //     return () => {
-        //         clearInterval(interval2);
-        //     }
-        // }
-    }
 
     async storeOrder(order: Order): Promise<number> {
         if (!dev) {
@@ -126,61 +60,13 @@ export class HttpHandler {
         }
     }
 
-    async installSoftware(install: any): Promise<string> {
-        // console.log("installing: "+JSON.stringify(install))
-        // if (!dev) {
-        //     const relativePath = '/ws'; // Relative path to the WebSocket endpoint
-        //     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        //     const host = window.location.host;
-        //     const websocketUrl = `${protocol}//${host}${relativePath}`;
-        //     //const response = await Axios.post<{ id: string }>(urls.install, installData);
-        //     this.websocket = new WebSocket(websocketUrl);
-        //
-        //     this.websocket.onmessage = (event) => {
-        //         // Append new messages to the existing text
-        //         this.message += event.data + '\n';
-        //         messageStore.update(message => message + event.data + '\n');
-        //     };
-        //
-        //     this.websocket.onerror = (error) => {
-        //         this.message += 'WebSocket error: ' + error + '\n';
-        //     };
-        //
-        //     this.websocket.onclose = () => {
-        //         this.message += 'WebSocket connection closed\n';
-        //     };
-        //     console.log("Sending message")
-        //     let message: { payload: any; action: string }
-        //     let extrapayload = new Uint8Array
-        //     if (install != null) {
-        //         message = {
-        //             action: "install software",
-        //             payload: null
-        //         }
-        //         extrapayload = install
-        //     } else {
-        //         message = {
-        //             action: "config upgrade",
-        //             payload: install
-        //         };
-        //     }
-        //
-        //
-        //     this.websocket.onopen = () => {
-        //         if (this.websocket!=null){
-        //             this.websocket.send(JSON.stringify(message));
-        //             console.log("Message sent")
-        //             if (extrapayload != null && extrapayload.length>0){
-        //                 console.log("Other Message sent")
-        //
-        //                 this.websocket.send(extrapayload)
-        //             }
-        //         }
-        //     }
-        //     return "";
-        // } else {
-        //     return "abc";
-        // }
+    async installSoftware(install: InstallationApplication[], deploymentName: string): Promise<string> {
+
+        const appRequest = Install_Applications.create({name:install[0].name, version:install[0].version, variables: {"test":""}})
+        const installrequest = Install.create({applications: appRequest, DeploymentName: deploymentName})
+        const installSoftware = UnityWebsocketMessage.create({install: installrequest})
+
+        websocketStore.send(UnityWebsocketMessage.encode(installSoftware).finish())
         return ""
     }
 
@@ -205,7 +91,7 @@ export class HttpHandler {
                     parametersStore.set(message.parameters);
                 } else if (message.config) {
                     config.set(message.config);
-                    generateMarketplace()
+                    //generateMarketplace()
                 } else if(message.logs) {
                     if(message.logs.line != undefined) {
                         console.log(message.logs?.line)
@@ -233,6 +119,20 @@ interface GithubContent {
 
 
 async function generateMarketplace(){
+    console.log("Checking if manifest.json exists in the repository...");
+    const manifestExists = await checkIfFileExists(marketplaceowner, marketplacerepo, 'manifest.json');
+    if (manifestExists) {
+        console.log("manifest.json exists in the repository.");
+        const content = await getGitHubFileContents(marketplaceowner, marketplacerepo, "manifest.json")
+        const c = JSON.parse(content)
+        const products: Product[] = []
+        for (const p of c) {
+            const prod: Product = p
+            products.push(prod)
+        }
+        marketplaceStore.set(products)
+        return; // You can decide what to do if the file exists. Here I'm just exiting the function.
+    }
 
 		console.log("fetching repo contents: "+marketplaceowner)
     const c = await getRepoContents(marketplaceowner, marketplacerepo);
@@ -247,6 +147,27 @@ async function generateMarketplace(){
     marketplaceStore.set(products)
 }
 
+async function checkIfFileExists(user: string, repo: string, filePath: string): Promise<boolean> {
+    const url = `/repos/${user}/${repo}/contents/${filePath}`;
+    try {
+        const api = Axios.create({
+            baseURL: 'https://api.github.com',
+            headers: headers
+        });
+
+        const response = await api.get<GithubContent[]>(url);
+        return response.status === 200; // Success status means the file exists.
+    } catch (error: unknown) {
+        if (Axios.isAxiosError(error)) {
+            // If the error status is 404, the file does not exist.
+            if (error.response?.status === 404) {
+                return false;
+            }
+            console.error(`Error checking file existence: ${error.message}`);
+        }
+        return false;
+    }
+}
 async function getRepoContents(user: string, repo: string, path = ''): Promise<string[]> {
     const url = `/repos/${user}/${repo}/contents/${path}`;
 

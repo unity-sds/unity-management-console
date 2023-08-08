@@ -3,7 +3,7 @@
 	import { goto } from "$app/navigation";
 	import { install } from "../../store/stores";
 	import { HttpHandler } from "../../data/httpHandler";
-	import type { NodeGroupType, Product } from "../../data/entities";
+	import type { Application, InstallationApplication, NodeGroupType, Product } from "../../data/entities";
 	import { Writer } from "protobufjs";
 	import {Install} from "../../data/unity-cs-manager/protobuf/extensions"
 	import type {
@@ -52,24 +52,21 @@
 			return;
 		}
 
-		const app: Install_Applications = {
+		const httpHandler = new HttpHandler()
+		const app: InstallationApplication = {
 			name: product.Name,
 			version: product.Version,
-			variables: {}
+			variables: new Map([
+				['key1', 'value1'],
+				['key2', 'value2']
+				// add more key-value pairs as needed
+			])
 		};
 
-		const inst = Install.create();
-		inst.applications = app
-		//inst.extensions = extensions
 
+		const applications: InstallationApplication[] = [app];
 
-		install.set(inst);
-
-		const httpHandler = new HttpHandler();
-		const writer = Writer.create();
-		Install.encode(inst, writer)
-		const protomessage = writer.finish();
-		const id = await httpHandler.installSoftware(protomessage);
+		const id = await httpHandler.installSoftware(applications, "test deployment");
 		console.log(id);
 
 		goto('/ui/progress', { replaceState: true });
