@@ -13,6 +13,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
 	websocket2 "github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"net/http"
+	"net/http/pprof"
 	"time"
 )
 
@@ -78,11 +79,12 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 		"admin": "unity",
 		"user":  "unity",
 	}))
-
 	router.GET("/", handleRoot)
 	router.GET("/ping", handlePing)
 	authorized.StaticFS("/ui", http.Dir("./build"))
 	authorized.GET("/ws", handleWebsocket)
+	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
+
 	router.NoRoute(handleNoRoute)
 
 	router.Use(LoggingMiddleware())
@@ -98,28 +100,37 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	return router
 }
 
+func monitorChannel(ch <-chan websocket2.ClientMessage) {
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case _, ok := <-ch:
+				if !ok {
+					fmt.Println("Channel is closed.")
+					return
+				} else {
+					fmt.Println("Channel is open.") // Note: this will consume a value from the channel
+				}
+			case <-ticker.C:
+				fmt.Println("Checking the channel status...")
+			}
+		}
+	}()
+}
+
 // handleMessages reads messages from the broadcast channel and handles them based on their type.
 // It creates a new datastore and uses it to handle install messages.
 func handleMessages() error {
+	log.Info("Creating message handler")
 	store, err := database.NewGormDatastore()
 	if err != nil {
 		log.WithError(err).Error("Error creating datastore")
 		return err
 	}
-	go func() {
-		ticker := time.NewTicker(time.Second * 5) // prints every 5 seconds
-		for {
-			select {
-			case <-ticker.C:
-				fmt.Println("Goroutine is alive")
-			default:
-				err := handleMessages()
-				if err != nil {
-					log.WithError(err).Error("Go routine crashed handling messages")
-				}
-			}
-		}
-	}()
+
 	for message := range wsManager.Broadcast {
 		// Unmarshal the message into a WebsocketMessage
 		clientMessage := &marketplace.UnityWebsocketMessage{}
@@ -128,6 +139,7 @@ func handleMessages() error {
 			continue
 		}
 
+		log.Infof("Message recieved: %v", clientMessage)
 		switch content := clientMessage.Content.(type) {
 		case *marketplace.UnityWebsocketMessage_Install:
 			installMessage := content.Install

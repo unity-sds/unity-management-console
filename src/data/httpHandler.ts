@@ -80,8 +80,8 @@ export class HttpHandler {
 	}
 
 	async setupws() {
-		const messages = console.log('Setting up connection');
 		const set = ConnectionSetup.create({ type: 'register', userID: 'test' });
+    console.log(ConnectionSetup.toJSON(set))
 		websocketStore.send(ConnectionSetup.encode(set).finish());
 		const configrequest = SimpleMessage.create({ operation: 'request config', payload: '' });
 		const wsm = UnityWebsocketMessage.create({ simplemessage: configrequest });

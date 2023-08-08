@@ -57,20 +57,20 @@ func (manager *WebSocketManager) Start() {
 				delete(manager.ClientsByID, client.UserID)
 				close(client.Send)
 			}
-		case clientMessage := <-manager.Broadcast:
-			for client := range manager.Clients {
-				if client == clientMessage.Client {
-					// Skip the client that sent the message
-					continue
-				}
-				select {
-				case client.Send <- clientMessage.Message:
-				default:
-					close(client.Send)
-					delete(manager.Clients, client)
-					delete(manager.ClientsByID, client.UserID)
-				}
-			}
+			//case clientMessage := <-manager.Broadcast:
+			//	for client := range manager.Clients {
+			//		if client == clientMessage.Client {
+			//			// Skip the client that sent the message
+			//			continue
+			//		}
+			//		select {
+			//		case client.Send <- clientMessage.Message:
+			//		default:
+			//			close(client.Send)
+			//			delete(manager.Clients, client)
+			//			delete(manager.ClientsByID, client.UserID)
+			//		}
+			//	}
 		}
 	}
 }
@@ -109,6 +109,7 @@ func (manager *WebSocketManager) HandleConnections(w http.ResponseWriter, r *htt
 		return
 	}
 
+	log.Info("New Client")
 	client := &Client{Conn: conn, Send: make(chan []byte, 10000), UserID: msgMap.UserID}
 
 	log.Info("Registering client")
