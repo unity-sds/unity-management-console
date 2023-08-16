@@ -1,9 +1,13 @@
-import type { Product, Order, Application, InstallationApplication } from "./entities";
 import Axios from 'axios';
 import {dev} from '$app/environment';
 import { installError, installRunning, marketplaceStore, messageStore, parametersStore } from "../store/stores";
 import {config} from "../store/stores"
 import { websocketStore } from '../data/websocketStore';
+import {
+  MarketplaceMetadata, MarketplaceMetadata_InnerMap, MarketplaceMetadata_SubMap,
+  MarketplaceMetadata_TypeMap,
+  MarketplaceMetadata_Variables
+} from "./unity-cs-manager/protobuf/marketplace";
 import {
     ConnectionSetup,
     Parameters,
@@ -44,84 +48,67 @@ const urls = {
 export class HttpHandler {
 	public message = '';
 
-	async storeOrder(order: Order): Promise<number> {
-		if (!dev) {
-			const orderData = {
-				lines: [...order.orderLines.values()].map((ol) => ({
-					productId: ol.product.Id,
-					productName: ol.product.Name,
-					quantity: ol.quantity
-				}))
-			};
-			const response = await Axios.post<{ id: number }>(urls.orders, orderData);
-			return response.data.id;
-		} else {
-			return 1;
-		}
-	}
-
 	async installSoftware(
-		install: InstallationApplication[],
+		install: Install_Applications,
 		deploymentName: string
 	): Promise<string> {
-		const appRequest = Install_Applications.create({
-			name: install[0].name,
-			version: install[0].version,
-			variables: { test: '' }
-		});
 		const installrequest = Install.create({
-			applications: appRequest,
+			applications: install,
 			DeploymentName: deploymentName
 		});
 		const installSoftware = UnityWebsocketMessage.create({ install: installrequest });
-
+debugger
 		websocketStore.send(UnityWebsocketMessage.encode(installSoftware).finish());
 		return '';
 	}
 
 	async setupws() {
-		const set = ConnectionSetup.create({ type: 'register', userID: 'test' });
-    console.log(ConnectionSetup.toJSON(set))
-		websocketStore.send(ConnectionSetup.encode(set).finish());
-		const configrequest = SimpleMessage.create({ operation: 'request config', payload: '' });
-		const wsm = UnityWebsocketMessage.create({ simplemessage: configrequest });
-		const paramrequest = SimpleMessage.create({ operation: 'request parameters', payload: '' });
-		const wsm2 = UnityWebsocketMessage.create({ simplemessage: paramrequest });
+    if(!dev) {
+      const set = ConnectionSetup.create({ type: 'register', userID: 'test' });
+      console.log(ConnectionSetup.toJSON(set))
+      websocketStore.send(ConnectionSetup.encode(set).finish());
+      const configrequest = SimpleMessage.create({ operation: 'request config', payload: '' });
+      const wsm = UnityWebsocketMessage.create({ simplemessage: configrequest });
+      const paramrequest = SimpleMessage.create({ operation: 'request parameters', payload: '' });
+      const wsm2 = UnityWebsocketMessage.create({ simplemessage: paramrequest });
 
-		websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
-		websocketStore.send(UnityWebsocketMessage.encode(wsm2).finish());
-		let lastProcessedIndex = -1;
-		const unsubscribe = websocketStore.subscribe((receivedMessages) => {
-			// loop through the received messages
-			for (let i = lastProcessedIndex + 1; i < receivedMessages.length; i++) {
-				const message = receivedMessages[i];
-        if (message.simplemessage){
+      websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
+      websocketStore.send(UnityWebsocketMessage.encode(wsm2).finish());
+      let lastProcessedIndex = -1;
+      const unsubscribe = websocketStore.subscribe((receivedMessages) => {
+        // loop through the received messages
+        for (let i = lastProcessedIndex + 1; i < receivedMessages.length; i++) {
+          const message = receivedMessages[i];
+          if (message.simplemessage) {
 
-          if(message.simplemessage.operation === "terraform"){
-            if(message.simplemessage.payload === "completed"){
-              installRunning.set(false)
+            if (message.simplemessage.operation === "terraform") {
+              if (message.simplemessage.payload === "completed") {
+                installRunning.set(false)
+              }
+
+              if (message.simplemessage.payload === "failed") {
+                installError.set(true)
+              }
+
             }
-
-            if(message.simplemessage.payload === "failed"){
-              installError.set(true)
+          } else if (message.parameters) {
+            parametersStore.set(message.parameters);
+          } else if (message.config) {
+            config.set(message.config);
+          } else if (message.logs) {
+            if (message.logs.line != undefined) {
+              console.log(message.logs?.line);
+              messageStore.update(
+                (messages) => `${messages}[${message.logs?.level}] ${message.logs?.line}\n`
+              );
             }
-
           }
-        } else if (message.parameters) {
-					parametersStore.set(message.parameters);
-				} else if (message.config) {
-					config.set(message.config);
-				} else if (message.logs) {
-					if (message.logs.line != undefined) {
-						console.log(message.logs?.line);
-						messageStore.update(
-							(messages) => `${messages}[${message.logs?.level}] ${message.logs?.line}\n`
-						);
-					}
-				}
-				lastProcessedIndex = i; // Update the last processed index
-			}
-		});
+          lastProcessedIndex = i; // Update the last processed index
+        }
+      });
+    } else {
+      generateMarketplace()
+    }
 	}
 
 	updateParameters(p: { [p: string]: Parameters_Parameter }) {
@@ -139,32 +126,44 @@ interface GithubContent {
 
 
 async function generateMarketplace(){
+  if(!dev) {
     console.log("Checking if manifest.json exists in the repository...");
     const manifestExists = await checkIfFileExists(marketplaceowner, marketplacerepo, 'manifest.json');
     if (manifestExists) {
-        console.log("manifest.json exists in the repository.");
-        const content = await getGitHubFileContents(marketplaceowner, marketplacerepo, "manifest.json")
-        const c = JSON.parse(content)
-        const products: Product[] = []
-        for (const p of c) {
-            const prod: Product = p
-            products.push(prod)
-        }
-        marketplaceStore.set(products)
-        return; // You can decide what to do if the file exists. Here I'm just exiting the function.
+      console.log("manifest.json exists in the repository.");
+      const content = await getGitHubFileContents(marketplaceowner, marketplacerepo, "manifest.json")
+      const c = JSON.parse(content)
+      const products: MarketplaceMetadata[] = []
+      for (const p of c) {
+        const prod= MarketplaceMetadata.fromJSON(p)
+        products.push(prod)
+      }
+      marketplaceStore.set(products)
+      return;
     }
 
-		console.log("fetching repo contents: "+marketplaceowner)
+    console.log("fetching repo contents: " + marketplaceowner)
     const c = await getRepoContents(marketplaceowner, marketplacerepo);
 
-    const products: Product[] = []
+    const products: MarketplaceMetadata[] = []
     for (const p of c) {
-        const content = await getGitHubFileContents(marketplaceowner, marketplacerepo, p)
-        const prod: Product = JSON.parse(content)
-        products.push(prod)
+      const content = await getGitHubFileContents(marketplaceowner, marketplacerepo, p)
+      const j = JSON.parse(content)
+      const prod= MarketplaceMetadata.fromJSON(j)
+      products.push(prod)
     }
 
     marketplaceStore.set(products)
+  } else {
+    const j = JSON.parse(mock_marketplace)
+    const products: MarketplaceMetadata[] = []
+    for (const p of j) {
+      const prod= MarketplaceMetadata.fromJSON(p)
+      products.push(prod)
+    }
+    marketplaceStore.set(products)
+    return;
+  }
 }
 
 async function checkIfFileExists(user: string, repo: string, filePath: string): Promise<boolean> {
@@ -247,112 +246,205 @@ async function getGitHubFileContents(user: string, repo: string, path: string): 
         throw error;
     }
 }
-
-const mock_products = [
-    {
-        Id: 1,
-        Name: 'sample application',
-        Version: '1.2.3',
-        Branch: '',
-        Category: 'data processing',
-        Description: 'A demonstration application for the Unity platform',
-        Tags: ["tag a", "tag b"],
-        IamRoles: [
-            {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Action": "service-prefix:action-name",
-                        "Resource": "*",
-                        "Condition": {
-                            "DateGreaterThan": {"aws:CurrentTime": "2020-04-01T00:00:00Z"},
-                            "DateLessThan": {"aws:CurrentTime": "2020-06-30T23:59:59Z"}
-                        }
-                    }
-                ]
-            }
-        ],
-        Package: "http://github.com/path/to/package.zip",
-        ManagedDependencies: [
-            {
-                Eks: {
-                    MinimumVersion: "1.21"
-                }
-            }
-        ],
-        Backend: "terraform",
-        DefaultDeployment: {
-            Variables: {
-                "some_terraform_variable": "some value"
-            },
-            EksSpec: {
-                NodeGroups: [
-                    {
-                        NodeGroup1: {
-                            MinNodes: 1,
-                            MaxNodes: 10,
-                            DesiredNodes: 4,
-                            InstanceType: "m6.large"
-                        }
-                    }
-                ]
-            }
-        }
-    },
-    {
-        Id: 1,
-        Name: "Unity Kubernetes",
-        Version: "0.1-beta",
-        Branch: '',
-        Channel: "beta",
-        Owner: "Tom Barber",
-        Description: "The Unity Kubernetes package",
-        Repository: "https://github.com/unity-sds/unity-cs-infra",
-        Tags: [
-            "eks",
-            "kubernetes"
-        ],
-        Category: "system",
-        IamRoles: [{
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Action": "service-prefix:action-name",
-                    "Resource": "*",
-                    "Condition": {
-                        "DateGreaterThan": {"aws:CurrentTime": "2020-04-01T00:00:00Z"},
-                        "DateLessThan": {"aws:CurrentTime": "2020-06-30T23:59:59Z"}
-                    }
-                }
-            ]
-        }],
-        Package: "https://github.com/unity-sds/unity-cs-infra",
-        Backend: "./github/workflows/deploy_eks.yml",
-        ManagedDependencies: [
-            {
-                "Eks": {
-                    "MinimumVersion": "1.21"
-                }
-            }
-        ],
-        DefaultDeployment: {
-            Variables: {
-                "some_terraform_variable": "some_value"
-            },
-            EksSpec: {
-                NodeGroups: [
-                    {
-                        NodeGroup1: {
-                            MinNodes: 1,
-                            MaxNodes: 10,
-                            DesiredNodes: 4,
-                            InstanceType: "m6.large"
-                        }
-                    }
-                ]
-            }
-        }
-    }
-];
+const mock_marketplace = "[{\n" +
+  "\t\t\"Name\": \"sample application\",\n" +
+  "\t\t\"Version\": \"0.1-beta\",\n" +
+  "\t\t\"Channel\": \"beta\",\n" +
+  "\t\t\"Owner\": \"Tom Barber\",\n" +
+  "\t\t\"Description\": \"A demonstration application for the Unity platform\",\n" +
+  "\t\t\"Repository\": \"https://github.com/unity-sds/unity-marketplace\",\n" +
+  "\t\t\"Tags\": [\n" +
+  "\t\t\t\"tag a\",\n" +
+  "\t\t\t\"tag b\"\n" +
+  "\t\t],\n" +
+  "\t\t\"Category\": \"data processing\",\n" +
+  "\t\t\"IamRoles\": {\n" +
+  "\t\t\t\"Statement\": [{\n" +
+  "\t\t\t\t\"Effect\": \"Allow\",\n" +
+  "\t\t\t\t\"Action\": [\n" +
+  "\t\t\t\t\t\"iam:CreateInstanceProfile\"\n" +
+  "\t\t\t\t],\n" +
+  "\t\t\t\t\"Resource\": [\n" +
+  "\t\t\t\t\t\"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
+  "\t\t\t\t]\n" +
+  "\t\t\t}]\n" +
+  "\t\t},\n" +
+  "\t\t\"Package\": \"http://github.com/path/to/package.zip\",\n" +
+  "\t\t\"ManagedDependencies\": [{\n" +
+  "\t\t\t\"Eks\": {\n" +
+  "\t\t\t\t\"MinimumVersion\": \"1.21\"\n" +
+  "\t\t\t}\n" +
+  "\t\t}],\n" +
+  "\t\t\"Backend\": \"terraform\",\n" +
+  "\t\t\"DefaultDeployment\": {\n" +
+  "\t\t\t\"Variables\": {\n" +
+  "\t\t\t\t\"some_terraform_variable\": \"some_value\"\n" +
+  "\t\t\t},\n" +
+  "\t\t\t\"EksSpec\": {\n" +
+  "\t\t\t\t\"NodeGroups\": [{\n" +
+  "\t\t\t\t\t\"NodeGroup1\": {\n" +
+  "\t\t\t\t\t\t\"MinNodes\": 1,\n" +
+  "\t\t\t\t\t\t\"MaxNodes\": 10,\n" +
+  "\t\t\t\t\t\t\"DesiredNodes\": 4,\n" +
+  "\t\t\t\t\t\t\"InstanceType\": \"m6.large\"\n" +
+  "\t\t\t\t\t}\n" +
+  "\t\t\t\t}]\n" +
+  "\t\t\t}\n" +
+  "\t\t}\n" +
+  "\t},\n" +
+  "\t{\n" +
+  "\t\t\"DisplayName\": \"Unity API Gateway\",\n" +
+  "\t\t\"Name\": \"unity-apigateway\",\n" +
+  "\t\t\"Version\": \"0.1-beta\",\n" +
+  "\t\t\"Channel\": \"beta\",\n" +
+  "\t\t\"Owner\": \"U-CS Team\",\n" +
+  "\t\t\"Description\": \"A package to install and configure an API gateway for your Unity Venue\",\n" +
+  "\t\t\"Repository\": \"https://github.com/unity-sds/unity-cs-infra/\",\n" +
+  "\t\t\"Tags\": [\n" +
+  "\t\t\t\"api\",\n" +
+  "\t\t\t\"http\",\n" +
+  "\t\t\t\"rest\"\n" +
+  "\t\t],\n" +
+  "\t\t\"Category\": \"system\",\n" +
+  "\t\t\"IamRoles\": {\n" +
+  "\t\t\t\"Statement\": [{\n" +
+  "\t\t\t\t\"Effect\": \"Allow\",\n" +
+  "\t\t\t\t\"Action\": [\n" +
+  "\t\t\t\t\t\"iam:CreateInstanceProfile\"\n" +
+  "\t\t\t\t],\n" +
+  "\t\t\t\t\"Resource\": [\n" +
+  "\t\t\t\t\t\"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
+  "\t\t\t\t]\n" +
+  "\t\t\t}]\n" +
+  "\t\t},\n" +
+  "\t\t\"Package\": \"https://github.com/unity-sds/unity-cs-infra/\",\n" +
+  "\t\t\"Backend\": \"terraform\",\n" +
+  "\t\t\"WorkDirectory\": \"terraform-project-api-gateway_module\",\n" +
+  "\t\t\"DefaultDeployment\": {\n" +
+  "\t\t\t\"Variables\": {\n" +
+  "\t\t\t\t\"some_terraform_variable\": \"some_value\"\n" +
+  "\t\t\t}\n" +
+  "\t\t}\n" +
+  "\t},\n" +
+  "\t{\n" +
+  "\t\t\"DisplayName\": \"Unity Kubernetes\",\n" +
+  "\t\t\"Name\": \"unity-eks\",\n" +
+  "\t\t\"Version\": \"0.1\",\n" +
+  "\t\t\"Channel\": \"beta\",\n" +
+  "\t\t\"Owner\": \"Tom Barber\",\n" +
+  "\t\t\"Description\": \"The Unity Kubernetes package\",\n" +
+  "\t\t\"Repository\": \"https://github.com/unity-sds/unity-cs-infra\",\n" +
+  "\t\t\"Tags\": [\n" +
+  "\t\t\t\"eks\",\n" +
+  "\t\t\t\"kubernetes\"\n" +
+  "\t\t],\n" +
+  "\t\t\"Category\": \"system\",\n" +
+  "\t\t\"IamRoles\": {\n" +
+  "\t\t\t\"Statement\": [{\n" +
+  "\t\t\t\t\"Effect\": \"Allow\",\n" +
+  "\t\t\t\t\"Action\": [\n" +
+  "\t\t\t\t\t\"iam:CreateInstanceProfile\"\n" +
+  "\t\t\t\t],\n" +
+  "\t\t\t\t\"Resource\": [\n" +
+  "\t\t\t\t\t\"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
+  "\t\t\t\t]\n" +
+  "\t\t\t}]\n" +
+  "\t\t},\n" +
+  "\t\t\"Package\": \"https://github.com/unity-sds/unity-cs-infra\",\n" +
+  "\t\t\"WorkDirectory\": \"terraform-unity-eks_module\",\n" +
+  "\t\t\"Backend\": \"terraform\",\n" +
+  "\t\t\"ManagedDependencies\": [{\n" +
+  "\t\t\t\"Eks\": {\n" +
+  "\t\t\t\t\"MinimumVersion\": \"1.21\"\n" +
+  "\t\t\t}\n" +
+  "\t\t}],\n" +
+  "\t\t\"DefaultDeployment\": {\n" +
+  "\t\t\t\"Variables\": {\n" +
+  "\t\t\t\t\"Values\": {\n" +
+  "\t\t\t\t\t\"some_terraform_variable\": \"some_value\"\n" +
+  "\t\t\t\t},\n" +
+  "\t\t\t\t\"NestedValues\": {\n" +
+  "\t\t\t\t\t\"NodeGroups\": {\n" +
+  "\t\t\t\t\t\t\"Config\": {\n" +
+  "\t\t\t\t\t\t\t\"Name\": {\n" +
+  "\t\t\t\t\t\t\t\t\"Options\": {\n" +
+  "\t\t\t\t\t\t\t\t\t\"type\": \"String\",\n" +
+  "\t\t\t\t\t\t\t\t\t\"default\": \"NodeGroup\"\n" +
+  "\t\t\t\t\t\t\t\t}\n" +
+  "\t\t\t\t\t\t\t},\n" +
+  "\t\t\t\t\t\t\t\"MinNodes\": {\n" +
+  "\t\t\t\t\t\t\t\t\"Options\": {\n" +
+  "\t\t\t\t\t\t\t\t\t\"type\": \"Number\",\n" +
+  "\t\t\t\t\t\t\t\t\t\"default\": \"1\"\n" +
+  "\t\t\t\t\t\t\t\t}\n" +
+  "\t\t\t\t\t\t\t},\n" +
+  "\t\t\t\t\t\t\t\"MaxNodes\": {\n" +
+  "\t\t\t\t\t\t\t\t\"Options\": {\n" +
+  "\t\t\t\t\t\t\t\t\t\"type\": \"Number\",\n" +
+  "\t\t\t\t\t\t\t\t\t\"default\": \"3\"\n" +
+  "\t\t\t\t\t\t\t\t}\n" +
+  "\t\t\t\t\t\t\t},\n" +
+  "\t\t\t\t\t\t\t\"DesiredNodes\": {\n" +
+  "\t\t\t\t\t\t\t\t\"Options\": {\n" +
+  "\t\t\t\t\t\t\t\t\t\"type\": \"Number\",\n" +
+  "\t\t\t\t\t\t\t\t\t\"default\": \"1\"\n" +
+  "\t\t\t\t\t\t\t\t}\n" +
+  "\t\t\t\t\t\t\t},\n" +
+  "\t\t\t\t\t\t\t\"InstanceType\": {\n" +
+  "\t\t\t\t\t\t\t\t\"Options\": {\n" +
+  "\t\t\t\t\t\t\t\t\t\"type\": \"String\",\n" +
+  "\t\t\t\t\t\t\t\t\t\"default\": \"m6.xlarge\"\n" +
+  "\t\t\t\t\t\t\t\t}\n" +
+  "\t\t\t\t\t\t\t}\n" +
+  "\t\t\t\t\t\t}\n" +
+  "\t\t\t\t\t}\n" +
+  "\t\t\t\t}\n" +
+  "\t\t\t}\n" +
+  "\t\t}\n" +
+  "\t}, {\n" +
+  "\t\t\"Name\": \"Unity SPS\",\n" +
+  "\t\t\"Version\": \"0.1-beta\",\n" +
+  "\t\t\"Channel\": \"beta\",\n" +
+  "\t\t\"Owner\": \"Tom Barber\",\n" +
+  "\t\t\"Description\": \"The Unity SPS Prototype package\",\n" +
+  "\t\t\"Repository\": \"https://github.com/unity-sds/unity-sps-prototype\",\n" +
+  "\t\t\"Tags\": [\n" +
+  "\t\t\t\"sps\",\n" +
+  "\t\t\t\"data processing\"\n" +
+  "\t\t],\n" +
+  "\t\t\"Category\": \"data processing\",\n" +
+  "\t\t\"IamRoles\": {\n" +
+  "\t\t\t\"Statement\": [{\n" +
+  "\t\t\t\t\"Effect\": \"Allow\",\n" +
+  "\t\t\t\t\"Action\": [\n" +
+  "\t\t\t\t\t\"iam:CreateInstanceProfile\"\n" +
+  "\t\t\t\t],\n" +
+  "\t\t\t\t\"Resource\": [\n" +
+  "\t\t\t\t\t\"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
+  "\t\t\t\t]\n" +
+  "\t\t\t}]\n" +
+  "\t\t},\n" +
+  "\t\t\"Package\": \"https://github.com/unity-sds/unity-sps-prototype/archive/refs/tags/u-cs-deployment.zip\",\n" +
+  "\t\t\"ManagedDependencies\": [{\n" +
+  "\t\t\t\"Eks\": {\n" +
+  "\t\t\t\t\"MinimumVersion\": \"1.21\"\n" +
+  "\t\t\t}\n" +
+  "\t\t}],\n" +
+  "\t\t\"Backend\": \"terraform\",\n" +
+  "\t\t\"DefaultDeployment\": {\n" +
+  "\t\t\t\"Variables\": {\n" +
+  "\t\t\t\t\"some_terraform_variable\": \"some_value\"\n" +
+  "\t\t\t},\n" +
+  "\t\t\t\"EksSpec\": {\n" +
+  "\t\t\t\t\"NodeGroups\": [{\n" +
+  "\t\t\t\t\t\"NodeGroup1\": {\n" +
+  "\t\t\t\t\t\t\"MinNodes\": 1,\n" +
+  "\t\t\t\t\t\t\"MaxNodes\": 10,\n" +
+  "\t\t\t\t\t\t\"DesiredNodes\": 4,\n" +
+  "\t\t\t\t\t\t\"InstanceType\": \"m6.large\"\n" +
+  "\t\t\t\t\t}\n" +
+  "\t\t\t\t}]\n" +
+  "\t\t\t}\n" +
+  "\t\t}\n" +
+  "\t}\n" +
+  "]"

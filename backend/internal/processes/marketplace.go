@@ -62,11 +62,18 @@ func gitclone(url string, basedir string) (string, error) {
 	err := os.MkdirAll(basedir, 0755)
 	if err != nil {
 		return "", err
+
 	}
 	_, err = git.PlainClone(basedir, false, &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
 	})
-
+	if err != nil {
+		if err.Error() != "repository already exists" {
+			return "", err
+		} else {
+			err = nil
+		}
+	}
 	return basedir, err
 }

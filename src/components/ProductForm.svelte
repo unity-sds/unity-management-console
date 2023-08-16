@@ -1,7 +1,8 @@
 <script lang="ts">
-	import type { Product } from '../data/entities';
 
-	export let product: Product | null;
+	import type { MarketplaceMetadata } from "../data/unity-cs-manager/protobuf/marketplace";
+
+	export let product: MarketplaceMetadata | null;
 </script>
 
 {#if product}
@@ -15,6 +16,6 @@
 	</div>
 	<div class="form-group mt-4">
 		<label for="branch">Branch</label>
-		<input id="branch" class="form-control" bind:value={product.Branch} />
+		<input id="branch" class="form-control" />
 	</div>
 {/if}

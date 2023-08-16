@@ -1,14 +1,11 @@
 <script lang="ts">
-	//import 'bootstrap/dist/css/bootstrap.min.css';
 	import '@nasa-jpl/stellar/css/button.css';
 	import '@nasa-jpl/stellar/css/index.css';
 	import '../custom.scss';
 	import { HttpHandler } from '../data/httpHandler';
-
 	import Navbar from '../components/Navbar.svelte';
 	import { onMount } from 'svelte';
 	import { initialized } from "../store/stores";
-	import { createWebsocketStore } from "../store/websocketstore";
 
 	onMount(async () => {
 		let hasInitialized;
@@ -21,9 +18,9 @@
 		// If the initialization has not yet run, run it now
 		if (!hasInitialized) {
 			const httpHandler = new HttpHandler();
-			if (typeof window !== 'undefined') {
-				createWebsocketStore('ws://' + window.location.host + '/ws');
-			}
+			// if (typeof window !== 'undefined') {
+			// 	createWebsocketStore('ws://' + window.location.host + '/ws');
+			// }
 			await httpHandler.setupws();
 			// await httpHandler.fetchConfig();
 

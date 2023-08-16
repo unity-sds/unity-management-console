@@ -19,6 +19,7 @@ export interface MarketplaceMetadata {
   Backend: string;
   Entrypoint: string;
   WorkDirectory: string;
+  PostInstall: string;
   DefaultDeployment: MarketplaceMetadata_Defaultdeployment | undefined;
 }
 
@@ -40,28 +41,42 @@ export interface MarketplaceMetadata_Manageddependencies {
   Eks: MarketplaceMetadata_Eks | undefined;
 }
 
+export interface MarketplaceMetadata_TypeMap {
+  type: string;
+  default: string;
+}
+
+export interface MarketplaceMetadata_SubMap {
+  Options: MarketplaceMetadata_TypeMap | undefined;
+}
+
+export interface MarketplaceMetadata_InnerMap {
+  Config: { [key: string]: MarketplaceMetadata_SubMap };
+  Type: string;
+}
+
+export interface MarketplaceMetadata_InnerMap_ConfigEntry {
+  key: string;
+  value: MarketplaceMetadata_SubMap | undefined;
+}
+
 export interface MarketplaceMetadata_Variables {
-  someTerraformVariable: string;
+  Values: { [key: string]: string };
+  NestedValues: { [key: string]: MarketplaceMetadata_InnerMap };
 }
 
-export interface MarketplaceMetadata_Nodegroup1 {
-  MinNodes: number;
-  MaxNodes: number;
-  DesiredNodes: number;
-  InstanceType: string;
+export interface MarketplaceMetadata_Variables_ValuesEntry {
+  key: string;
+  value: string;
 }
 
-export interface MarketplaceMetadata_Nodegroups {
-  NodeGroup1: MarketplaceMetadata_Nodegroup1 | undefined;
-}
-
-export interface MarketplaceMetadata_Eksspec {
-  NodeGroups: MarketplaceMetadata_Nodegroups[];
+export interface MarketplaceMetadata_Variables_NestedValuesEntry {
+  key: string;
+  value: MarketplaceMetadata_InnerMap | undefined;
 }
 
 export interface MarketplaceMetadata_Defaultdeployment {
   Variables: MarketplaceMetadata_Variables | undefined;
-  EksSpec: MarketplaceMetadata_Eksspec | undefined;
 }
 
 function createBaseMarketplaceMetadata(): MarketplaceMetadata {
@@ -81,6 +96,7 @@ function createBaseMarketplaceMetadata(): MarketplaceMetadata {
     Backend: "",
     Entrypoint: "",
     WorkDirectory: "",
+    PostInstall: "",
     DefaultDeployment: undefined,
   };
 }
@@ -131,6 +147,9 @@ export const MarketplaceMetadata = {
     }
     if (message.WorkDirectory !== "") {
       writer.uint32(130).string(message.WorkDirectory);
+    }
+    if (message.PostInstall !== "") {
+      writer.uint32(138).string(message.PostInstall);
     }
     if (message.DefaultDeployment !== undefined) {
       MarketplaceMetadata_Defaultdeployment.encode(message.DefaultDeployment, writer.uint32(114).fork()).ldelim();
@@ -250,6 +269,13 @@ export const MarketplaceMetadata = {
 
           message.WorkDirectory = reader.string();
           continue;
+        case 17:
+          if (tag !== 138) {
+            break;
+          }
+
+          message.PostInstall = reader.string();
+          continue;
         case 14:
           if (tag !== 114) {
             break;
@@ -285,6 +311,7 @@ export const MarketplaceMetadata = {
       Backend: isSet(object.Backend) ? String(object.Backend) : "",
       Entrypoint: isSet(object.Entrypoint) ? String(object.Entrypoint) : "",
       WorkDirectory: isSet(object.WorkDirectory) ? String(object.WorkDirectory) : "",
+      PostInstall: isSet(object.PostInstall) ? String(object.PostInstall) : "",
       DefaultDeployment: isSet(object.DefaultDeployment)
         ? MarketplaceMetadata_Defaultdeployment.fromJSON(object.DefaultDeployment)
         : undefined,
@@ -319,6 +346,7 @@ export const MarketplaceMetadata = {
     message.Backend !== undefined && (obj.Backend = message.Backend);
     message.Entrypoint !== undefined && (obj.Entrypoint = message.Entrypoint);
     message.WorkDirectory !== undefined && (obj.WorkDirectory = message.WorkDirectory);
+    message.PostInstall !== undefined && (obj.PostInstall = message.PostInstall);
     message.DefaultDeployment !== undefined && (obj.DefaultDeployment = message.DefaultDeployment
       ? MarketplaceMetadata_Defaultdeployment.toJSON(message.DefaultDeployment)
       : undefined);
@@ -349,6 +377,7 @@ export const MarketplaceMetadata = {
     message.Backend = object.Backend ?? "";
     message.Entrypoint = object.Entrypoint ?? "";
     message.WorkDirectory = object.WorkDirectory ?? "";
+    message.PostInstall = object.PostInstall ?? "";
     message.DefaultDeployment = (object.DefaultDeployment !== undefined && object.DefaultDeployment !== null)
       ? MarketplaceMetadata_Defaultdeployment.fromPartial(object.DefaultDeployment)
       : undefined;
@@ -632,15 +661,319 @@ export const MarketplaceMetadata_Manageddependencies = {
   },
 };
 
+function createBaseMarketplaceMetadata_TypeMap(): MarketplaceMetadata_TypeMap {
+  return { type: "", default: "" };
+}
+
+export const MarketplaceMetadata_TypeMap = {
+  encode(message: MarketplaceMetadata_TypeMap, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.type !== "") {
+      writer.uint32(10).string(message.type);
+    }
+    if (message.default !== "") {
+      writer.uint32(18).string(message.default);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MarketplaceMetadata_TypeMap {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMarketplaceMetadata_TypeMap();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.default = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MarketplaceMetadata_TypeMap {
+    return {
+      type: isSet(object.type) ? String(object.type) : "",
+      default: isSet(object.default) ? String(object.default) : "",
+    };
+  },
+
+  toJSON(message: MarketplaceMetadata_TypeMap): unknown {
+    const obj: any = {};
+    message.type !== undefined && (obj.type = message.type);
+    message.default !== undefined && (obj.default = message.default);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MarketplaceMetadata_TypeMap>, I>>(base?: I): MarketplaceMetadata_TypeMap {
+    return MarketplaceMetadata_TypeMap.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata_TypeMap>, I>>(object: I): MarketplaceMetadata_TypeMap {
+    const message = createBaseMarketplaceMetadata_TypeMap();
+    message.type = object.type ?? "";
+    message.default = object.default ?? "";
+    return message;
+  },
+};
+
+function createBaseMarketplaceMetadata_SubMap(): MarketplaceMetadata_SubMap {
+  return { Options: undefined };
+}
+
+export const MarketplaceMetadata_SubMap = {
+  encode(message: MarketplaceMetadata_SubMap, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.Options !== undefined) {
+      MarketplaceMetadata_TypeMap.encode(message.Options, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MarketplaceMetadata_SubMap {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMarketplaceMetadata_SubMap();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.Options = MarketplaceMetadata_TypeMap.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MarketplaceMetadata_SubMap {
+    return { Options: isSet(object.Options) ? MarketplaceMetadata_TypeMap.fromJSON(object.Options) : undefined };
+  },
+
+  toJSON(message: MarketplaceMetadata_SubMap): unknown {
+    const obj: any = {};
+    message.Options !== undefined &&
+      (obj.Options = message.Options ? MarketplaceMetadata_TypeMap.toJSON(message.Options) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MarketplaceMetadata_SubMap>, I>>(base?: I): MarketplaceMetadata_SubMap {
+    return MarketplaceMetadata_SubMap.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata_SubMap>, I>>(object: I): MarketplaceMetadata_SubMap {
+    const message = createBaseMarketplaceMetadata_SubMap();
+    message.Options = (object.Options !== undefined && object.Options !== null)
+      ? MarketplaceMetadata_TypeMap.fromPartial(object.Options)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseMarketplaceMetadata_InnerMap(): MarketplaceMetadata_InnerMap {
+  return { Config: {}, Type: "" };
+}
+
+export const MarketplaceMetadata_InnerMap = {
+  encode(message: MarketplaceMetadata_InnerMap, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    Object.entries(message.Config).forEach(([key, value]) => {
+      MarketplaceMetadata_InnerMap_ConfigEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
+    });
+    if (message.Type !== "") {
+      writer.uint32(18).string(message.Type);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MarketplaceMetadata_InnerMap {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMarketplaceMetadata_InnerMap();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          const entry1 = MarketplaceMetadata_InnerMap_ConfigEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.Config[entry1.key] = entry1.value;
+          }
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.Type = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MarketplaceMetadata_InnerMap {
+    return {
+      Config: isObject(object.Config)
+        ? Object.entries(object.Config).reduce<{ [key: string]: MarketplaceMetadata_SubMap }>((acc, [key, value]) => {
+          acc[key] = MarketplaceMetadata_SubMap.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
+      Type: isSet(object.Type) ? String(object.Type) : "",
+    };
+  },
+
+  toJSON(message: MarketplaceMetadata_InnerMap): unknown {
+    const obj: any = {};
+    obj.Config = {};
+    if (message.Config) {
+      Object.entries(message.Config).forEach(([k, v]) => {
+        obj.Config[k] = MarketplaceMetadata_SubMap.toJSON(v);
+      });
+    }
+    message.Type !== undefined && (obj.Type = message.Type);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MarketplaceMetadata_InnerMap>, I>>(base?: I): MarketplaceMetadata_InnerMap {
+    return MarketplaceMetadata_InnerMap.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata_InnerMap>, I>>(object: I): MarketplaceMetadata_InnerMap {
+    const message = createBaseMarketplaceMetadata_InnerMap();
+    message.Config = Object.entries(object.Config ?? {}).reduce<{ [key: string]: MarketplaceMetadata_SubMap }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = MarketplaceMetadata_SubMap.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    message.Type = object.Type ?? "";
+    return message;
+  },
+};
+
+function createBaseMarketplaceMetadata_InnerMap_ConfigEntry(): MarketplaceMetadata_InnerMap_ConfigEntry {
+  return { key: "", value: undefined };
+}
+
+export const MarketplaceMetadata_InnerMap_ConfigEntry = {
+  encode(message: MarketplaceMetadata_InnerMap_ConfigEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      MarketplaceMetadata_SubMap.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MarketplaceMetadata_InnerMap_ConfigEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMarketplaceMetadata_InnerMap_ConfigEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = MarketplaceMetadata_SubMap.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MarketplaceMetadata_InnerMap_ConfigEntry {
+    return {
+      key: isSet(object.key) ? String(object.key) : "",
+      value: isSet(object.value) ? MarketplaceMetadata_SubMap.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: MarketplaceMetadata_InnerMap_ConfigEntry): unknown {
+    const obj: any = {};
+    message.key !== undefined && (obj.key = message.key);
+    message.value !== undefined &&
+      (obj.value = message.value ? MarketplaceMetadata_SubMap.toJSON(message.value) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MarketplaceMetadata_InnerMap_ConfigEntry>, I>>(
+    base?: I,
+  ): MarketplaceMetadata_InnerMap_ConfigEntry {
+    return MarketplaceMetadata_InnerMap_ConfigEntry.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata_InnerMap_ConfigEntry>, I>>(
+    object: I,
+  ): MarketplaceMetadata_InnerMap_ConfigEntry {
+    const message = createBaseMarketplaceMetadata_InnerMap_ConfigEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? MarketplaceMetadata_SubMap.fromPartial(object.value)
+      : undefined;
+    return message;
+  },
+};
+
 function createBaseMarketplaceMetadata_Variables(): MarketplaceMetadata_Variables {
-  return { someTerraformVariable: "" };
+  return { Values: {}, NestedValues: {} };
 }
 
 export const MarketplaceMetadata_Variables = {
   encode(message: MarketplaceMetadata_Variables, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.someTerraformVariable !== "") {
-      writer.uint32(10).string(message.someTerraformVariable);
-    }
+    Object.entries(message.Values).forEach(([key, value]) => {
+      MarketplaceMetadata_Variables_ValuesEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
+    });
+    Object.entries(message.NestedValues).forEach(([key, value]) => {
+      MarketplaceMetadata_Variables_NestedValuesEntry.encode({ key: key as any, value }, writer.uint32(18).fork())
+        .ldelim();
+    });
     return writer;
   },
 
@@ -656,7 +989,20 @@ export const MarketplaceMetadata_Variables = {
             break;
           }
 
-          message.someTerraformVariable = reader.string();
+          const entry1 = MarketplaceMetadata_Variables_ValuesEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.Values[entry1.key] = entry1.value;
+          }
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          const entry2 = MarketplaceMetadata_Variables_NestedValuesEntry.decode(reader, reader.uint32());
+          if (entry2.value !== undefined) {
+            message.NestedValues[entry2.key] = entry2.value;
+          }
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -668,12 +1014,39 @@ export const MarketplaceMetadata_Variables = {
   },
 
   fromJSON(object: any): MarketplaceMetadata_Variables {
-    return { someTerraformVariable: isSet(object.someTerraformVariable) ? String(object.someTerraformVariable) : "" };
+    return {
+      Values: isObject(object.Values)
+        ? Object.entries(object.Values).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
+      NestedValues: isObject(object.NestedValues)
+        ? Object.entries(object.NestedValues).reduce<{ [key: string]: MarketplaceMetadata_InnerMap }>(
+          (acc, [key, value]) => {
+            acc[key] = MarketplaceMetadata_InnerMap.fromJSON(value);
+            return acc;
+          },
+          {},
+        )
+        : {},
+    };
   },
 
   toJSON(message: MarketplaceMetadata_Variables): unknown {
     const obj: any = {};
-    message.someTerraformVariable !== undefined && (obj.someTerraformVariable = message.someTerraformVariable);
+    obj.Values = {};
+    if (message.Values) {
+      Object.entries(message.Values).forEach(([k, v]) => {
+        obj.Values[k] = v;
+      });
+    }
+    obj.NestedValues = {};
+    if (message.NestedValues) {
+      Object.entries(message.NestedValues).forEach(([k, v]) => {
+        obj.NestedValues[k] = MarketplaceMetadata_InnerMap.toJSON(v);
+      });
+    }
     return obj;
   },
 
@@ -685,126 +1058,43 @@ export const MarketplaceMetadata_Variables = {
     object: I,
   ): MarketplaceMetadata_Variables {
     const message = createBaseMarketplaceMetadata_Variables();
-    message.someTerraformVariable = object.someTerraformVariable ?? "";
+    message.Values = Object.entries(object.Values ?? {}).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = String(value);
+      }
+      return acc;
+    }, {});
+    message.NestedValues = Object.entries(object.NestedValues ?? {}).reduce<
+      { [key: string]: MarketplaceMetadata_InnerMap }
+    >((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = MarketplaceMetadata_InnerMap.fromPartial(value);
+      }
+      return acc;
+    }, {});
     return message;
   },
 };
 
-function createBaseMarketplaceMetadata_Nodegroup1(): MarketplaceMetadata_Nodegroup1 {
-  return { MinNodes: 0, MaxNodes: 0, DesiredNodes: 0, InstanceType: "" };
+function createBaseMarketplaceMetadata_Variables_ValuesEntry(): MarketplaceMetadata_Variables_ValuesEntry {
+  return { key: "", value: "" };
 }
 
-export const MarketplaceMetadata_Nodegroup1 = {
-  encode(message: MarketplaceMetadata_Nodegroup1, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.MinNodes !== 0) {
-      writer.uint32(8).uint32(message.MinNodes);
+export const MarketplaceMetadata_Variables_ValuesEntry = {
+  encode(message: MarketplaceMetadata_Variables_ValuesEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
     }
-    if (message.MaxNodes !== 0) {
-      writer.uint32(16).uint32(message.MaxNodes);
-    }
-    if (message.DesiredNodes !== 0) {
-      writer.uint32(24).uint32(message.DesiredNodes);
-    }
-    if (message.InstanceType !== "") {
-      writer.uint32(34).string(message.InstanceType);
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): MarketplaceMetadata_Nodegroup1 {
+  decode(input: _m0.Reader | Uint8Array, length?: number): MarketplaceMetadata_Variables_ValuesEntry {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMarketplaceMetadata_Nodegroup1();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.MinNodes = reader.uint32();
-          continue;
-        case 2:
-          if (tag !== 16) {
-            break;
-          }
-
-          message.MaxNodes = reader.uint32();
-          continue;
-        case 3:
-          if (tag !== 24) {
-            break;
-          }
-
-          message.DesiredNodes = reader.uint32();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.InstanceType = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): MarketplaceMetadata_Nodegroup1 {
-    return {
-      MinNodes: isSet(object.MinNodes) ? Number(object.MinNodes) : 0,
-      MaxNodes: isSet(object.MaxNodes) ? Number(object.MaxNodes) : 0,
-      DesiredNodes: isSet(object.DesiredNodes) ? Number(object.DesiredNodes) : 0,
-      InstanceType: isSet(object.InstanceType) ? String(object.InstanceType) : "",
-    };
-  },
-
-  toJSON(message: MarketplaceMetadata_Nodegroup1): unknown {
-    const obj: any = {};
-    message.MinNodes !== undefined && (obj.MinNodes = Math.round(message.MinNodes));
-    message.MaxNodes !== undefined && (obj.MaxNodes = Math.round(message.MaxNodes));
-    message.DesiredNodes !== undefined && (obj.DesiredNodes = Math.round(message.DesiredNodes));
-    message.InstanceType !== undefined && (obj.InstanceType = message.InstanceType);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<MarketplaceMetadata_Nodegroup1>, I>>(base?: I): MarketplaceMetadata_Nodegroup1 {
-    return MarketplaceMetadata_Nodegroup1.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata_Nodegroup1>, I>>(
-    object: I,
-  ): MarketplaceMetadata_Nodegroup1 {
-    const message = createBaseMarketplaceMetadata_Nodegroup1();
-    message.MinNodes = object.MinNodes ?? 0;
-    message.MaxNodes = object.MaxNodes ?? 0;
-    message.DesiredNodes = object.DesiredNodes ?? 0;
-    message.InstanceType = object.InstanceType ?? "";
-    return message;
-  },
-};
-
-function createBaseMarketplaceMetadata_Nodegroups(): MarketplaceMetadata_Nodegroups {
-  return { NodeGroup1: undefined };
-}
-
-export const MarketplaceMetadata_Nodegroups = {
-  encode(message: MarketplaceMetadata_Nodegroups, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.NodeGroup1 !== undefined) {
-      MarketplaceMetadata_Nodegroup1.encode(message.NodeGroup1, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MarketplaceMetadata_Nodegroups {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMarketplaceMetadata_Nodegroups();
+    const message = createBaseMarketplaceMetadata_Variables_ValuesEntry();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -813,7 +1103,14 @@ export const MarketplaceMetadata_Nodegroups = {
             break;
           }
 
-          message.NodeGroup1 = MarketplaceMetadata_Nodegroup1.decode(reader, reader.uint32());
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -824,109 +1121,122 @@ export const MarketplaceMetadata_Nodegroups = {
     return message;
   },
 
-  fromJSON(object: any): MarketplaceMetadata_Nodegroups {
-    return {
-      NodeGroup1: isSet(object.NodeGroup1) ? MarketplaceMetadata_Nodegroup1.fromJSON(object.NodeGroup1) : undefined,
-    };
+  fromJSON(object: any): MarketplaceMetadata_Variables_ValuesEntry {
+    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object.value) ? String(object.value) : "" };
   },
 
-  toJSON(message: MarketplaceMetadata_Nodegroups): unknown {
+  toJSON(message: MarketplaceMetadata_Variables_ValuesEntry): unknown {
     const obj: any = {};
-    message.NodeGroup1 !== undefined &&
-      (obj.NodeGroup1 = message.NodeGroup1 ? MarketplaceMetadata_Nodegroup1.toJSON(message.NodeGroup1) : undefined);
+    message.key !== undefined && (obj.key = message.key);
+    message.value !== undefined && (obj.value = message.value);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<MarketplaceMetadata_Nodegroups>, I>>(base?: I): MarketplaceMetadata_Nodegroups {
-    return MarketplaceMetadata_Nodegroups.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<MarketplaceMetadata_Variables_ValuesEntry>, I>>(
+    base?: I,
+  ): MarketplaceMetadata_Variables_ValuesEntry {
+    return MarketplaceMetadata_Variables_ValuesEntry.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata_Nodegroups>, I>>(
+  fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata_Variables_ValuesEntry>, I>>(
     object: I,
-  ): MarketplaceMetadata_Nodegroups {
-    const message = createBaseMarketplaceMetadata_Nodegroups();
-    message.NodeGroup1 = (object.NodeGroup1 !== undefined && object.NodeGroup1 !== null)
-      ? MarketplaceMetadata_Nodegroup1.fromPartial(object.NodeGroup1)
+  ): MarketplaceMetadata_Variables_ValuesEntry {
+    const message = createBaseMarketplaceMetadata_Variables_ValuesEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
+    return message;
+  },
+};
+
+function createBaseMarketplaceMetadata_Variables_NestedValuesEntry(): MarketplaceMetadata_Variables_NestedValuesEntry {
+  return { key: "", value: undefined };
+}
+
+export const MarketplaceMetadata_Variables_NestedValuesEntry = {
+  encode(
+    message: MarketplaceMetadata_Variables_NestedValuesEntry,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      MarketplaceMetadata_InnerMap.encode(message.value, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MarketplaceMetadata_Variables_NestedValuesEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMarketplaceMetadata_Variables_NestedValuesEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = MarketplaceMetadata_InnerMap.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MarketplaceMetadata_Variables_NestedValuesEntry {
+    return {
+      key: isSet(object.key) ? String(object.key) : "",
+      value: isSet(object.value) ? MarketplaceMetadata_InnerMap.fromJSON(object.value) : undefined,
+    };
+  },
+
+  toJSON(message: MarketplaceMetadata_Variables_NestedValuesEntry): unknown {
+    const obj: any = {};
+    message.key !== undefined && (obj.key = message.key);
+    message.value !== undefined &&
+      (obj.value = message.value ? MarketplaceMetadata_InnerMap.toJSON(message.value) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MarketplaceMetadata_Variables_NestedValuesEntry>, I>>(
+    base?: I,
+  ): MarketplaceMetadata_Variables_NestedValuesEntry {
+    return MarketplaceMetadata_Variables_NestedValuesEntry.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata_Variables_NestedValuesEntry>, I>>(
+    object: I,
+  ): MarketplaceMetadata_Variables_NestedValuesEntry {
+    const message = createBaseMarketplaceMetadata_Variables_NestedValuesEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? MarketplaceMetadata_InnerMap.fromPartial(object.value)
       : undefined;
     return message;
   },
 };
 
-function createBaseMarketplaceMetadata_Eksspec(): MarketplaceMetadata_Eksspec {
-  return { NodeGroups: [] };
-}
-
-export const MarketplaceMetadata_Eksspec = {
-  encode(message: MarketplaceMetadata_Eksspec, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.NodeGroups) {
-      MarketplaceMetadata_Nodegroups.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): MarketplaceMetadata_Eksspec {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMarketplaceMetadata_Eksspec();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.NodeGroups.push(MarketplaceMetadata_Nodegroups.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): MarketplaceMetadata_Eksspec {
-    return {
-      NodeGroups: Array.isArray(object?.NodeGroups)
-        ? object.NodeGroups.map((e: any) => MarketplaceMetadata_Nodegroups.fromJSON(e))
-        : [],
-    };
-  },
-
-  toJSON(message: MarketplaceMetadata_Eksspec): unknown {
-    const obj: any = {};
-    if (message.NodeGroups) {
-      obj.NodeGroups = message.NodeGroups.map((e) => e ? MarketplaceMetadata_Nodegroups.toJSON(e) : undefined);
-    } else {
-      obj.NodeGroups = [];
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<MarketplaceMetadata_Eksspec>, I>>(base?: I): MarketplaceMetadata_Eksspec {
-    return MarketplaceMetadata_Eksspec.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata_Eksspec>, I>>(object: I): MarketplaceMetadata_Eksspec {
-    const message = createBaseMarketplaceMetadata_Eksspec();
-    message.NodeGroups = object.NodeGroups?.map((e) => MarketplaceMetadata_Nodegroups.fromPartial(e)) || [];
-    return message;
-  },
-};
-
 function createBaseMarketplaceMetadata_Defaultdeployment(): MarketplaceMetadata_Defaultdeployment {
-  return { Variables: undefined, EksSpec: undefined };
+  return { Variables: undefined };
 }
 
 export const MarketplaceMetadata_Defaultdeployment = {
   encode(message: MarketplaceMetadata_Defaultdeployment, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.Variables !== undefined) {
       MarketplaceMetadata_Variables.encode(message.Variables, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.EksSpec !== undefined) {
-      MarketplaceMetadata_Eksspec.encode(message.EksSpec, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -945,13 +1255,6 @@ export const MarketplaceMetadata_Defaultdeployment = {
 
           message.Variables = MarketplaceMetadata_Variables.decode(reader, reader.uint32());
           continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.EksSpec = MarketplaceMetadata_Eksspec.decode(reader, reader.uint32());
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -964,7 +1267,6 @@ export const MarketplaceMetadata_Defaultdeployment = {
   fromJSON(object: any): MarketplaceMetadata_Defaultdeployment {
     return {
       Variables: isSet(object.Variables) ? MarketplaceMetadata_Variables.fromJSON(object.Variables) : undefined,
-      EksSpec: isSet(object.EksSpec) ? MarketplaceMetadata_Eksspec.fromJSON(object.EksSpec) : undefined,
     };
   },
 
@@ -972,8 +1274,6 @@ export const MarketplaceMetadata_Defaultdeployment = {
     const obj: any = {};
     message.Variables !== undefined &&
       (obj.Variables = message.Variables ? MarketplaceMetadata_Variables.toJSON(message.Variables) : undefined);
-    message.EksSpec !== undefined &&
-      (obj.EksSpec = message.EksSpec ? MarketplaceMetadata_Eksspec.toJSON(message.EksSpec) : undefined);
     return obj;
   },
 
@@ -990,9 +1290,6 @@ export const MarketplaceMetadata_Defaultdeployment = {
     message.Variables = (object.Variables !== undefined && object.Variables !== null)
       ? MarketplaceMetadata_Variables.fromPartial(object.Variables)
       : undefined;
-    message.EksSpec = (object.EksSpec !== undefined && object.EksSpec !== null)
-      ? MarketplaceMetadata_Eksspec.fromPartial(object.EksSpec)
-      : undefined;
     return message;
   },
 };
@@ -1007,6 +1304,10 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

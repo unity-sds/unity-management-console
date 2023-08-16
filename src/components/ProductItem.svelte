@@ -1,14 +1,16 @@
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import type { Product,Application } from '../data/entities';
-import { goto } from '$app/navigation';
+	import type { Application } from '../data/entities';
+	import { goto } from '$app/navigation';
+	import { productInstall } from "../store/stores";
+	import type { MarketplaceMetadata } from "../data/unity-cs-manager/protobuf/marketplace";
 	const dispatch = createEventDispatcher<{ installApp: Application }>();
 
-	export let product: Product;
-	let quantity: string;
+	export let product: MarketplaceMetadata;
 
 	const handleInstallApp = () => {
-      localStorage.setItem('product', JSON.stringify(product));  // Store product in local storage
+			productInstall.set(product)
+      //localStorage.setItem('product', JSON.stringify(product));  // Store product in local storage
       goto('/ui/install', { replaceState: true });
 	};
 </script>

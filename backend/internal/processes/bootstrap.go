@@ -8,6 +8,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/terraform"
+	"path/filepath"
 )
 
 func BootstrapEnv(appconf *config.AppConfig) {
@@ -22,7 +23,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	if err != nil {
 		log.WithError(err).Error("Problem updating ssm config")
 	}
-	installGateway(store, appconf)
+	//installGateway(store, appconf)
 }
 
 func provisionS3(appConfig *config.AppConfig) {
@@ -45,9 +46,19 @@ func initTerraform(appconf *config.AppConfig) {
 func writeInitTemplate(fs afero.Fs, appConfig *config.AppConfig) {
 	// Define the terraform configuration
 	tfconfig := `terraform {
+required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
   backend "s3" {
     dynamodb_table = "terraform_state"
   }
+}
+
+provider "aws" {
+  region = "us-west-2"
 }`
 
 	err := fs.MkdirAll(appConfig.Workdir, 0755)
@@ -56,7 +67,7 @@ func writeInitTemplate(fs afero.Fs, appConfig *config.AppConfig) {
 	}
 
 	// Create a new file
-	file, err := fs.Create(appConfig.Workdir + "/provider.tf")
+	file, err := fs.Create(filepath.Join(appConfig.Workdir, "workspace", "provider.tf"))
 	if err != nil {
 		log.WithError(err).Error("Couldn't create new provider.tf file")
 	}

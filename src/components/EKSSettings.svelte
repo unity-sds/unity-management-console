@@ -1,9 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import NodeGroup from './NodeGroup.svelte';
-  import type {Product, NodeGroupType} from "../data/entities";
+  import type {NodeGroupType} from "../data/entities";
 
-  export let product: Product | null;
   export let nodeGroups: NodeGroupType[] ;
 
   const defaultNodeGroup = () => ({
@@ -27,22 +26,6 @@
     nodeGroups = nodeGroups.filter((_, i) => i !== index);
   }
 
-  onMount(async () => {
-    if (product != null) {
-      nodeGroups = product.DefaultDeployment.EksSpec.NodeGroups.map((ng) => {
-        let name = Object.keys(ng)[0];
-        return {
-          name: name,
-          settings: {
-            MinNodes: Number(ng[name].MinNodes),
-            MaxNodes: Number(ng[name].MaxNodes),
-            DesiredNodes: Number(ng[name].DesiredNodes),
-            InstanceType: ng[name].InstanceType
-          }
-        };
-      });
-    }
-  });
 </script>
 
 <div class="accordion mt-4" id="accordionExample">

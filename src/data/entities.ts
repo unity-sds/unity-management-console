@@ -1,3 +1,5 @@
+import type {MarketplaceMetadata} from "./unity-cs-manager/protobuf/marketplace";
+
 export interface NodeGroupType {
 	name: string;
 	settings: {
@@ -7,53 +9,10 @@ export interface NodeGroupType {
 		InstanceType: string;
 	};
 }
-export interface Product {
-	Id: number;
-	Name: string;
-	Description: string;
-	Category: string;
-	Tags: string[];
-	IamRoles: any[];
-	Package: string;
-	ManagedDependencies: ManagedDependency[];
-	Backend: string;
-	DefaultDeployment: DefaultDeployment;
-	Version: string;
-	Branch: string;
-}
 
-interface ManagedDependency {
-	Eks: {
-		MinimumVersion: string;
-	};
-}
-
-interface DefaultDeployment {
-	Variables: {
-		[key: string]: string;
-	};
-	EksSpec: {
-		NodeGroups: NodeGroup[];
-	};
-}
-
-interface NodeGroup {
-	[key: string]: {
-		MinNodes: number;
-		MaxNodes: number;
-		DesiredNodes: number;
-		InstanceType: string;
-	};
-}
-
-export interface InstallationApplication {
-	name: string;
-	version: string;
-	variables: Map<string,string>;
-}
 
 export class OrderLine {
-	constructor(public product: Product, public quantity: number) {}
+	constructor(public product: MarketplaceMetadata, public quantity: number) {}
 
 	get total(): number {
 		return 0;
@@ -61,29 +20,29 @@ export class OrderLine {
 }
 
 export class Application {
-	constructor(public app: Product) {}
+	constructor(public app: MarketplaceMetadata) {}
 }
 
 export class Order {
 	private lines = new Map<number, OrderLine>();
 
 	constructor(initialLines?: OrderLine[]) {
-		if (initialLines) initialLines.forEach((ol) => this.lines.set(ol.product.Id, ol));
+		//if (initialLines) initialLines.forEach((ol) => this.lines.set(ol.product.Id, ol));
 	}
 
-	public addProduct(prod: Product, quantity: number) {
-		if (this.lines.has(prod.Id)) {
-			if (quantity === 0) {
-				this.removeProduct(prod.Id);
-			} else {
-				const orderLine = this.lines.get(prod.Id);
-				if (orderLine)
-					// map.get() may return undefined
-					orderLine.quantity += quantity;
-			}
-		} else {
-			this.lines.set(prod.Id, new OrderLine(prod, quantity));
-		}
+	public addProduct(prod: MarketplaceMetadata, quantity: number) {
+		// if (this.lines.has(prod.Id)) {
+		// 	if (quantity === 0) {
+		// 		this.removeProduct(prod.Id);
+		// 	} else {
+		// 		const orderLine = this.lines.get(prod.Id);
+		// 		if (orderLine)
+		// 			// map.get() may return undefined
+		// 			orderLine.quantity += quantity;
+		// 	}
+		// } else {
+		// 	this.lines.set(prod.Id, new OrderLine(prod, quantity));
+		// }
 	}
 
 	public removeProduct(id: number) {
