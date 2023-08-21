@@ -2,6 +2,7 @@ package terraform
 
 import (
 	"fmt"
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
@@ -39,7 +40,7 @@ func WriteTFVars(vars []Varstruct, appconf *config.AppConfig) {
 	// Open a file for writing
 	file, err := os.Create(filepath.Join(appconf.Workdir, "workspace", ".auto.tfvars"))
 	if err != nil {
-		log.Errorf("Error creating file:", err)
+		log.WithError(err).Errorf("Error creating file")
 		return
 	}
 	defer file.Close()
@@ -107,6 +108,70 @@ func WriteTFVars(vars []Varstruct, appconf *config.AppConfig) {
 	return
 }
 
+func convertValue(v *structpb.Value) interface{} {
+	switch k := v.Kind.(type) {
+	case *structpb.Value_NullValue:
+		return nil
+	case *structpb.Value_NumberValue:
+		return k.NumberValue
+	case *structpb.Value_StringValue:
+		return k.StringValue
+	case *structpb.Value_BoolValue:
+		return k.BoolValue
+	case *structpb.Value_StructValue:
+		return convertStruct(k.StructValue)
+	case *structpb.Value_ListValue:
+		arr := make([]interface{}, len(k.ListValue.Values))
+		for i, lv := range k.ListValue.Values {
+			arr[i] = convertValue(lv)
+		}
+		return arr
+	}
+	return nil
+}
+
+func convertStruct(s *structpb.Struct) map[string]interface{} {
+	m := make(map[string]interface{})
+	for key, value := range s.Fields {
+		m[key] = convertValue(value)
+	}
+
+	return m
+}
+
+func convertToCty(data interface{}) cty.Value {
+	switch v := data.(type) {
+	case map[string]interface{}:
+		ctyMap := make(map[string]cty.Value)
+		for k, val := range v {
+			ctyMap[k] = convertToCty(val)
+		}
+		return cty.ObjectVal(ctyMap)
+	case []interface{}:
+		ctyList := make([]cty.Value, len(v))
+		for i, val := range v {
+			ctyList[i] = convertToCty(val)
+		}
+		return cty.ListVal(ctyList)
+	case string:
+		return cty.StringVal(v)
+	case bool:
+		return cty.BoolVal(v)
+	case float64: // JSON numbers are float64
+		return cty.NumberFloatVal(v)
+	}
+
+	// Return a zero value if none of the above cases match
+	return cty.NilVal
+}
+
+func parseAdvancedVariables(install *marketplace.Install, cloudenv *hclwrite.Block) {
+	for key, str := range convertStruct(install.Applications.Variables.AdvancedValues) {
+		ctyValue := convertToCty(str)
+		cloudenv.Body().SetAttributeValue(key, ctyValue)
+	}
+}
+
 func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, install *marketplace.Install) error {
 	rand.Seed(time.Now().UnixNano())
 
@@ -142,15 +207,18 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		cloudenv.Body().SetAttributeValue(key, cty.StringVal(element))
 	}
 
-	for key, element := range install.Applications.Variables.NestedValues {
-		tmap := map[string]cty.Value{}
-		//t := element.GetType()
-		con := element.GetConfig()
-		for k, e := range con {
-			tmap[k] = cty.StringVal(e.GetOptions().GetDefault())
-		}
-		cloudenv.Body().SetAttributeValue(key, cty.MapVal(tmap))
-	}
+	//for key, element := range install.Applications.Variables.NestedValues {
+	//	tmap := map[string]cty.Value{}
+	//	//t := element.GetType()
+	//	con := element.GetConfig()
+	//	for k, e := range con {
+	//		tmap[k] = cty.StringVal(e.GetOptions().GetDefault())
+	//	}
+	//	cloudenv.Body().SetAttributeValue(key, cty.MapVal(tmap))
+	//}
+
+	parseAdvancedVariables(install, cloudenv)
+
 	_, err = tfFile.Write(hclFile.Bytes())
 	if err != nil {
 		log.WithError(err).Error("error writing hcl file")

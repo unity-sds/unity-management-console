@@ -20,14 +20,14 @@
 
     const httpHandler = new HttpHandler();
 
-    const merged = {"Values": product.DefaultDeployment?.Variables?.Values, "NestedValues": product.DefaultDeployment?.Variables?.NestedValues}
+    const merged = {"Values": product.DefaultDeployment?.Variables?.Values, "NestedValues": product.DefaultDeployment?.Variables?.NestedValues, "AdvancedValues": product.DefaultDeployment?.Variables?.AdvancedValues}
     const vars = Install_Variables.fromJSON(merged)
     const a = Install_Applications.create({
       name: product.Name,
       version: product.Version,
       variables: vars
     } as any)
-    const id = await httpHandler.installSoftware(a, "test deployment");
+    const id = await httpHandler.installSoftware(a, "test_deployment");
     console.log(id);
     goto("/ui/progress", { replaceState: true });
   };

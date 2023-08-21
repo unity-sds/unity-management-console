@@ -1,5 +1,6 @@
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
+import { Struct } from "../../google/protobuf/struct";
 
 export const protobufPackage = "";
 
@@ -44,6 +45,7 @@ export interface Install_InnerMap_ConfigEntry {
 export interface Install_Variables {
   Values: { [key: string]: string };
   NestedValues: { [key: string]: Install_InnerMap };
+  AdvancedValues: { [key: string]: any } | undefined;
 }
 
 export interface Install_Variables_ValuesEntry {
@@ -692,7 +694,7 @@ export const Install_InnerMap_ConfigEntry = {
 };
 
 function createBaseInstall_Variables(): Install_Variables {
-  return { Values: {}, NestedValues: {} };
+  return { Values: {}, NestedValues: {}, AdvancedValues: undefined };
 }
 
 export const Install_Variables = {
@@ -703,6 +705,9 @@ export const Install_Variables = {
     Object.entries(message.NestedValues).forEach(([key, value]) => {
       Install_Variables_NestedValuesEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).ldelim();
     });
+    if (message.AdvancedValues !== undefined) {
+      Struct.encode(Struct.wrap(message.AdvancedValues), writer.uint32(26).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -733,6 +738,13 @@ export const Install_Variables = {
             message.NestedValues[entry2.key] = entry2.value;
           }
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.AdvancedValues = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -756,6 +768,7 @@ export const Install_Variables = {
           return acc;
         }, {})
         : {},
+      AdvancedValues: isObject(object.AdvancedValues) ? object.AdvancedValues : undefined,
     };
   },
 
@@ -773,6 +786,7 @@ export const Install_Variables = {
         obj.NestedValues[k] = Install_InnerMap.toJSON(v);
       });
     }
+    message.AdvancedValues !== undefined && (obj.AdvancedValues = message.AdvancedValues);
     return obj;
   },
 
@@ -797,6 +811,7 @@ export const Install_Variables = {
       },
       {},
     );
+    message.AdvancedValues = object.AdvancedValues ?? undefined;
     return message;
   },
 };

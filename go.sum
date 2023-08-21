@@ -525,6 +525,10 @@ github.com/unity-sds/unity-cs-manager v0.0.0-20230816122108-6567f3a74551 h1:nIEN
 github.com/unity-sds/unity-cs-manager v0.0.0-20230816122108-6567f3a74551/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
 github.com/unity-sds/unity-cs-manager v0.0.0-20230816144511-9eb6f4791228 h1:UUtGsWiy0u+RiZgZb4gRHRyLISFoyA2mM6VTtBRz7mI=
 github.com/unity-sds/unity-cs-manager v0.0.0-20230816144511-9eb6f4791228/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230821102843-eeeae19b2740 h1:qQQEZiAppLAaVMPKEHha8oxaYcG5P+X/2E2KN7U73Bk=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230821102843-eeeae19b2740/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230821104415-106a78e10375 h1:XuMsCEHp/k19KW/5a04uKnSCs5J/lSmHkOPwtNaLrg4=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230821104415-106a78e10375/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
 github.com/urfave/cli v1.22.1/go.mod h1:Gos4lmkARVdJ6EkW0WaNv/tZAAMe9V7XWyB60NtXRu0=
 github.com/vishvananda/netlink v1.1.0/go.mod h1:cTgwzPIzzgDAYoQrMm0EdrjRUBkTqKYppBueQtXaqoE=
 github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df/go.mod h1:JP3t17pCcGlemwknint6hfoeCVQrEMVwxRLRjXpq+BU=

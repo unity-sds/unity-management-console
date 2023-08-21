@@ -1,5 +1,6 @@
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
+import { Struct } from "../../google/protobuf/struct";
 
 export const protobufPackage = "";
 
@@ -63,6 +64,7 @@ export interface MarketplaceMetadata_InnerMap_ConfigEntry {
 export interface MarketplaceMetadata_Variables {
   Values: { [key: string]: string };
   NestedValues: { [key: string]: MarketplaceMetadata_InnerMap };
+  AdvancedValues: { [key: string]: any } | undefined;
 }
 
 export interface MarketplaceMetadata_Variables_ValuesEntry {
@@ -962,7 +964,7 @@ export const MarketplaceMetadata_InnerMap_ConfigEntry = {
 };
 
 function createBaseMarketplaceMetadata_Variables(): MarketplaceMetadata_Variables {
-  return { Values: {}, NestedValues: {} };
+  return { Values: {}, NestedValues: {}, AdvancedValues: undefined };
 }
 
 export const MarketplaceMetadata_Variables = {
@@ -974,6 +976,9 @@ export const MarketplaceMetadata_Variables = {
       MarketplaceMetadata_Variables_NestedValuesEntry.encode({ key: key as any, value }, writer.uint32(18).fork())
         .ldelim();
     });
+    if (message.AdvancedValues !== undefined) {
+      Struct.encode(Struct.wrap(message.AdvancedValues), writer.uint32(26).fork()).ldelim();
+    }
     return writer;
   },
 
@@ -1004,6 +1009,13 @@ export const MarketplaceMetadata_Variables = {
             message.NestedValues[entry2.key] = entry2.value;
           }
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.AdvancedValues = Struct.unwrap(Struct.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1030,6 +1042,7 @@ export const MarketplaceMetadata_Variables = {
           {},
         )
         : {},
+      AdvancedValues: isObject(object.AdvancedValues) ? object.AdvancedValues : undefined,
     };
   },
 
@@ -1047,6 +1060,7 @@ export const MarketplaceMetadata_Variables = {
         obj.NestedValues[k] = MarketplaceMetadata_InnerMap.toJSON(v);
       });
     }
+    message.AdvancedValues !== undefined && (obj.AdvancedValues = message.AdvancedValues);
     return obj;
   },
 
@@ -1072,6 +1086,7 @@ export const MarketplaceMetadata_Variables = {
       }
       return acc;
     }, {});
+    message.AdvancedValues = object.AdvancedValues ?? undefined;
     return message;
   },
 };

@@ -57,7 +57,6 @@ export class HttpHandler {
 			DeploymentName: deploymentName
 		});
 		const installSoftware = UnityWebsocketMessage.create({ install: installrequest });
-debugger
 		websocketStore.send(UnityWebsocketMessage.encode(installSoftware).finish());
 		return '';
 	}
@@ -247,86 +246,6 @@ async function getGitHubFileContents(user: string, repo: string, path: string): 
     }
 }
 const mock_marketplace = "[{\n" +
-  "\t\t\"Name\": \"sample application\",\n" +
-  "\t\t\"Version\": \"0.1-beta\",\n" +
-  "\t\t\"Channel\": \"beta\",\n" +
-  "\t\t\"Owner\": \"Tom Barber\",\n" +
-  "\t\t\"Description\": \"A demonstration application for the Unity platform\",\n" +
-  "\t\t\"Repository\": \"https://github.com/unity-sds/unity-marketplace\",\n" +
-  "\t\t\"Tags\": [\n" +
-  "\t\t\t\"tag a\",\n" +
-  "\t\t\t\"tag b\"\n" +
-  "\t\t],\n" +
-  "\t\t\"Category\": \"data processing\",\n" +
-  "\t\t\"IamRoles\": {\n" +
-  "\t\t\t\"Statement\": [{\n" +
-  "\t\t\t\t\"Effect\": \"Allow\",\n" +
-  "\t\t\t\t\"Action\": [\n" +
-  "\t\t\t\t\t\"iam:CreateInstanceProfile\"\n" +
-  "\t\t\t\t],\n" +
-  "\t\t\t\t\"Resource\": [\n" +
-  "\t\t\t\t\t\"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
-  "\t\t\t\t]\n" +
-  "\t\t\t}]\n" +
-  "\t\t},\n" +
-  "\t\t\"Package\": \"http://github.com/path/to/package.zip\",\n" +
-  "\t\t\"ManagedDependencies\": [{\n" +
-  "\t\t\t\"Eks\": {\n" +
-  "\t\t\t\t\"MinimumVersion\": \"1.21\"\n" +
-  "\t\t\t}\n" +
-  "\t\t}],\n" +
-  "\t\t\"Backend\": \"terraform\",\n" +
-  "\t\t\"DefaultDeployment\": {\n" +
-  "\t\t\t\"Variables\": {\n" +
-  "\t\t\t\t\"some_terraform_variable\": \"some_value\"\n" +
-  "\t\t\t},\n" +
-  "\t\t\t\"EksSpec\": {\n" +
-  "\t\t\t\t\"NodeGroups\": [{\n" +
-  "\t\t\t\t\t\"NodeGroup1\": {\n" +
-  "\t\t\t\t\t\t\"MinNodes\": 1,\n" +
-  "\t\t\t\t\t\t\"MaxNodes\": 10,\n" +
-  "\t\t\t\t\t\t\"DesiredNodes\": 4,\n" +
-  "\t\t\t\t\t\t\"InstanceType\": \"m6.large\"\n" +
-  "\t\t\t\t\t}\n" +
-  "\t\t\t\t}]\n" +
-  "\t\t\t}\n" +
-  "\t\t}\n" +
-  "\t},\n" +
-  "\t{\n" +
-  "\t\t\"DisplayName\": \"Unity API Gateway\",\n" +
-  "\t\t\"Name\": \"unity-apigateway\",\n" +
-  "\t\t\"Version\": \"0.1-beta\",\n" +
-  "\t\t\"Channel\": \"beta\",\n" +
-  "\t\t\"Owner\": \"U-CS Team\",\n" +
-  "\t\t\"Description\": \"A package to install and configure an API gateway for your Unity Venue\",\n" +
-  "\t\t\"Repository\": \"https://github.com/unity-sds/unity-cs-infra/\",\n" +
-  "\t\t\"Tags\": [\n" +
-  "\t\t\t\"api\",\n" +
-  "\t\t\t\"http\",\n" +
-  "\t\t\t\"rest\"\n" +
-  "\t\t],\n" +
-  "\t\t\"Category\": \"system\",\n" +
-  "\t\t\"IamRoles\": {\n" +
-  "\t\t\t\"Statement\": [{\n" +
-  "\t\t\t\t\"Effect\": \"Allow\",\n" +
-  "\t\t\t\t\"Action\": [\n" +
-  "\t\t\t\t\t\"iam:CreateInstanceProfile\"\n" +
-  "\t\t\t\t],\n" +
-  "\t\t\t\t\"Resource\": [\n" +
-  "\t\t\t\t\t\"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
-  "\t\t\t\t]\n" +
-  "\t\t\t}]\n" +
-  "\t\t},\n" +
-  "\t\t\"Package\": \"https://github.com/unity-sds/unity-cs-infra/\",\n" +
-  "\t\t\"Backend\": \"terraform\",\n" +
-  "\t\t\"WorkDirectory\": \"terraform-project-api-gateway_module\",\n" +
-  "\t\t\"DefaultDeployment\": {\n" +
-  "\t\t\t\"Variables\": {\n" +
-  "\t\t\t\t\"some_terraform_variable\": \"some_value\"\n" +
-  "\t\t\t}\n" +
-  "\t\t}\n" +
-  "\t},\n" +
-  "\t{\n" +
   "\t\t\"DisplayName\": \"Unity Kubernetes\",\n" +
   "\t\t\"Name\": \"unity-eks\",\n" +
   "\t\t\"Version\": \"0.1\",\n" +
@@ -358,93 +277,30 @@ const mock_marketplace = "[{\n" +
   "\t\t\t\t\"MinimumVersion\": \"1.21\"\n" +
   "\t\t\t}\n" +
   "\t\t}],\n" +
+  "\t\t\"PostInstall\": \"scripts/postinstall.sh\",\n" +
   "\t\t\"DefaultDeployment\": {\n" +
   "\t\t\t\"Variables\": {\n" +
   "\t\t\t\t\"Values\": {\n" +
-  "\t\t\t\t\t\"some_terraform_variable\": \"some_value\"\n" +
+  "\t\t\t\t\t\"cluster_version\": \"1.27\"\n" +
   "\t\t\t\t},\n" +
-  "\t\t\t\t\"NestedValues\": {\n" +
-  "\t\t\t\t\t\"NodeGroups\": {\n" +
-  "\t\t\t\t\t\t\"Config\": {\n" +
-  "\t\t\t\t\t\t\t\"Name\": {\n" +
-  "\t\t\t\t\t\t\t\t\"Options\": {\n" +
-  "\t\t\t\t\t\t\t\t\t\"type\": \"String\",\n" +
-  "\t\t\t\t\t\t\t\t\t\"default\": \"NodeGroup\"\n" +
-  "\t\t\t\t\t\t\t\t}\n" +
-  "\t\t\t\t\t\t\t},\n" +
-  "\t\t\t\t\t\t\t\"MinNodes\": {\n" +
-  "\t\t\t\t\t\t\t\t\"Options\": {\n" +
-  "\t\t\t\t\t\t\t\t\t\"type\": \"Number\",\n" +
-  "\t\t\t\t\t\t\t\t\t\"default\": \"1\"\n" +
-  "\t\t\t\t\t\t\t\t}\n" +
-  "\t\t\t\t\t\t\t},\n" +
-  "\t\t\t\t\t\t\t\"MaxNodes\": {\n" +
-  "\t\t\t\t\t\t\t\t\"Options\": {\n" +
-  "\t\t\t\t\t\t\t\t\t\"type\": \"Number\",\n" +
-  "\t\t\t\t\t\t\t\t\t\"default\": \"3\"\n" +
-  "\t\t\t\t\t\t\t\t}\n" +
-  "\t\t\t\t\t\t\t},\n" +
-  "\t\t\t\t\t\t\t\"DesiredNodes\": {\n" +
-  "\t\t\t\t\t\t\t\t\"Options\": {\n" +
-  "\t\t\t\t\t\t\t\t\t\"type\": \"Number\",\n" +
-  "\t\t\t\t\t\t\t\t\t\"default\": \"1\"\n" +
-  "\t\t\t\t\t\t\t\t}\n" +
-  "\t\t\t\t\t\t\t},\n" +
-  "\t\t\t\t\t\t\t\"InstanceType\": {\n" +
-  "\t\t\t\t\t\t\t\t\"Options\": {\n" +
-  "\t\t\t\t\t\t\t\t\t\"type\": \"String\",\n" +
-  "\t\t\t\t\t\t\t\t\t\"default\": \"m6.xlarge\"\n" +
-  "\t\t\t\t\t\t\t\t}\n" +
-  "\t\t\t\t\t\t\t}\n" +
+  "\t\t\t\t\"AdvancedValues\": {\n" +
+  "\t\t\t\t\t\"nodegroups\": {\n" +
+  "\t\t\t\t\t\t\"blue\": {\n" +
+  "\t\t\t\t\t\t\t\"create_iam_role\":            false,\n" +
+  "\t\t\t\t\t\t\t\"iam_role_arn\":               \"data.aws_ssm_parameter.eks_iam_node_role.value\",\n" +
+  "\t\t\t\t\t\t\t\"min_size\":                   1,\n" +
+  "\t\t\t\t\t\t\t\"max_size\":                   10,\n" +
+  "\t\t\t\t\t\t\t\"desired_size\":               1,\n" +
+  "\t\t\t\t\t\t\t\"ami_id\":                     \"ami-0c0e3c5bfa15ba56b\",\n" +
+  "\t\t\t\t\t\t\t\"instance_types\":             [\"t3.large\"],\n" +
+  "\t\t\t\t\t\t\t\"capacity_type\":              \"SPOT\",\n" +
+  "\t\t\t\t\t\t\t\"enable_bootstrap_user_data\": true\n" +
+  "\t\t\t\t\t\t},\n" +
+  "\t\t\t\t\t\t\"green\" :{\n" +
   "\t\t\t\t\t\t}\n" +
   "\t\t\t\t\t}\n" +
+  "\n" +
   "\t\t\t\t}\n" +
   "\t\t\t}\n" +
   "\t\t}\n" +
-  "\t}, {\n" +
-  "\t\t\"Name\": \"Unity SPS\",\n" +
-  "\t\t\"Version\": \"0.1-beta\",\n" +
-  "\t\t\"Channel\": \"beta\",\n" +
-  "\t\t\"Owner\": \"Tom Barber\",\n" +
-  "\t\t\"Description\": \"The Unity SPS Prototype package\",\n" +
-  "\t\t\"Repository\": \"https://github.com/unity-sds/unity-sps-prototype\",\n" +
-  "\t\t\"Tags\": [\n" +
-  "\t\t\t\"sps\",\n" +
-  "\t\t\t\"data processing\"\n" +
-  "\t\t],\n" +
-  "\t\t\"Category\": \"data processing\",\n" +
-  "\t\t\"IamRoles\": {\n" +
-  "\t\t\t\"Statement\": [{\n" +
-  "\t\t\t\t\"Effect\": \"Allow\",\n" +
-  "\t\t\t\t\"Action\": [\n" +
-  "\t\t\t\t\t\"iam:CreateInstanceProfile\"\n" +
-  "\t\t\t\t],\n" +
-  "\t\t\t\t\"Resource\": [\n" +
-  "\t\t\t\t\t\"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
-  "\t\t\t\t]\n" +
-  "\t\t\t}]\n" +
-  "\t\t},\n" +
-  "\t\t\"Package\": \"https://github.com/unity-sds/unity-sps-prototype/archive/refs/tags/u-cs-deployment.zip\",\n" +
-  "\t\t\"ManagedDependencies\": [{\n" +
-  "\t\t\t\"Eks\": {\n" +
-  "\t\t\t\t\"MinimumVersion\": \"1.21\"\n" +
-  "\t\t\t}\n" +
-  "\t\t}],\n" +
-  "\t\t\"Backend\": \"terraform\",\n" +
-  "\t\t\"DefaultDeployment\": {\n" +
-  "\t\t\t\"Variables\": {\n" +
-  "\t\t\t\t\"some_terraform_variable\": \"some_value\"\n" +
-  "\t\t\t},\n" +
-  "\t\t\t\"EksSpec\": {\n" +
-  "\t\t\t\t\"NodeGroups\": [{\n" +
-  "\t\t\t\t\t\"NodeGroup1\": {\n" +
-  "\t\t\t\t\t\t\"MinNodes\": 1,\n" +
-  "\t\t\t\t\t\t\"MaxNodes\": 10,\n" +
-  "\t\t\t\t\t\t\"DesiredNodes\": 4,\n" +
-  "\t\t\t\t\t\t\"InstanceType\": \"m6.large\"\n" +
-  "\t\t\t\t\t}\n" +
-  "\t\t\t\t}]\n" +
-  "\t\t\t}\n" +
-  "\t\t}\n" +
-  "\t}\n" +
-  "]"
+  "\t}]"
