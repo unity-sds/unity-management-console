@@ -53,6 +53,10 @@ func NewGormDatastore() (Datastore, error) {
 		return nil, err
 	}
 
+	err = db.AutoMigrate(&models.Deployment{}, &models.Application{})
+	if err != nil {
+		return nil, err
+	}
 	return &GormDatastore{
 		db: db,
 	}, nil
@@ -62,4 +66,6 @@ type Datastore interface {
 	FetchCoreParams() ([]models.CoreConfig, error)
 	FetchSSMParams() ([]models.SSMParameters, error)
 	StoreSSMParams(p []config.SSMParameter, owner string) error
+	StoreDeployment(p models.Deployment) (uint, error)
+	UpdateApplicationStatus(deploymentid uint, application string, status string) error
 }

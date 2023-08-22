@@ -21,6 +21,7 @@ export interface MarketplaceMetadata {
   Entrypoint: string;
   WorkDirectory: string;
   PostInstall: string;
+  PreInstall: string;
   DefaultDeployment: MarketplaceMetadata_Defaultdeployment | undefined;
 }
 
@@ -99,6 +100,7 @@ function createBaseMarketplaceMetadata(): MarketplaceMetadata {
     Entrypoint: "",
     WorkDirectory: "",
     PostInstall: "",
+    PreInstall: "",
     DefaultDeployment: undefined,
   };
 }
@@ -152,6 +154,9 @@ export const MarketplaceMetadata = {
     }
     if (message.PostInstall !== "") {
       writer.uint32(138).string(message.PostInstall);
+    }
+    if (message.PreInstall !== "") {
+      writer.uint32(146).string(message.PreInstall);
     }
     if (message.DefaultDeployment !== undefined) {
       MarketplaceMetadata_Defaultdeployment.encode(message.DefaultDeployment, writer.uint32(114).fork()).ldelim();
@@ -278,6 +283,13 @@ export const MarketplaceMetadata = {
 
           message.PostInstall = reader.string();
           continue;
+        case 18:
+          if (tag !== 146) {
+            break;
+          }
+
+          message.PreInstall = reader.string();
+          continue;
         case 14:
           if (tag !== 114) {
             break;
@@ -314,6 +326,7 @@ export const MarketplaceMetadata = {
       Entrypoint: isSet(object.Entrypoint) ? String(object.Entrypoint) : "",
       WorkDirectory: isSet(object.WorkDirectory) ? String(object.WorkDirectory) : "",
       PostInstall: isSet(object.PostInstall) ? String(object.PostInstall) : "",
+      PreInstall: isSet(object.PreInstall) ? String(object.PreInstall) : "",
       DefaultDeployment: isSet(object.DefaultDeployment)
         ? MarketplaceMetadata_Defaultdeployment.fromJSON(object.DefaultDeployment)
         : undefined,
@@ -349,6 +362,7 @@ export const MarketplaceMetadata = {
     message.Entrypoint !== undefined && (obj.Entrypoint = message.Entrypoint);
     message.WorkDirectory !== undefined && (obj.WorkDirectory = message.WorkDirectory);
     message.PostInstall !== undefined && (obj.PostInstall = message.PostInstall);
+    message.PreInstall !== undefined && (obj.PreInstall = message.PreInstall);
     message.DefaultDeployment !== undefined && (obj.DefaultDeployment = message.DefaultDeployment
       ? MarketplaceMetadata_Defaultdeployment.toJSON(message.DefaultDeployment)
       : undefined);
@@ -380,6 +394,7 @@ export const MarketplaceMetadata = {
     message.Entrypoint = object.Entrypoint ?? "";
     message.WorkDirectory = object.WorkDirectory ?? "";
     message.PostInstall = object.PostInstall ?? "";
+    message.PreInstall = object.PreInstall ?? "";
     message.DefaultDeployment = (object.DefaultDeployment !== undefined && object.DefaultDeployment !== null)
       ? MarketplaceMetadata_Defaultdeployment.fromPartial(object.DefaultDeployment)
       : undefined;

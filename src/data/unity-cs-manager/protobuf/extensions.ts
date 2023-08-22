@@ -63,6 +63,7 @@ export interface Install_Applications {
   version: string;
   variables: Install_Variables | undefined;
   postinstall: string;
+  preinstall: string;
 }
 
 export interface SimpleMessage {
@@ -964,7 +965,7 @@ export const Install_Variables_NestedValuesEntry = {
 };
 
 function createBaseInstall_Applications(): Install_Applications {
-  return { name: "", version: "", variables: undefined, postinstall: "" };
+  return { name: "", version: "", variables: undefined, postinstall: "", preinstall: "" };
 }
 
 export const Install_Applications = {
@@ -980,6 +981,9 @@ export const Install_Applications = {
     }
     if (message.postinstall !== "") {
       writer.uint32(34).string(message.postinstall);
+    }
+    if (message.preinstall !== "") {
+      writer.uint32(42).string(message.preinstall);
     }
     return writer;
   },
@@ -1019,6 +1023,13 @@ export const Install_Applications = {
 
           message.postinstall = reader.string();
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.preinstall = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1034,6 +1045,7 @@ export const Install_Applications = {
       version: isSet(object.version) ? String(object.version) : "",
       variables: isSet(object.variables) ? Install_Variables.fromJSON(object.variables) : undefined,
       postinstall: isSet(object.postinstall) ? String(object.postinstall) : "",
+      preinstall: isSet(object.preinstall) ? String(object.preinstall) : "",
     };
   },
 
@@ -1044,6 +1056,7 @@ export const Install_Applications = {
     message.variables !== undefined &&
       (obj.variables = message.variables ? Install_Variables.toJSON(message.variables) : undefined);
     message.postinstall !== undefined && (obj.postinstall = message.postinstall);
+    message.preinstall !== undefined && (obj.preinstall = message.preinstall);
     return obj;
   },
 
@@ -1059,6 +1072,7 @@ export const Install_Applications = {
       ? Install_Variables.fromPartial(object.variables)
       : undefined;
     message.postinstall = object.postinstall ?? "";
+    message.preinstall = object.preinstall ?? "";
     return message;
   },
 };

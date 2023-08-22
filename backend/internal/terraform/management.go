@@ -3,15 +3,17 @@ package terraform
 import (
 	"fmt"
 	structpb "github.com/golang/protobuf/ptypes/struct"
+	"github.com/google/uuid"
+	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/zclconf/go-cty/cty"
 	"math/rand"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 )
 
@@ -19,93 +21,6 @@ type Varstruct struct {
 	Name      string
 	Value     interface{}
 	Tfobjtype cty.Type
-}
-
-const charset = "abcdefghijklmnopqrstuvwxyz" +
-	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-func StringWithCharset(length int, charset string) string {
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(b)
-}
-
-func String(length int) string {
-	return StringWithCharset(length, charset)
-}
-
-func WriteTFVars(vars []Varstruct, appconf *config.AppConfig) {
-	// Open a file for writing
-	file, err := os.Create(filepath.Join(appconf.Workdir, "workspace", ".auto.tfvars"))
-	if err != nil {
-		log.WithError(err).Errorf("Error creating file")
-		return
-	}
-	defer file.Close()
-
-	sliceToString := func(slice []string) string {
-		for i, v := range slice {
-			slice[i] = `"` + v + `"`
-		}
-		return "[" + strings.Join(slice, ", ") + "]"
-	}
-	// Iterate through the map and write key-value pairs to the file
-	for _, variable := range vars {
-		line := ""
-		switch v := variable.Value.(type) {
-		case map[string][]string:
-			line += fmt.Sprintf("%s = { ", variable.Name)
-			for k, val := range v {
-				line += fmt.Sprintf("%s: %s, ", k, sliceToString(val))
-			}
-			line = line[:len(line)-2] + " }\n" // Remove trailing comma and add closing bracket
-		case []string:
-			line = fmt.Sprintf("%s = %s\n", variable.Name, sliceToString(v))
-		default:
-			line = fmt.Sprintf("%s = \"%v\"\n", variable.Name, variable.Value)
-		}
-		_, err := file.WriteString(line)
-		if err != nil {
-			fmt.Println("Error writing to file:", err)
-			return
-		}
-	}
-
-	log.Info("File written successfully")
-
-	hclFile := hclwrite.NewEmptyFile()
-
-	err = os.MkdirAll(filepath.Join(appconf.Workdir, "workspace"), 0755)
-	if err != nil {
-		log.WithError(err).Error("Could not create workspace directory")
-	}
-	// create new file on system
-	tfFile, err := os.Create(filepath.Join(appconf.Workdir, "workspace", "variables.tf"))
-	if err != nil {
-		log.WithError(err).Error("Problem creating tf file")
-		return
-	}
-	// initialize the body of the new file object
-	rootBody := hclFile.Body()
-	for _, variable := range vars {
-		cloudenv := rootBody.AppendNewBlock("variable", []string{variable.Name})
-		cloudenvBody := cloudenv.Body()
-		typeTokens := hclwrite.Tokens{
-			{
-				Type:  9,
-				Bytes: []byte(strings.ToLower(strings.ReplaceAll(variable.Tfobjtype.GoString(), "cty.", ""))),
-			},
-		}
-		cloudenvBody.SetAttributeRaw("type", typeTokens)
-	}
-	_, err = tfFile.Write(hclFile.Bytes())
-	if err != nil {
-		log.WithError(err).Error("error writing hcl file")
-		return
-	}
-	return
 }
 
 func convertValue(v *structpb.Value) interface{} {
@@ -165,64 +80,111 @@ func convertToCty(data interface{}) cty.Value {
 	return cty.NilVal
 }
 
-func parseAdvancedVariables(install *marketplace.Install, cloudenv *hclwrite.Block) {
+func parseAdvancedVariables(install *marketplace.Install, cloudenv *map[string]cty.Value) {
 	for key, str := range convertStruct(install.Applications.Variables.AdvancedValues) {
 		ctyValue := convertToCty(str)
-		cloudenv.Body().SetAttributeValue(key, ctyValue)
+		(*cloudenv)[key] = ctyValue
 	}
 }
 
-func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, install *marketplace.Install) error {
+func generateMetadataHeader(cloudenv *hclwrite.Body, id string, application string, version string, creator string) {
+	currentTime := time.Now()
+	dateString := currentTime.Format("2006-01-02")
+	comment := hclwrite.Tokens{
+		&hclwrite.Token{
+			Type:         hclsyntax.TokenComment,
+			Bytes:        []byte(fmt.Sprintf("# id: %v\n# application: %v\n# version: %v\n# creator: %v\n# creationDate: %v\n", id, application, version, creator, dateString)),
+			SpacesBefore: 0,
+		},
+	}
+	cloudenv.AppendUnstructuredTokens(comment)
+}
+
+func generateRandomString(length int) string {
+	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
+}
+
+// createFile creates a file with the given filename in the specified directory.
+// If the directory does not exist, it will be created with the given permissions.
+func createFile(directory string, filename string, perm os.FileMode) (*os.File, error) {
+	// Ensure the directory exists, creating it if necessary
+	err := os.MkdirAll(directory, perm)
+	if err != nil {
+		return nil, fmt.Errorf("could not create directory %s: %w", directory, err)
+	}
+
+	// Create the file within the directory
+	filePath := filepath.Join(directory, filename)
+	file, err := os.Create(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("could not create file %s: %w", filePath, err)
+	}
+
+	return file, nil
+}
+
+// AppendBlockToBody appends a new block to an HCL body with given type, labels, source, and attributes.
+func appendBlockToBody(body *hclwrite.Body, blockType string, labels []string, source string, attributes map[string]cty.Value) {
+	block := body.AppendNewBlock(blockType, labels)
+	blockBody := block.Body()
+	blockBody.SetAttributeValue("source", cty.StringVal(source))
+
+	// Iterate through the attributes map and set each attribute in the block
+	for key, value := range attributes {
+		blockBody.SetAttributeValue(key, value)
+	}
+}
+
+// AddApplicationToStack adds the given application configuration to the stack.
+// It takes care of creating the necessary workspace directory, generating the
+// HCL file, and writing the required attributes.
+func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, install *marketplace.Install, db database.Datastore) error {
 	rand.Seed(time.Now().UnixNano())
 
-	s := String(8)
+	s := generateRandomString(8)
 	hclFile := hclwrite.NewEmptyFile()
 
-	err := os.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
-	if err != nil {
-		log.WithError(err).Error("Could not create workspace directory")
-	}
-	// create new file on system
-	tfFile, err := os.Create(filepath.Join(appConfig.Workdir, "workspace", fmt.Sprintf("%v%v%v", meta.Name, s, ".tf")))
+	directory := filepath.Join(appConfig.Workdir, "workspace")
+	filename := fmt.Sprintf("%v%v%v", meta.Name, s, ".tf")
+	tfFile, err := createFile(directory, filename, 0755)
 	if err != nil {
 		log.WithError(err).Error("Problem creating tf file")
 		return err
 	}
+
 	path := filepath.Join(location, meta.WorkDirectory)
 	// initialize the body of the new file object
 	rootBody := hclFile.Body()
 
-	cloudenv := rootBody.AppendNewBlock("module", []string{meta.Name})
-	cloudenvBody := cloudenv.Body()
-	cloudenvBody.SetAttributeValue("source", cty.StringVal(path))
-	cloudenvBody.SetAttributeValue("name", cty.StringVal(install.DeploymentName))
-	typeTokens := hclwrite.Tokens{
-		{
-			Type:  9,
-			Bytes: []byte("{}"),
-		},
+	u, err := uuid.NewRandom()
+	if err != nil {
+		log.WithError(err).Error("Failed to generate UUID")
+		return err
 	}
-	cloudenvBody.SetAttributeRaw("tags", typeTokens)
+
+	generateMetadataHeader(rootBody, u.String(), install.Applications.Name, install.Applications.Version, "admin")
+
+	attributes := map[string]cty.Value{
+		"name": cty.StringVal(install.DeploymentName),
+		"tags": cty.MapValEmpty(cty.String), // Example of setting an empty map
+		// Add other attributes as needed
+	}
 	for key, element := range install.Applications.Variables.Values {
-		cloudenv.Body().SetAttributeValue(key, cty.StringVal(element))
+		attributes[key] = cty.StringVal(element)
 	}
-
-	//for key, element := range install.Applications.Variables.NestedValues {
-	//	tmap := map[string]cty.Value{}
-	//	//t := element.GetType()
-	//	con := element.GetConfig()
-	//	for k, e := range con {
-	//		tmap[k] = cty.StringVal(e.GetOptions().GetDefault())
-	//	}
-	//	cloudenv.Body().SetAttributeValue(key, cty.MapVal(tmap))
-	//}
-
-	parseAdvancedVariables(install, cloudenv)
+	parseAdvancedVariables(install, &attributes)
+	appendBlockToBody(rootBody, "module", []string{meta.Name}, path, attributes)
 
 	_, err = tfFile.Write(hclFile.Bytes())
 	if err != nil {
 		log.WithError(err).Error("error writing hcl file")
 		return err
 	}
+
 	return nil
 }

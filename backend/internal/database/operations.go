@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
@@ -109,4 +110,47 @@ func FetchSSMParams() ([]models.SSMParameters, error) {
 	}
 
 	return params, nil
+}
+
+func (g GormDatastore) StoreDeployment(model models.Deployment) (uint, error) {
+	if err := g.db.Save(&model).Error; err != nil {
+		// Handle error for Save
+		log.WithError(err).Error("Problem saving record to database")
+		return 0, err
+	}
+	return model.ID, nil
+}
+
+func (g GormDatastore) UpdateApplicationStatus(deploymentID uint, targetAppName string, newStatus string) error {
+	var deployment models.Deployment
+	result := g.db.Preload("Applications").First(&deployment, deploymentID) // Replace deploymentID with the actual ID you're looking for
+	if result.Error != nil {
+		// Handle the error
+		log.WithError(result.Error).Error("Error finding deployment")
+		return result.Error
+	}
+
+	// Then, find the specific application by name within the deployment
+	var appToUpdate *models.Application
+	for _, app := range deployment.Applications {
+		if app.Name == targetAppName {
+			appToUpdate = &app
+			break
+		}
+	}
+
+	if appToUpdate == nil {
+		err := errors.New("Application not found")
+		log.WithError(err).Error("Problem finding application")
+		return err
+	}
+
+	// Finally, update the status field of the application
+	appToUpdate.Status = newStatus
+	if err := g.db.Save(appToUpdate).Error; err != nil {
+		log.WithError(err).Error("Problem updating application status")
+		return err
+	}
+
+	return nil
 }

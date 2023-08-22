@@ -2,6 +2,7 @@ package models
 
 import (
 	"gorm.io/gorm"
+	"time"
 )
 
 type CoreConfig struct {
@@ -16,4 +17,19 @@ type SSMParameters struct {
 	Value string
 	Type  string
 	Owner string
+}
+
+type Application struct {
+	Name         string
+	Version      string
+	Source       string
+	Status       string
+	DeploymentID uint `gorm:"foreignKey:DeploymentID"`
+}
+type Deployment struct {
+	gorm.Model
+	Name         string `gorm:"index"`
+	Applications []Application
+	Creator      string
+	CreationDate time.Time
 }

@@ -3,6 +3,7 @@ package processes
 import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
@@ -51,29 +52,56 @@ func FetchPackage(meta *marketplace.MarketplaceMetadata, appConfig *config.AppCo
 		return "", nil
 	} else {
 		// Checkout git repo
-		locationdir, err := gitclone(meta.Package, basedir)
+		locationdir, err := gitClone(meta.Package, basedir)
 		return locationdir, err
 	}
 
 }
 
-func gitclone(url string, basedir string) (string, error) {
-	//tempDir, err := os.MkdirTemp(basedir, "git-")
+func gitClone(url string, basedir string) (string, error) {
+	sha := ""
 	err := os.MkdirAll(basedir, 0755)
 	if err != nil {
 		return "", err
-
 	}
-	_, err = git.PlainClone(basedir, false, &git.CloneOptions{
+
+	// Splitting the URL and SHA if they are in the combined format
+	if strings.Contains(url, "@") {
+		parts := strings.SplitN(url, "@", 2)
+		url = parts[0]
+		sha = parts[1]
+	}
+
+	repo, err := git.PlainClone(basedir, false, &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
 	})
 	if err != nil {
 		if err.Error() != "repository already exists" {
 			return "", err
-		} else {
-			err = nil
+		}
+
+		// If the repository already exists, open it
+		repo, err = git.PlainOpen(basedir)
+		if err != nil {
+			return "", err
 		}
 	}
+
+	// Checkout the specific SHA if provided
+	if sha != "" {
+		w, err := repo.Worktree()
+		if err != nil {
+			return "", err
+		}
+
+		err = w.Checkout(&git.CheckoutOptions{
+			Hash: plumbing.NewHash(sha),
+		})
+		if err != nil {
+			return "", err
+		}
+	}
+
 	return basedir, err
 }
