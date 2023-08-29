@@ -4,9 +4,7 @@ import { installError, installRunning, marketplaceStore, messageStore, parameter
 import {config} from "../store/stores"
 import { websocketStore } from '../data/websocketStore';
 import {
-  MarketplaceMetadata, MarketplaceMetadata_InnerMap, MarketplaceMetadata_SubMap,
-  MarketplaceMetadata_TypeMap,
-  MarketplaceMetadata_Variables
+  MarketplaceMetadata
 } from "./unity-cs-manager/protobuf/marketplace";
 import {
     ConnectionSetup,
@@ -245,62 +243,203 @@ async function getGitHubFileContents(user: string, repo: string, path: string): 
         throw error;
     }
 }
-const mock_marketplace = "[{\n" +
-  "\t\t\"DisplayName\": \"Unity Kubernetes\",\n" +
-  "\t\t\"Name\": \"unity-eks\",\n" +
-  "\t\t\"Version\": \"0.1\",\n" +
-  "\t\t\"Channel\": \"beta\",\n" +
-  "\t\t\"Owner\": \"Tom Barber\",\n" +
-  "\t\t\"Description\": \"The Unity Kubernetes package\",\n" +
-  "\t\t\"Repository\": \"https://github.com/unity-sds/unity-cs-infra\",\n" +
-  "\t\t\"Tags\": [\n" +
-  "\t\t\t\"eks\",\n" +
-  "\t\t\t\"kubernetes\"\n" +
-  "\t\t],\n" +
-  "\t\t\"Category\": \"system\",\n" +
-  "\t\t\"IamRoles\": {\n" +
-  "\t\t\t\"Statement\": [{\n" +
-  "\t\t\t\t\"Effect\": \"Allow\",\n" +
-  "\t\t\t\t\"Action\": [\n" +
-  "\t\t\t\t\t\"iam:CreateInstanceProfile\"\n" +
-  "\t\t\t\t],\n" +
-  "\t\t\t\t\"Resource\": [\n" +
-  "\t\t\t\t\t\"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
-  "\t\t\t\t]\n" +
-  "\t\t\t}]\n" +
-  "\t\t},\n" +
-  "\t\t\"Package\": \"https://github.com/unity-sds/unity-cs-infra\",\n" +
-  "\t\t\"WorkDirectory\": \"terraform-unity-eks_module\",\n" +
-  "\t\t\"Backend\": \"terraform\",\n" +
-  "\t\t\"ManagedDependencies\": [{\n" +
-  "\t\t\t\"Eks\": {\n" +
-  "\t\t\t\t\"MinimumVersion\": \"1.21\"\n" +
-  "\t\t\t}\n" +
-  "\t\t}],\n" +
-  "\t\t\"PostInstall\": \"scripts/postinstall.sh\",\n" +
-  "\t\t\"DefaultDeployment\": {\n" +
-  "\t\t\t\"Variables\": {\n" +
-  "\t\t\t\t\"Values\": {\n" +
-  "\t\t\t\t\t\"cluster_version\": \"1.27\"\n" +
-  "\t\t\t\t},\n" +
-  "\t\t\t\t\"AdvancedValues\": {\n" +
-  "\t\t\t\t\t\"nodegroups\": {\n" +
-  "\t\t\t\t\t\t\"blue\": {\n" +
-  "\t\t\t\t\t\t\t\"create_iam_role\":            false,\n" +
-  "\t\t\t\t\t\t\t\"iam_role_arn\":               \"data.aws_ssm_parameter.eks_iam_node_role.value\",\n" +
-  "\t\t\t\t\t\t\t\"min_size\":                   1,\n" +
-  "\t\t\t\t\t\t\t\"max_size\":                   10,\n" +
-  "\t\t\t\t\t\t\t\"desired_size\":               1,\n" +
-  "\t\t\t\t\t\t\t\"ami_id\":                     \"ami-0c0e3c5bfa15ba56b\",\n" +
-  "\t\t\t\t\t\t\t\"instance_types\":             [\"t3.large\"],\n" +
-  "\t\t\t\t\t\t\t\"capacity_type\":              \"SPOT\",\n" +
-  "\t\t\t\t\t\t\t\"enable_bootstrap_user_data\": true\n" +
-  "\t\t\t\t\t\t},\n" +
-  "\t\t\t\t\t\t\"green\" :{\n" +
-  "\t\t\t\t\t\t}\n" +
-  "\t\t\t\t\t}\n" +
-  "\n" +
-  "\t\t\t\t}\n" +
-  "\t\t\t}\n" +
-  "\t\t}\n" +
-  "\t}]"
+const mock_marketplace = "[\n" +
+  "  {\n" +
+  "    \"Name\": \"sample application\",\n" +
+  "    \"Version\": \"0.1-beta\",\n" +
+  "    \"Channel\": \"beta\",\n" +
+  "    \"Owner\": \"Tom Barber\",\n" +
+  "    \"Description\": \"A demonstration application for the Unity platform\",\n" +
+  "    \"Repository\": \"https://github.com/unity-sds/unity-marketplace\",\n" +
+  "    \"Tags\": [\n" +
+  "      \"tag a\",\n" +
+  "      \"tag b\"\n" +
+  "    ],\n" +
+  "    \"Category\": \"data processing\",\n" +
+  "    \"IamRoles\": {\n" +
+  "      \"Statement\": [\n" +
+  "        {\n" +
+  "          \"Effect\": \"Allow\",\n" +
+  "          \"Action\": [\n" +
+  "            \"iam:CreateInstanceProfile\"\n" +
+  "          ],\n" +
+  "          \"Resource\": [\n" +
+  "            \"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
+  "          ]\n" +
+  "        }\n" +
+  "      ]\n" +
+  "    },\n" +
+  "    \"Package\": \"http://github.com/path/to/package.zip\",\n" +
+  "    \"ManagedDependencies\": [\n" +
+  "      {\n" +
+  "        \"Eks\": {\n" +
+  "          \"MinimumVersion\": \"1.21\"\n" +
+  "        }\n" +
+  "      }\n" +
+  "    ],\n" +
+  "    \"Backend\": \"terraform\",\n" +
+  "    \"DefaultDeployment\": {\n" +
+  "      \"Variables\": {\n" +
+  "        \"some_terraform_variable\": \"some_value\"\n" +
+  "      },\n" +
+  "      \"EksSpec\": {\n" +
+  "        \"NodeGroups\": [\n" +
+  "          {\n" +
+  "            \"NodeGroup1\": {\n" +
+  "              \"MinNodes\": 1,\n" +
+  "              \"MaxNodes\": 10,\n" +
+  "              \"DesiredNodes\": 4,\n" +
+  "              \"InstanceType\": \"m6.large\"\n" +
+  "            }\n" +
+  "          }\n" +
+  "        ]\n" +
+  "      }\n" +
+  "    }\n" +
+  "  },\n" +
+  "  {\n" +
+  "    \"DisplayName\": \"Unity API Gateway\",\n" +
+  "    \"Name\": \"unity-apigateway\",\n" +
+  "    \"Version\": \"0.1-beta\",\n" +
+  "    \"Channel\": \"beta\",\n" +
+  "    \"Owner\": \"U-CS Team\",\n" +
+  "    \"Description\": \"A package to install and configure an API gateway for your Unity Venue\",\n" +
+  "    \"Repository\": \"https://github.com/unity-sds/unity-cs-infra/\",\n" +
+  "    \"Tags\": [\n" +
+  "      \"api\",\n" +
+  "      \"http\",\n" +
+  "      \"rest\"\n" +
+  "    ],\n" +
+  "    \"Category\": \"system\",\n" +
+  "    \"IamRoles\": {\n" +
+  "      \"Statement\": [\n" +
+  "        {\n" +
+  "          \"Effect\": \"Allow\",\n" +
+  "          \"Action\": [\n" +
+  "            \"iam:CreateInstanceProfile\"\n" +
+  "          ],\n" +
+  "          \"Resource\": [\n" +
+  "            \"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
+  "          ]\n" +
+  "        }\n" +
+  "      ]\n" +
+  "    },\n" +
+  "    \"Package\": \"https://github.com/unity-sds/unity-cs-infra/\",\n" +
+  "    \"Backend\": \"terraform\",\n" +
+  "    \"WorkDirectory\": \"terraform-project-api-gateway_module\",\n" +
+  "    \"DefaultDeployment\": {\n" +
+  "      \"Variables\": {\n" +
+  "        \"some_terraform_variable\": \"some_value\"\n" +
+  "      }\n" +
+  "    }\n" +
+  "  },\n" +
+  "  {\n" +
+  "    \"DisplayName\": \"Unity Kubernetes\",\n" +
+  "    \"Name\": \"unity-eks\",\n" +
+  "    \"Version\": \"0.1\",\n" +
+  "    \"Channel\": \"beta\",\n" +
+  "    \"Owner\": \"Tom Barber\",\n" +
+  "    \"Description\": \"The Unity Kubernetes package\",\n" +
+  "    \"Repository\": \"https://github.com/unity-sds/unity-cs-infra\",\n" +
+  "    \"Tags\": [\n" +
+  "      \"eks\",\n" +
+  "      \"kubernetes\"\n" +
+  "    ],\n" +
+  "    \"Category\": \"system\",\n" +
+  "    \"IamRoles\": {\n" +
+  "      \"Statement\": [\n" +
+  "        {\n" +
+  "          \"Effect\": \"Allow\",\n" +
+  "          \"Action\": [\n" +
+  "            \"iam:CreateInstanceProfile\"\n" +
+  "          ],\n" +
+  "          \"Resource\": [\n" +
+  "            \"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
+  "          ]\n" +
+  "        }\n" +
+  "      ]\n" +
+  "    },\n" +
+  "    \"Package\": \"https://github.com/unity-sds/unity-cs-infra\",\n" +
+  "    \"WorkDirectory\": \"terraform-unity-eks_module\",\n" +
+  "    \"Backend\": \"terraform\",\n" +
+  "    \"ManagedDependencies\": [\n" +
+  "      {\n" +
+  "        \"Eks\": {\n" +
+  "          \"MinimumVersion\": \"1.21\"\n" +
+  "        }\n" +
+  "      }\n" +
+  "    ],\n" +
+  "    \"PostInstall\": \"scripts/postinstall.sh\",\n" +
+  "    \"DefaultDeployment\": {\n" +
+  "      \"Variables\": {\n" +
+  "        \"Values\": {\n" +
+  "          \"cluster_version\": \"1.27\"\n" +
+  "        },\n" +
+  "        \"AdvancedValues\": {\n" +
+  "          \"nodegroups\": {\n" +
+  "            \"UnityNodeGroup\": {\n" +
+  "              \"min_size\": 1,\n" +
+  "              \"max_size\": 10,\n" +
+  "              \"desired_size\": 1,\n" +
+  "              \"instance_types\": [\n" +
+  "                \"t3.large\"\n" +
+  "              ],\n" +
+  "              \"capacity_type\": \"SPOT\"\n" +
+  "            }\n" +
+  "          }\n" +
+  "        }\n" +
+  "      }\n" +
+  "    }\n" +
+  "  },\n" +
+  "  {\n" +
+  "    \"Name\": \"Unity SPS\",\n" +
+  "    \"Version\": \"0.1-beta\",\n" +
+  "    \"Channel\": \"beta\",\n" +
+  "    \"Owner\": \"Tom Barber\",\n" +
+  "    \"Description\": \"The Unity SPS Prototype package\",\n" +
+  "    \"Repository\": \"https://github.com/unity-sds/unity-sps-prototype\",\n" +
+  "    \"Tags\": [\n" +
+  "      \"sps\",\n" +
+  "      \"data processing\"\n" +
+  "    ],\n" +
+  "    \"Category\": \"data processing\",\n" +
+  "    \"IamRoles\": {\n" +
+  "      \"Statement\": [\n" +
+  "        {\n" +
+  "          \"Effect\": \"Allow\",\n" +
+  "          \"Action\": [\n" +
+  "            \"iam:CreateInstanceProfile\"\n" +
+  "          ],\n" +
+  "          \"Resource\": [\n" +
+  "            \"arn:aws:iam::<account_id>:instance-profile/eksctl*\"\n" +
+  "          ]\n" +
+  "        }\n" +
+  "      ]\n" +
+  "    },\n" +
+  "    \"Package\": \"https://github.com/buggtb/unity-sps-prototype@bebb4f5cc092b88fb583c4f36cecefdb7f037244\",\n" +
+  "    \"PreInstall\": \"scripts/preinstall.sh\",\n" +
+  "    \"ManagedDependencies\": [\n" +
+  "      {\n" +
+  "        \"unity-eks\": {\n" +
+  "          \"MinimumVersion\": \"1.21\"\n" +
+  "        }\n" +
+  "      }\n" +
+  "    ],\n" +
+  "    \"Backend\": \"terraform\",\n" +
+  "    \"DefaultDeployment\": {\n" +
+  "      \"Variables\": {\n" +
+  "        \"Values\": {\n" +
+  "          \"release\": \"23.1\",\n" +
+  "          \"deployment_name\": \"\",\n" +
+  "          \"eks_cluster_name\": \"\",\n" +
+  "          \"kubeconfig_filepath\": \"\",\n" +
+  "          \"venue\": \"\",\n" +
+  "          \"uads_development_efs_fsmt_id\": \"\",\n" +
+  "          \"default_group_node_group_name\": \"LoadBalancer\",\n" +
+  "          \"default_group_node_group_launch_template_name\": \"\",\n" +
+  "          \"elb_subnets\": \"\"\n" +
+  "        },\n" +
+  "        \"NestedValues\": {}\n" +
+  "      }\n" +
+  "    }\n" +
+  "  }\n" +
+  "]"

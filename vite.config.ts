@@ -3,7 +3,7 @@ import type { UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 
 const config: UserConfig = {
-        plugins: [sveltekit()]
+        plugins: [sveltekit()],
 };
 
 export default defineConfig({

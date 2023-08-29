@@ -36,7 +36,7 @@ func fetchMarketplaceMetadata(name string, version string, appConfig *config.App
 	req := &marketplace.MarketplaceMetadata{}
 	err = protojson.Unmarshal([]byte(content), req)
 	if err != nil {
-		log.Infof("Error unmarshalling file: %v", err)
+		log.WithError(err).Error("Error unmarshalling file")
 	}
 	return *req, err
 }

@@ -429,6 +429,10 @@ github.com/unity-sds/unity-cs-manager v0.0.0-20230822111421-97bccbcf5381 h1:5OmW
 github.com/unity-sds/unity-cs-manager v0.0.0-20230822111421-97bccbcf5381/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
 github.com/unity-sds/unity-cs-manager v0.0.0-20230822111557-519efb46d3f4 h1:odbhOlltfDGKtXQszsq4cSGvewR4SwwTcTLxTWDTBeU=
 github.com/unity-sds/unity-cs-manager v0.0.0-20230822111557-519efb46d3f4/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230822130050-fbf58fc31c0b h1:CWpLVNdYm/CRVpbO3pBS/du0gVM1YtE1FHtyghFsHe4=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230822130050-fbf58fc31c0b/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230822130648-d63e80cb2718 h1:cW/vicD46EAGO+HIpA3g0mwUzCbHKJkN/X8zfScxoEg=
+github.com/unity-sds/unity-cs-manager v0.0.0-20230822130648-d63e80cb2718/go.mod h1:2AW0iNfvHGRdrb3u6PuheZP0zbV4W2eBIW0+7/6RCfE=
 github.com/vmihailenco/msgpack v3.3.3+incompatible/go.mod h1:fy3FlTQTDXWkZ7Bh6AcGMlsjHatGryHQYUTf1ShIgkk=
 github.com/vmihailenco/msgpack/v4 v4.3.12/go.mod h1:gborTTJjAo/GWTqqRjrLCn9pgNN+NXzzngzBKDPIqw4=
 github.com/vmihailenco/tagparser v0.1.1/go.mod h1:OeAg3pn3UbLjkWt+rN9oFYB6u/cQgqMEUPoW2WPyhdI=

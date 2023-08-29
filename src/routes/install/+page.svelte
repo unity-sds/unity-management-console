@@ -16,6 +16,8 @@
     if (!product) {
       console.error("No product selected for installation");
       return;
+    } else{
+      console.log(product)
     }
 
     const httpHandler = new HttpHandler();
@@ -40,7 +42,17 @@
         <h1 class="my-4">{product.Name} Installation</h1>
         <form on:submit|preventDefault={installSoftware}>
           <ProductForm bind:product />
-
+          {#if product.ManagedDependencies}
+            <h2>Dependencies</h2>
+            {#each product.ManagedDependencies as dependency}
+              {#each Object.keys(dependency) as key}
+              <div class="form-group">
+<!--                  <strong>{key}</strong>: Minimum Version - {dependency[key].MinimumVersion}-->
+                  <label class="col-form-label">{key} <select class="form-control" ><option></option><option>test_deployment</option></select></label>
+              </div>
+            {/each}
+              {/each}
+          {/if}
           <VariablesForm bind:product />
           <button class="btn btn-secondary btn-success mt-3" type="submit">Install</button>
         </form>

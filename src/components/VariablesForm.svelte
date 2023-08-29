@@ -3,7 +3,12 @@
   import type { MarketplaceMetadata } from "../data/unity-cs-manager/protobuf/marketplace";
   // Helper function to handle the entries
   function getEntries(value: unknown): [string, unknown][] {
-    return Object.entries(value as Record<string, unknown>);
+    if(value != undefined) {
+      return Object.entries(value as Record<string, unknown>);
+    }
+    else {
+      return []
+    }
   }
   function toRecord(value: unknown): Record<string, unknown> {
     return value as Record<string, unknown>;

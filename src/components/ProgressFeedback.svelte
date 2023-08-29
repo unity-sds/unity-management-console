@@ -1,6 +1,5 @@
 <script lang="ts">
-    import { installError, installRunning, messageStore } from "../store/stores";
-    import { tick } from 'svelte';
+    import { installError, installRunning } from "../store/stores";
 
     let installRunningValue : boolean;
     const unsubscribeInstallRunning = installRunning.subscribe(value => {
@@ -11,35 +10,25 @@
     const unsubscribeErrorRunning = installError.subscribe(value => {
         installErrorValue = value;
     });
-    let textarea : HTMLTextAreaElement;
 
-    const unsubscribe = messageStore.subscribe((value) => {
-        // This code runs whenever messageStore changes
-        if (textarea) {
-            // Use nextTick to ensure that the DOM has been updated
-            tick().then(() => {
-                textarea.scrollTop = textarea.scrollHeight;
-            });
-        }
-    });
 
     // Clean up the subscription when the component is destroyed
     import { onDestroy } from 'svelte';
+    import SocketTerminal from "./SocketTerminal.svelte";
     onDestroy(() => {
-        unsubscribe();
         unsubscribeInstallRunning();
         unsubscribeErrorRunning();
     });
 </script>
 
-<div class="container d-flex align-items-center justify-content-center vh-100">
-    <div class="text-center w-100">
+<div class="container d-flex vh-100">
+    <div class="w-100">
         <div class="row text-center">
             <h2>Installing Application Stack</h2>
         </div>
         <div class="row">
             <div class="form-group col-md-12">
-                <textarea bind:this={textarea} class="form-control" id="console" rows="30" bind:value={$messageStore} readonly></textarea>
+                <SocketTerminal/>
             </div>
         </div>
         <div class="row mt-3">

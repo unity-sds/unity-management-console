@@ -110,7 +110,7 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata) error {
 	if meta.PreInstall != "" {
 		//TODO UNPIN ME
-		cmd := exec.Command(filepath.Join(appConfig.Workdir, "workspace", meta.Name, meta.PostInstall))
+		cmd := exec.Command(filepath.Join(appConfig.Workdir, "workspace", ".terraform", "modules", meta.Name, meta.PreInstall))
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", meta.Name))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
