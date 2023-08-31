@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {get} from 'svelte/store'
+  import { get } from "svelte/store";
   import { goto } from "$app/navigation";
   import { HttpHandler } from "../../data/httpHandler";
   import type { NodeGroupType } from "../../data/entities";
@@ -16,23 +16,32 @@
     if (!product) {
       console.error("No product selected for installation");
       return;
-    } else{
-      console.log(product)
+    } else {
+      console.log(product);
     }
 
     const httpHandler = new HttpHandler();
 
-    const merged = {"Values": product.DefaultDeployment?.Variables?.Values, "NestedValues": product.DefaultDeployment?.Variables?.NestedValues, "AdvancedValues": product.DefaultDeployment?.Variables?.AdvancedValues}
-    const vars = Install_Variables.fromJSON(merged)
+    const merged = {
+      "Values": product.DefaultDeployment?.Variables?.Values,
+      "AdvancedValues": product.DefaultDeployment?.Variables?.AdvancedValues
+    };
+    const vars = Install_Variables.fromJSON(merged);
     const a = Install_Applications.create({
       name: product.Name,
       version: product.Version,
       variables: vars
-    } as any)
+    } as any);
     const id = await httpHandler.installSoftware(a, "test_deployment");
     console.log(id);
     goto("/ui/progress", { replaceState: true });
   };
+
+  function getObjectKeys(obj: object): string[] {
+    return Object.keys(obj);
+  }
+
+  $: managedDependenciesKeys = product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
 </script>
 
 <div class="container">
@@ -44,14 +53,17 @@
           <ProductForm bind:product />
           {#if product.ManagedDependencies}
             <h2>Dependencies</h2>
-            {#each product.ManagedDependencies as dependency}
-              {#each Object.keys(dependency) as key}
+            <!--{#each product.ManagedDependencies as dependency}-->
+            {#each managedDependenciesKeys as key}
               <div class="form-group">
-<!--                  <strong>{key}</strong>: Minimum Version - {dependency[key].MinimumVersion}-->
-                  <label class="col-form-label">{key} <select class="form-control" ><option></option><option>test_deployment</option></select></label>
+                <!--                  <strong>{key}</strong>: Minimum Version - {dependency[key].MinimumVersion}-->
+                <label class="col-form-label">{key} <select class="form-control">
+                  <option></option>
+                  <option>test_deployment</option>
+                </select></label>
               </div>
             {/each}
-              {/each}
+            <!--{/each}-->
           {/if}
           <VariablesForm bind:product />
           <button class="btn btn-secondary btn-success mt-3" type="submit">Install</button>

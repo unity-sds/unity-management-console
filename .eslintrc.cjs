@@ -8,6 +8,9 @@ module.exports = {
 	settings: {
 		'svelte3/typescript': () => require('typescript')
 	},
+	rules: {
+		'@typescript-eslint/explicit-module-boundary-types': 'error',
+	},
 	parserOptions: {
 		sourceType: 'module',
 		ecmaVersion: 2020

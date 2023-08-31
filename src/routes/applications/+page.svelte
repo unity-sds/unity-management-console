@@ -24,7 +24,9 @@ $: {
     }
 }
 $: cardData = [
-    {title: 'SPS', description: 'SPS Description.', link: '/ui/applications/sps/explore', disabled:false},
+    {title: 'test_sps', description: 'Unity SPS', link: '/ui/applications/unity-sps/test_sps/explore', disabled:false},
+    {title: 'test_deployment', description: 'Unity EKS.', link: '/ui/applications/unity-eks/test_deployment/explore', disabled:false},
+
 ]
 </script>
 <header class="bg-primary text-white text-center py-5 mb-5">

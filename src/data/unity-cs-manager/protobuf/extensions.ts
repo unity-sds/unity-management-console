@@ -74,6 +74,8 @@ export interface SimpleMessage {
 export interface Config {
   applicationConfig: Config_ApplicationConfig | undefined;
   networkConfig: Config_NetworkConfig | undefined;
+  lastupdated: string;
+  updatedby: string;
 }
 
 export interface Config_ApplicationConfig {
@@ -1149,7 +1151,7 @@ export const SimpleMessage = {
 };
 
 function createBaseConfig(): Config {
-  return { applicationConfig: undefined, networkConfig: undefined };
+  return { applicationConfig: undefined, networkConfig: undefined, lastupdated: "", updatedby: "" };
 }
 
 export const Config = {
@@ -1159,6 +1161,12 @@ export const Config = {
     }
     if (message.networkConfig !== undefined) {
       Config_NetworkConfig.encode(message.networkConfig, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.lastupdated !== "") {
+      writer.uint32(26).string(message.lastupdated);
+    }
+    if (message.updatedby !== "") {
+      writer.uint32(34).string(message.updatedby);
     }
     return writer;
   },
@@ -1184,6 +1192,20 @@ export const Config = {
 
           message.networkConfig = Config_NetworkConfig.decode(reader, reader.uint32());
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.lastupdated = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.updatedby = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1199,6 +1221,8 @@ export const Config = {
         ? Config_ApplicationConfig.fromJSON(object.applicationConfig)
         : undefined,
       networkConfig: isSet(object.networkConfig) ? Config_NetworkConfig.fromJSON(object.networkConfig) : undefined,
+      lastupdated: isSet(object.lastupdated) ? String(object.lastupdated) : "",
+      updatedby: isSet(object.updatedby) ? String(object.updatedby) : "",
     };
   },
 
@@ -1209,6 +1233,8 @@ export const Config = {
       : undefined);
     message.networkConfig !== undefined &&
       (obj.networkConfig = message.networkConfig ? Config_NetworkConfig.toJSON(message.networkConfig) : undefined);
+    message.lastupdated !== undefined && (obj.lastupdated = message.lastupdated);
+    message.updatedby !== undefined && (obj.updatedby = message.updatedby);
     return obj;
   },
 
@@ -1224,6 +1250,8 @@ export const Config = {
     message.networkConfig = (object.networkConfig !== undefined && object.networkConfig !== null)
       ? Config_NetworkConfig.fromPartial(object.networkConfig)
       : undefined;
+    message.lastupdated = object.lastupdated ?? "";
+    message.updatedby = object.updatedby ?? "";
     return message;
   },
 };

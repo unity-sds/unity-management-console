@@ -4,16 +4,17 @@ import (
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
+	"github.com/unity-sds/unity-management-console/backend/internal/application"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 )
 
-func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppConfig) ([]byte, error) {
+func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppConfig, store database.Datastore) ([]byte, error) {
 	if message.Operation == "request config" {
 		log.Info("Request Config received")
-		return fetchConfig(conf)
+		return fetchConfig(conf, store)
 	} else if message.Operation == "request parameters" {
 		log.Info("Request Parameters received")
 		return fetchParameters(conf)
@@ -43,6 +44,8 @@ func UpdateParameters(params *marketplace.Parameters, store database.Datastore, 
 		return
 	}
 
+	store.AddToAudit(application.Config_Updated, "test")
+
 	err = UpdateCoreConfig(appconf, store, wsmgr, userid)
 	if err != nil {
 		log.WithError(err).Error("Error updating config")
@@ -68,8 +71,13 @@ func fetchParameters(conf *config.AppConfig) ([]byte, error) {
 
 	return data, nil
 }
-func fetchConfig(conf *config.AppConfig) ([]byte, error) {
+func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, error) {
 
+	//coreconf, err := store.FetchCoreParams()
+	//if err != nil {
+	//	log.WithError(err).Error("Error fetching core config")
+	//	return nil, err
+	//}
 	pub, priv, err := aws.FetchSubnets()
 	if err != nil {
 		log.WithError(err).Error("Error fetching subnets")
@@ -86,10 +94,14 @@ func fetchConfig(conf *config.AppConfig) ([]byte, error) {
 		MarketplaceOwner: conf.MarketplaceOwner,
 		MarketplaceUser:  conf.MarketplaceRepo,
 	}
+	auditline := application.Config_Updated
+	audit, err := store.FindLastAuditLineByOperation(auditline)
 	genconfig := &marketplace.Config{
 
 		ApplicationConfig: &appConfig,
 		NetworkConfig:     &netconfig,
+		Lastupdated:       audit.CreatedAt.Format("2006-01-02T15:04:05.000"),
+		Updatedby:         audit.Owner,
 	}
 
 	mpcfg := marketplace.UnityWebsocketMessage_Config{Config: genconfig}

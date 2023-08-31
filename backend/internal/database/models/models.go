@@ -6,9 +6,11 @@ import (
 )
 
 type CoreConfig struct {
+	gorm.Model
 	ID    uint   `gorm:"primarykey" json:"id"`
 	Key   string `gorm:"index;unique" json:"key"`
 	Value string `json:"value"`
+	Owner string `json:"owner"`
 }
 
 type SSMParameters struct {
@@ -19,6 +21,11 @@ type SSMParameters struct {
 	Owner string
 }
 
+type Audit struct {
+	gorm.Model
+	Operation string `gorm:"index"`
+	Owner     string
+}
 type Application struct {
 	Name         string
 	Version      string
