@@ -137,7 +137,7 @@
       </p>
     </div>
     <div class="col">
-      {#if running === false}
+      {#if $installRunning === false}
         <form>
           <InputField label="Project Name" id="project" isValid={$venueAndProjectStore.projectIsValid}
                       on:input={handleInputChange} subtext="The project managing this Unity environment."
