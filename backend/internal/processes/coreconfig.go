@@ -92,12 +92,14 @@ func generateSSMParameters(db database.Datastore) ([]cty.Value, error) {
 	}
 
 	for _, p := range params {
-		a := cty.ObjectVal(map[string]cty.Value{
-			"name":  cty.StringVal(p.Key),
-			"type":  cty.StringVal(p.Type),
-			"value": cty.StringVal(p.Value),
-		})
-		ssmParameters = append(ssmParameters, a)
+		if p.Key != "" {
+			a := cty.ObjectVal(map[string]cty.Value{
+				"name":  cty.StringVal(p.Key),
+				"type":  cty.StringVal(p.Type),
+				"value": cty.StringVal(p.Value),
+			})
+			ssmParameters = append(ssmParameters, a)
+		}
 	}
 
 	return ssmParameters, err

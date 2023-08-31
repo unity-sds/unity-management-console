@@ -30,12 +30,15 @@ func UpdateParameters(params *marketplace.Parameters, store database.Datastore, 
 	log.Info("Storing parameters")
 	var parr []config.SSMParameter
 	for _, p := range params.Parameterlist {
-		np := config.SSMParameter{
-			Name:  p.Name,
-			Type:  p.Type,
-			Value: p.Value,
+		if p.Name != "" && p.Value != "" {
+			np := config.SSMParameter{
+				Name:  p.Name,
+				Type:  p.Type,
+				Value: p.Value,
+			}
+			parr = append(parr, np)
+
 		}
-		parr = append(parr, np)
 	}
 	log.Infof("Saving %v parameters", len(parr))
 	err := store.StoreSSMParams(parr, "test")
