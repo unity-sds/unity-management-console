@@ -8,8 +8,7 @@
   import SelectField from "../../components/SelectField.svelte";
   import OptionalParametersAccordion from "../../components/OptionalParametersAccordion.svelte";
 
-  let project = "";
-  let venue = "";
+  let running = false;
 
   let httpHandler = new HttpHandler();
 
@@ -24,8 +23,8 @@
     return { venueIsValid: /^[a-z0-9]+$/i.test($venueStore), projectIsValid: /^[a-z0-9]+$/i.test($projectStore) };
   });
 
-  function handleInputChange(e: CustomEvent<{ target: HTMLInputElement }>) {
-    const target = e.target as HTMLInputElement;
+  function handleInputChange(e: CustomEvent) {
+    const target = e.detail.target as HTMLInputElement;
     const { id, value } = target;
     if (id === "project") projectStore.set(value);
     if (id === "venue") venueStore.set(value);
@@ -33,26 +32,27 @@
   }
 
   function handleSubmit() {
-    projectStore.set(project);
-    venueStore.set(venue);
+    console.log("project: " + get(projectStore));
+    console.log("venue: " + get(venueStore));
     const unsubscribe = parametersStore.subscribe((items) => {
       let l = items.parameterlist;
       l["project"] = createBaseParameters_Parameter({
         name: "project",
         type: "String",
         insync: true,
-        value: project,
+        value: get(projectStore),
         tracked: true
       });
       l["venue"] = createBaseParameters_Parameter({
         name: "venue",
         type: "String",
         insync: true,
-        value: venue,
+        value: get(venueStore),
         tracked: true
       });
       installRunning.set(true);
       installError.set(false);
+      console.log(items.parameterlist);
       httpHandler.updateParameters(items.parameterlist);
     });
     unsubscribe();
@@ -66,18 +66,18 @@
     const projectkey = "/unity/core/project";
 
     // Check if the value is not null and has the key
-    if (parameters && parameters.parameterlist && Object.prototype.hasOwnProperty.call(parameters?.parameterlist, projectkey)) {
-      project = parameters.parameterlist[projectkey].value;
-    } else {
-      console.log("Key does not exist or parameters is null/undefined.");
-    }
-
-    // Check if the value is not null and has the key
-    if (parameters && parameters.parameterlist && Object.prototype.hasOwnProperty.call(parameters?.parameterlist, venuekey)) {
-      venue = parameters.parameterlist[venuekey].value;
-    } else {
-      console.log("Key does not exist or parameters is null/undefined.");
-    }
+    // if (parameters && parameters.parameterlist && Object.prototype.hasOwnProperty.call(parameters?.parameterlist, projectkey)) {
+    //   project = parameters.parameterlist[projectkey].value;
+    // } else {
+    //   console.log("Key does not exist or parameters is null/undefined.");
+    // }
+    //
+    // // Check if the value is not null and has the key
+    // if (parameters && parameters.parameterlist && Object.prototype.hasOwnProperty.call(parameters?.parameterlist, venuekey)) {
+    //   venue = parameters.parameterlist[venuekey].value;
+    // } else {
+    //   console.log("Key does not exist or parameters is null/undefined.");
+    // }
 
     for (const key in parameters.parameterlist) {
       if (key !== "/unity/core/venue" && key !== "/unity/core/project") {
@@ -137,12 +137,14 @@
       </p>
     </div>
     <div class="col">
-      {#if $projectStore === ''}
+      {#if running === false}
         <form>
           <InputField label="Project Name" id="project" isValid={$venueAndProjectStore.projectIsValid}
-                      on:input={handleInputChange} subtext="The project managing this Unity environment." />
+                      on:input={handleInputChange} subtext="The project managing this Unity environment."
+                      value={$projectStore} />
           <InputField label="Venue Name" id="venue" isValid={$venueAndProjectStore.venueIsValid}
-                      on:input={handleInputChange} subtext="The venue this Unity environment is deployed into." />
+                      on:input={handleInputChange} subtext="The venue this Unity environment is deployed into."
+                      value={$venueStore} />
 
 
           <SelectField label="Private Subnets" id="privateSubnets" multiple={true}
