@@ -14,11 +14,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	tfjson "github.com/hashicorp/terraform-json"
 )
 
 var DEPLOYABLE_TERRAFORM_DIRECTORY = "terraform-unity"
-var DEPLOYMENT_STAGING_PARENT_DIR = "deployments"
 var DEPLOYMENT_VARIABLES_FILE_NAME = "provided.auto.tfvars"
 
 func cloneDeployableRepo(url string, basedir string) (string, error) {
@@ -205,27 +205,31 @@ func addDeploymentToDatabase(deploymentId uuid.UUID) error {
 	return nil
 }
 
-func CreateDeployment() (uuid.UUID, string, error) {
+func CreateDeployment(deploymentsParentDir string) (uuid.UUID, string, error) {
 	/*
 	Configures all necesarry elements of a deployment.
 
 	Creates a Deployment ID, an entry in the Deployment database, and a staging directory for the deployment.
 	*/
 	deploymentId := uuid.New()
-	deploymentStagingPath := filepath.Join(DEPLOYMENT_STAGING_PARENT_DIR, deploymentId.String())
+	deploymentStagingPath := filepath.Join(deploymentsParentDir, deploymentId.String())
 	err := os.MkdirAll(deploymentStagingPath, 0755)
 
 	return deploymentId, deploymentStagingPath, err
 }
 
 func InstallMarketplaceApplication(repoUrl string, variablesUrl string, deployableName string) (string, error){
-	deploymentId, deploymentStagingPath, err := CreateDeployment()
+	deploymentId, deploymentStagingPath, err := CreateDeployment("./deployments")
 	if err != nil {
 		log.Printf("Failed to create deployment")
 		return "", err
 	}
 
 	stagePath, err := StageDeployable(repoUrl, variablesUrl, deploymentStagingPath)
+	if err != nil {
+		log.Printf("Failed to stage deployable from %s with variables from %s: %s", repoUrl, variablesUrl, err)
+		return deploymentStagingPath, err
+	}
 
 	err = addDeploymentToDatabase(deploymentId)
 	if err != nil {
@@ -242,4 +246,42 @@ func InstallMarketplaceApplication(repoUrl string, variablesUrl string, deployab
 	}
 
 	return deploymentStagingPath, err	
+}
+
+func InstallMarketplaceApplicationRightInterface(conn WebSocketManager,
+								userid string, appConfig *AppConfig,
+								meta *MarketplaceMetadata,
+								location string,
+								install *Install,
+								db Datastore) error {
+
+	deploymentId, deploymentStagingPath, err := CreateDeployment(location)
+
+	if err != nil {
+		log.Printf("Failed to create deployment")
+		return "", err
+	}
+
+	stagePath, err := StageDeployable(meta.Package, install.VariablesReference, deploymentStagingPath)
+	if err != nil {
+		log.Printf("Failed to stage deployable from %s with variables from %s: %s", repoUrl, variablesUrl, err)
+		return deploymentStagingPath, err
+	}
+
+	err = addDeploymentToDatabase(deploymentId)
+	if err != nil {
+		log.Printf("Failed to add %s to database", deploymentId.String())
+		return deploymentStagingPath, err
+	}
+
+	isValid, err := ValidateAndDeployDeployableInterface(stagePath, install.DeploymentName)
+
+	if !(isValid) {
+		log.Printf("Invalid deployable staged at %s, from %s", stagePath, repoUrl)
+	}
+	if err != nil {
+		return deploymentStagingPath, err
+	}
+
+	return err
 }

@@ -12,7 +12,7 @@ var TEST_REPO_VARS_URL = "file:///Users/ryhunter/projects/unity/unity-sps-protot
 var TEST_DEPLOYABLE_NAME = "unity-dev-sps-hysds-eks-ryan"
 
 func TestCreateDeployment(t *testing.T) {
-	_, deploymentStagingPath, err := CreateDeployment()
+	_, deploymentStagingPath, err := CreateDeployment("./deployments")
 	defer os.RemoveAll(deploymentStagingPath)
 
 	if err != nil {
@@ -92,4 +92,24 @@ func TestValidateDeployable(t *testing.T) {
 func TestInstallMarketplaceApplication(t *testing.T) {
 	t.SkipNow()
 	InstallMarketplaceApplication(TEST_REPO_URL, TEST_REPO_VARS_URL, TEST_DEPLOYABLE_NAME)
+}
+
+func TestInstallMarketplaceApplicationRightInterface(t *testing.T) {
+	t.SkipNow()
+	meta := &MarketplaceMetadata{
+		Package: TEST_REPO_URL,
+	}
+
+	install := &Install{
+		VariablesReference: TEST_REPO_VARS_URL,
+		DeploymentName: TEST_DEPLOYABLE_NAME,
+	}
+
+	appConfig := &AppConfig{}
+
+	ds := Datastore{}
+
+	ws := &WebSocketManager{}
+
+	InstallMarketplaceApplicationRightInterface(ws, "ryan", appConfig, meta, "./deployments", install, ds)
 }
