@@ -49,7 +49,7 @@ func TestGetDeployableVariableFile(t *testing.T) {
 }
 
 func TestStageDeployable(t *testing.T) {
-	_, deploymentStagingPath, err := CreateDeployment()
+	_, deploymentStagingPath, err := CreateDeployment("./deployments")
 
 	defer os.RemoveAll(deploymentStagingPath)
 
@@ -68,7 +68,7 @@ func TestStageDeployable(t *testing.T) {
 }
 
 func TestValidateDeployable(t *testing.T) {
-	_, deploymentStagingPath, err := CreateDeployment()
+	_, deploymentStagingPath, err := CreateDeployment("./deployments")
 
 	defer os.RemoveAll(deploymentStagingPath)
 
@@ -95,7 +95,6 @@ func TestInstallMarketplaceApplication(t *testing.T) {
 }
 
 func TestInstallMarketplaceApplicationRightInterface(t *testing.T) {
-	t.SkipNow()
 	meta := &MarketplaceMetadata{
 		Package: TEST_REPO_URL,
 	}
@@ -109,7 +108,7 @@ func TestInstallMarketplaceApplicationRightInterface(t *testing.T) {
 
 	ds := Datastore{}
 
-	ws := &WebSocketManager{}
+	ws := WebSocketManager{}
 
 	InstallMarketplaceApplicationRightInterface(ws, "ryan", appConfig, meta, "./deployments", install, ds)
 }

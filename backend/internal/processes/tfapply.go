@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	tfjson "github.com/hashicorp/terraform-json"
 )
 
@@ -259,28 +258,28 @@ func InstallMarketplaceApplicationRightInterface(conn WebSocketManager,
 
 	if err != nil {
 		log.Printf("Failed to create deployment")
-		return "", err
+		return err
 	}
 
 	stagePath, err := StageDeployable(meta.Package, install.VariablesReference, deploymentStagingPath)
 	if err != nil {
-		log.Printf("Failed to stage deployable from %s with variables from %s: %s", repoUrl, variablesUrl, err)
-		return deploymentStagingPath, err
+		log.Printf("Failed to stage deployable from %s with variables from %s: %s", meta.Package, install.VariablesReference, err)
+		return err
 	}
 
 	err = addDeploymentToDatabase(deploymentId)
 	if err != nil {
 		log.Printf("Failed to add %s to database", deploymentId.String())
-		return deploymentStagingPath, err
+		return err
 	}
 
-	isValid, err := ValidateAndDeployDeployableInterface(stagePath, install.DeploymentName)
+	isValid, err := ValidateAndDeployDeployable(stagePath, install.DeploymentName)
 
 	if !(isValid) {
-		log.Printf("Invalid deployable staged at %s, from %s", stagePath, repoUrl)
+		log.Printf("Invalid deployable staged at %s, from %s", stagePath, meta.Package)
 	}
 	if err != nil {
-		return deploymentStagingPath, err
+		return err
 	}
 
 	return err
