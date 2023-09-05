@@ -20,6 +20,7 @@ import (
 var DEPLOYABLE_TERRAFORM_DIRECTORY = "terraform-unity"
 var DEPLOYMENT_VARIABLES_FILE_NAME = "provided.auto.tfvars"
 
+// ripped from gitClone in marketplace.go
 func cloneDeployableRepo(url string, basedir string) (string, error) {
 	sha := ""
 	err := os.MkdirAll(basedir, 0755)
