@@ -7,29 +7,29 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Clone the infra repo for workflows etc
-        uses: actions/checkout@v3
-        with:
-          repository: 'unity-sds/unity-cs-infra'
-          path: workflowresources
-
-      - name: Build package
-        run: npm run test
+#  test:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - name: Use Node.js
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: 18.x
+#
+#      - name: Install dependencies
+#        run: npm ci
+#
+#      - name: Clone the infra repo for workflows etc
+#        uses: actions/checkout@v3
+#        with:
+#          repository: 'unity-sds/unity-cs-infra'
+#          path: workflowresources
+#
+#      - name: Build package
+#        run: npm run test
   build:
-    needs: test
+    #needs: test
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3

@@ -2,6 +2,7 @@ package processes
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/unity-sds/unity-management-console/backend/internal/application"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 	"github.com/zclconf/go-cty/cty"
@@ -11,6 +12,36 @@ import (
 )
 
 type MockDatastore struct{}
+
+func (db *MockDatastore) StoreDeployment(p models.Deployment) (uint, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (db *MockDatastore) UpdateApplicationStatus(deploymentid uint, application string, status string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (db *MockDatastore) FetchAllApplicationStatus() ([]models.Deployment, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (db *MockDatastore) FetchAllApplicationStatusByDeployment(deploymentid uint) ([]models.Application, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (db *MockDatastore) AddToAudit(operation application.AuditLine, owner string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (db *MockDatastore) FindLastAuditLineByOperation(operation application.AuditLine) (models.Audit, error) {
+	//TODO implement me
+	panic("implement me")
+}
 
 type MockParam struct {
 	Key   string
