@@ -11,6 +11,25 @@ export interface UnityWebsocketMessage {
   config?: Config | undefined;
   parameters?: Parameters | undefined;
   logs?: LogLine | undefined;
+  deployments?: Deployments | undefined;
+}
+
+export interface Application {
+  name: string;
+  version: string;
+  source: string;
+  status: string;
+}
+
+export interface Deployment {
+  name: string;
+  creator: string;
+  creationdate: string;
+  application: Application[];
+}
+
+export interface Deployments {
+  deployment: Deployment[];
 }
 
 export interface ConnectionSetup {
@@ -121,6 +140,7 @@ function createBaseUnityWebsocketMessage(): UnityWebsocketMessage {
     config: undefined,
     parameters: undefined,
     logs: undefined,
+    deployments: undefined,
   };
 }
 
@@ -143,6 +163,9 @@ export const UnityWebsocketMessage = {
     }
     if (message.logs !== undefined) {
       LogLine.encode(message.logs, writer.uint32(50).fork()).ldelim();
+    }
+    if (message.deployments !== undefined) {
+      Deployments.encode(message.deployments, writer.uint32(58).fork()).ldelim();
     }
     return writer;
   },
@@ -196,6 +219,13 @@ export const UnityWebsocketMessage = {
 
           message.logs = LogLine.decode(reader, reader.uint32());
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.deployments = Deployments.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -213,6 +243,7 @@ export const UnityWebsocketMessage = {
       config: isSet(object.config) ? Config.fromJSON(object.config) : undefined,
       parameters: isSet(object.parameters) ? Parameters.fromJSON(object.parameters) : undefined,
       logs: isSet(object.logs) ? LogLine.fromJSON(object.logs) : undefined,
+      deployments: isSet(object.deployments) ? Deployments.fromJSON(object.deployments) : undefined,
     };
   },
 
@@ -227,6 +258,8 @@ export const UnityWebsocketMessage = {
     message.parameters !== undefined &&
       (obj.parameters = message.parameters ? Parameters.toJSON(message.parameters) : undefined);
     message.logs !== undefined && (obj.logs = message.logs ? LogLine.toJSON(message.logs) : undefined);
+    message.deployments !== undefined &&
+      (obj.deployments = message.deployments ? Deployments.toJSON(message.deployments) : undefined);
     return obj;
   },
 
@@ -252,6 +285,271 @@ export const UnityWebsocketMessage = {
       ? Parameters.fromPartial(object.parameters)
       : undefined;
     message.logs = (object.logs !== undefined && object.logs !== null) ? LogLine.fromPartial(object.logs) : undefined;
+    message.deployments = (object.deployments !== undefined && object.deployments !== null)
+      ? Deployments.fromPartial(object.deployments)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseApplication(): Application {
+  return { name: "", version: "", source: "", status: "" };
+}
+
+export const Application = {
+  encode(message: Application, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.version !== "") {
+      writer.uint32(18).string(message.version);
+    }
+    if (message.source !== "") {
+      writer.uint32(26).string(message.source);
+    }
+    if (message.status !== "") {
+      writer.uint32(34).string(message.status);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Application {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseApplication();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.version = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.source = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.status = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Application {
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      version: isSet(object.version) ? String(object.version) : "",
+      source: isSet(object.source) ? String(object.source) : "",
+      status: isSet(object.status) ? String(object.status) : "",
+    };
+  },
+
+  toJSON(message: Application): unknown {
+    const obj: any = {};
+    message.name !== undefined && (obj.name = message.name);
+    message.version !== undefined && (obj.version = message.version);
+    message.source !== undefined && (obj.source = message.source);
+    message.status !== undefined && (obj.status = message.status);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Application>, I>>(base?: I): Application {
+    return Application.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Application>, I>>(object: I): Application {
+    const message = createBaseApplication();
+    message.name = object.name ?? "";
+    message.version = object.version ?? "";
+    message.source = object.source ?? "";
+    message.status = object.status ?? "";
+    return message;
+  },
+};
+
+function createBaseDeployment(): Deployment {
+  return { name: "", creator: "", creationdate: "", application: [] };
+}
+
+export const Deployment = {
+  encode(message: Deployment, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.creator !== "") {
+      writer.uint32(18).string(message.creator);
+    }
+    if (message.creationdate !== "") {
+      writer.uint32(26).string(message.creationdate);
+    }
+    for (const v of message.application) {
+      Application.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Deployment {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeployment();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.creator = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.creationdate = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.application.push(Application.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Deployment {
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      creationdate: isSet(object.creationdate) ? String(object.creationdate) : "",
+      application: Array.isArray(object?.application)
+        ? object.application.map((e: any) => Application.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: Deployment): unknown {
+    const obj: any = {};
+    message.name !== undefined && (obj.name = message.name);
+    message.creator !== undefined && (obj.creator = message.creator);
+    message.creationdate !== undefined && (obj.creationdate = message.creationdate);
+    if (message.application) {
+      obj.application = message.application.map((e) => e ? Application.toJSON(e) : undefined);
+    } else {
+      obj.application = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Deployment>, I>>(base?: I): Deployment {
+    return Deployment.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Deployment>, I>>(object: I): Deployment {
+    const message = createBaseDeployment();
+    message.name = object.name ?? "";
+    message.creator = object.creator ?? "";
+    message.creationdate = object.creationdate ?? "";
+    message.application = object.application?.map((e) => Application.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseDeployments(): Deployments {
+  return { deployment: [] };
+}
+
+export const Deployments = {
+  encode(message: Deployments, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.deployment) {
+      Deployment.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Deployments {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeployments();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.deployment.push(Deployment.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Deployments {
+    return {
+      deployment: Array.isArray(object?.deployment) ? object.deployment.map((e: any) => Deployment.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: Deployments): unknown {
+    const obj: any = {};
+    if (message.deployment) {
+      obj.deployment = message.deployment.map((e) => e ? Deployment.toJSON(e) : undefined);
+    } else {
+      obj.deployment = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Deployments>, I>>(base?: I): Deployments {
+    return Deployments.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Deployments>, I>>(object: I): Deployments {
+    const message = createBaseDeployments();
+    message.deployment = object.deployment?.map((e) => Deployment.fromPartial(e)) || [];
     return message;
   },
 };

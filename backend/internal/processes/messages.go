@@ -21,6 +21,9 @@ func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppCo
 	} else if message.Operation == "update config" {
 		log.Info("Update config received")
 		//return updateParameters()
+	} else if message.Operation == "request all applications" {
+		log.Info("Request all applications received")
+		return fetchAllApplications(store)
 	}
 	return nil, nil
 }

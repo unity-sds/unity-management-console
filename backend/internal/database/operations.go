@@ -123,34 +123,43 @@ func (g GormDatastore) StoreDeployment(model models.Deployment) (uint, error) {
 
 func (g GormDatastore) UpdateApplicationStatus(deploymentID uint, targetAppName string, newStatus string) error {
 	var deployment models.Deployment
-	result := g.db.Preload("Applications").First(&deployment, deploymentID) // Replace deploymentID with the actual ID you're looking for
+	result := g.db.Preload("Applications").First(&deployment, deploymentID)
 	if result.Error != nil {
-		// Handle the error
 		log.WithError(result.Error).Error("Error finding deployment")
 		return result.Error
 	}
 
-	// Then, find the specific application by name within the deployment
-	var appToUpdate *models.Application
-	for _, app := range deployment.Applications {
+	// Directly find and update the application by name within the deployment
+	for index, app := range deployment.Applications {
 		if app.Name == targetAppName {
-			appToUpdate = &app
-			break
+			deployment.Applications[index].Status = newStatus
+			if err := g.db.Save(&deployment.Applications[index]).Error; err != nil {
+				log.WithError(err).Error("Problem updating application status")
+				return err
+			}
+			return nil
 		}
 	}
 
-	if appToUpdate == nil {
-		err := errors.New("Application not found")
-		log.WithError(err).Error("Problem finding application")
-		return err
-	}
+	err := errors.New("Application not found")
+	log.WithError(err).Error("Problem finding application")
+	return err
+}
 
-	// Finally, update the status field of the application
-	appToUpdate.Status = newStatus
-	if err := g.db.Save(appToUpdate).Error; err != nil {
-		log.WithError(err).Error("Problem updating application status")
-		return err
+func (g GormDatastore) FetchAllApplicationStatus() ([]models.Deployment, error) {
+	var deployments []models.Deployment
+	result := g.db.Preload("Applications").Find(&deployments)
+	if result.Error != nil {
+		return nil, result.Error
 	}
+	return deployments, nil
+}
 
-	return nil
+func (g GormDatastore) FetchAllApplicationStatusByDeployment(deploymentid uint) ([]models.Application, error) {
+	var deployments models.Deployment
+	result := g.db.Preload("Applications").First(&deployments, deploymentid)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return deployments.Applications, nil
 }
