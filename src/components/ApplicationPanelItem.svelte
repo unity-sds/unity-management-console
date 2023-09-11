@@ -1,5 +1,5 @@
 <script>
-  import { uninstallApplication } from "../data/httpHandler.js";
+  import { uninstallApplication } from "../data/httpHandler";
 
   export let title = "";
   export let description = "";
