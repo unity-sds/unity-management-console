@@ -24,14 +24,15 @@
     console.log(value);
 
     value?.deployment.forEach((el) => {
+      const deploymentName = el.name;
       el.application.forEach(ar => {
-
         const newCardItem = {
           title: ar.name,
           source: ar.source,
           version: ar.version,
           status: ar.status,
-          link: ""
+          link: "",
+          deploymentName: deploymentName
         };
         cardData = [...cardData, newCardItem];
 
@@ -57,7 +58,8 @@
       link: "/ui/applications/unity-sps/test_sps/explore",
       //disabled: false,
       status: "",
-      source: ""
+      source: "",
+      deploymentName: ""
     },
     {
       title: "test_deployment",
@@ -65,7 +67,8 @@
       link: "/ui/applications/unity-eks/test_deployment/explore",
       //disabled: false,
       status: "",
-      source: ""
+      source: "",
+      deploymentName: ""
     }
 
   ];
@@ -76,7 +79,8 @@
 <div class="container">
   <div class="row text-center mt-5">
     {#each cardData as card (card.title)}
-      <ApplicationPanelItem title={card.title} description={card.source} status={card.status} link={card.link} />
+      <ApplicationPanelItem title={card.title} description={card.source} status={card.status} link={card.link}
+                            appPackage={card.source} , deployment={card.deploymentName} />
     {/each}
   </div>
 </div>

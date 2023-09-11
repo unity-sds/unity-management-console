@@ -1,9 +1,15 @@
 <script>
+  import { uninstallApplication } from "../data/httpHandler.js";
+
   export let title = "";
   export let description = "";
   export let link = "";
   export let status = "";
-
+  export let appPackage = "";
+  export let deployment = "";
+  const uninstallApp = () => {
+    uninstallApplication(title, appPackage, deployment);
+  };
 </script>
 
 <div class="col-lg-3 col-md-6 mb-4">
@@ -14,6 +20,7 @@
     </div>
     <div class="card-footer">
       <a href="{link}" class="btn btn-primary">Explore</a>
+      <a on:click={uninstallApp} class="btn btn-primary">Uninstall</a>
     </div>
   </div>
 </div>

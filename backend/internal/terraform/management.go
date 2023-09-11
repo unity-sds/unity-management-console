@@ -89,13 +89,13 @@ func parseAdvancedVariables(install *marketplace.Install, cloudenv *map[string]c
 	}
 }
 
-func generateMetadataHeader(cloudenv *hclwrite.Body, id string, application string, version string, creator string) {
+func generateMetadataHeader(cloudenv *hclwrite.Body, id string, application string, applicationName string, version string, creator string) {
 	currentTime := time.Now()
 	dateString := currentTime.Format("2006-01-02")
 	comment := hclwrite.Tokens{
 		&hclwrite.Token{
 			Type:         hclsyntax.TokenComment,
-			Bytes:        []byte(fmt.Sprintf("# id: %v\n# application: %v\n# version: %v\n# creator: %v\n# creationDate: %v\n", id, application, version, creator, dateString)),
+			Bytes:        []byte(fmt.Sprintf("# id: %v\n# application: %v\n# applicationName: %v\n# version: %v\n# creator: %v\n# creationDate: %v\n", id, application, applicationName, version, creator, dateString)),
 			SpacesBefore: 0,
 		},
 	}
@@ -169,7 +169,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		return err
 	}
 
-	generateMetadataHeader(rootBody, u.String(), install.Applications.Name, install.Applications.Version, "admin")
+	generateMetadataHeader(rootBody, u.String(), meta.Name, install.Applications.Name, install.Applications.Version, "admin")
 
 	attributes := map[string]cty.Value{
 		"name": cty.StringVal(install.DeploymentName),

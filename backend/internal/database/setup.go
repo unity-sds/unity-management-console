@@ -95,6 +95,11 @@ func NewGormDatastore() (Datastore, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	err = db.AutoMigrate(&models.Application{}, &models.Deployment{})
+	if err != nil {
+		return nil, err
+	}
 	return &GormDatastore{
 		db: db,
 	}, nil
@@ -110,4 +115,8 @@ type Datastore interface {
 	FetchAllApplicationStatusByDeployment(deploymentid uint) ([]models.Application, error)
 	AddToAudit(operation application.AuditLine, owner string) error
 	FindLastAuditLineByOperation(operation application.AuditLine) (models.Audit, error)
+
+	FetchDeploymentNames() ([]string, error)
+	RemoveDeploymentByName(name string) error
+	RemoveApplicationByName(deploymentName string, applicationName string) error
 }

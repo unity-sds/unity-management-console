@@ -2,6 +2,7 @@ package database
 
 import (
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
@@ -162,4 +163,54 @@ func (g GormDatastore) FetchAllApplicationStatusByDeployment(deploymentid uint) 
 		return nil, result.Error
 	}
 	return deployments.Applications, nil
+}
+
+func (g GormDatastore) FetchDeploymentNames() ([]string, error) {
+	var deployments []models.Deployment
+
+	// Fetch all deployments
+	if err := g.db.Find(&deployments).Error; err != nil {
+		return nil, err
+	}
+
+	// Extract names into a slice of strings
+	var names []string
+	for _, deployment := range deployments {
+		names = append(names, deployment.Name)
+	}
+
+	return names, nil
+}
+
+func (g GormDatastore) RemoveDeploymentByName(name string) error {
+	if err := g.db.Where("name != ?", name).Delete(&models.Deployment{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (g GormDatastore) RemoveApplicationByName(deploymentName string, applicationName string) error {
+	var deployment models.Deployment
+
+	// Retrieve the deployment by name
+	err := g.db.Where("name = ?", deploymentName).First(&deployment).Error
+	if err != nil {
+		return fmt.Errorf("error retrieving deployment: %v", err)
+	}
+
+	var application models.Application
+
+	// Retrieve the application by name and DeploymentID
+	err = g.db.Where("name = ? AND deployment_id = ?", applicationName, deployment.ID).First(&application).Error
+	if err != nil {
+		return fmt.Errorf("error retrieving application: %v", err)
+	}
+
+	// Delete the application
+	err = g.db.Delete(&application).Error
+	if err != nil {
+		return fmt.Errorf("error deleting application: %v", err)
+	}
+
+	return nil
 }

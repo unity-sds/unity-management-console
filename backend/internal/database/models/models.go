@@ -27,16 +27,18 @@ type Audit struct {
 	Owner     string
 }
 type Application struct {
+	gorm.Model
 	Name         string
 	Version      string
 	Source       string
 	Status       string
-	DeploymentID uint `gorm:"foreignKey:DeploymentID"`
+	DeploymentID uint
+	Deployment   Deployment `gorm:"foreignKey:DeploymentID"`
 }
 type Deployment struct {
 	gorm.Model
-	Name         string `gorm:"index"`
-	Applications []Application
+	Name         string
+	Applications []Application `gorm:"foreignKey:DeploymentID;references:ID"`
 	Creator      string
 	CreationDate time.Time
 }

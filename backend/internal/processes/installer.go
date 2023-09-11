@@ -70,6 +70,7 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 		if err != nil {
 			return err
 		}
+		db.UpdateApplicationStatus(deploymentID, install.Applications.Name, "INSTALLING")
 		err = terraform.RunTerraform(appConfig, conn, userid, executor)
 		if err != nil {
 			db.UpdateApplicationStatus(deploymentID, install.Applications.Name, "FAILED")
@@ -109,7 +110,7 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 
 func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata) error {
 	if meta.PreInstall != "" {
-		//TODO UNPIN ME
+		// TODO UNPIN ME
 		cmd := exec.Command(filepath.Join(appConfig.Workdir, "workspace", ".terraform", "modules", meta.Name, meta.PreInstall))
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", meta.Name))
