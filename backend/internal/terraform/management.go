@@ -180,7 +180,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		attributes[key] = cty.StringVal(element)
 	}
 	parseAdvancedVariables(install, &attributes)
-	appendBlockToBody(rootBody, "module", []string{meta.Name}, path, attributes)
+	appendBlockToBody(rootBody, "module", []string{install.Applications.Name}, path, attributes)
 
 	_, err = tfFile.Write(hclFile.Bytes())
 	if err != nil {
