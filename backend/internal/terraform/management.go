@@ -152,7 +152,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	hclFile := hclwrite.NewEmptyFile()
 
 	directory := filepath.Join(appConfig.Workdir, "workspace")
-	filename := fmt.Sprintf("%v%v%v", meta.Name, s, ".tf")
+	filename := fmt.Sprintf("%v%v%v", install.Applications.Name, s, ".tf")
 	tfFile, err := createFile(directory, filename, 0755)
 	if err != nil {
 		log.WithError(err).Error("Problem creating tf file")
