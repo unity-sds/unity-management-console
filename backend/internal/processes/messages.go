@@ -26,7 +26,7 @@ func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppCo
 		return fetchAllApplications(store)
 	} else if message.Operation == "uninstall application" {
 		log.Info("Request to uninstall application")
-		return uninstallApplication(message.Payload, conf)
+		return uninstallApplication(message.Payload, conf, store)
 	} else if message.Operation == "uninstall deployment" {
 		log.Info("Request to uninstall deployment")
 		return uninstallDeployment(message.Payload)
@@ -133,11 +133,11 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	return data, nil
 }
 
-func uninstallApplication(name string, conf *config.AppConfig) ([]byte, error) {
+func uninstallApplication(name string, conf *config.AppConfig, store database.Datastore) ([]byte, error) {
 
 	log.Infof("Uninstalling application %s", name)
 
-	return UninstallApplication(name, conf)
+	return UninstallApplication(name, conf, store)
 }
 
 func uninstallDeployment(name string) ([]byte, error) {
