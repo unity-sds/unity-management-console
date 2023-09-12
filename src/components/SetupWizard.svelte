@@ -41,10 +41,27 @@
 
     console.log("installname: " + installName);
     debugger;
-    const merged = {
-      "Values": product.DefaultDeployment?.Variables?.Values,
-      "AdvancedValues": product.DefaultDeployment?.Variables?.AdvancedValues
+    // const merged = {
+    //   "Values": product.DefaultDeployment?.Variables?.Values,
+    //   "AdvancedValues": product.DefaultDeployment?.Variables?.AdvancedValues
+    // };
+    const hasValidValues = obj =>
+      obj && Object.values(obj).some(value => typeof value === "string" && value.length >= 1);
+
+    type MergedType = {
+      Values?: { [key: string]: string };
+      AdvancedValues?: { [key: string]: any };
     };
+
+    const merged: MergedType = {};
+
+    if (hasValidValues(product.DefaultDeployment?.Variables?.Values)) {
+      merged.Values = product.DefaultDeployment?.Variables?.Values;
+    }
+
+    if (hasValidValues(product.DefaultDeployment?.Variables?.AdvancedValues)) {
+      merged.AdvancedValues = product.DefaultDeployment?.Variables?.AdvancedValues;
+    }
     const vars = Install_Variables.fromJSON(merged);
     const a = Install_Applications.create({
       name: product.Name,
