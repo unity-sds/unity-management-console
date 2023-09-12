@@ -44,7 +44,9 @@
     //   "AdvancedValues": product.DefaultDeployment?.Variables?.AdvancedValues
     // };
     const hasValidValues = (obj: { [key: string]: any } | undefined): boolean =>
-      !!obj && Object.values(obj).some(value => typeof value === "string" && value.length >= 1);
+      !!obj && Object.values(obj).some(value =>
+        (typeof value === "string" && value.length >= 1) || (value !== null && value !== undefined)
+      );
 
     type MergedType = {
       Values?: { [key: string]: string };
