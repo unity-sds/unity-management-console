@@ -71,20 +71,25 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 			return err
 		}
 		db.UpdateApplicationStatus(deploymentID, install.Applications.Name, "INSTALLING")
+		fetchAllApplications(db)
 		err = terraform.RunTerraform(appConfig, conn, userid, executor)
 		if err != nil {
 			db.UpdateApplicationStatus(deploymentID, install.Applications.Name, "FAILED")
+			fetchAllApplications(db)
 			return err
 		}
 		db.UpdateApplicationStatus(deploymentID, install.Applications.Name, "INSTALLED")
+		fetchAllApplications(db)
 		err = runPostInstall(appConfig, meta)
 
 		if err != nil {
 			db.UpdateApplicationStatus(deploymentID, install.Applications.Name, "POSTINSTALL FAILED")
+			fetchAllApplications(db)
 
 			return err
 		}
 		db.UpdateApplicationStatus(deploymentID, install.Applications.Name, "COMPLETE")
+		fetchAllApplications(db)
 
 		return nil
 	} else {

@@ -23,10 +23,12 @@ func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppCo
 		//return updateParameters()
 	} else if message.Operation == "request all applications" {
 		log.Info("Request all applications received")
-		return fetchAllApplications(store)
+		err := fetchAllApplications(store)
+		return nil, err
 	} else if message.Operation == "uninstall application" {
 		log.Info("Request to uninstall application")
-		return uninstallApplication(message.Payload, conf, store)
+		err := uninstallApplication(message.Payload, conf, store)
+		return nil, err
 	} else if message.Operation == "uninstall deployment" {
 		log.Info("Request to uninstall deployment")
 		return uninstallDeployment(message.Payload)
@@ -133,7 +135,7 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	return data, nil
 }
 
-func uninstallApplication(name string, conf *config.AppConfig, store database.Datastore) ([]byte, error) {
+func uninstallApplication(name string, conf *config.AppConfig, store database.Datastore) error {
 
 	log.Infof("Uninstalling application %s", name)
 

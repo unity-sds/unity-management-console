@@ -3,7 +3,6 @@ package processes
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"io/ioutil"
@@ -18,18 +17,18 @@ type UninstallPayload struct {
 	Deployment         string
 }
 
-func UninstallApplication(payload string, conf *config.AppConfig, store database.Datastore) ([]byte, error) {
+func UninstallApplication(payload string, conf *config.AppConfig, store database.Datastore) error {
 
 	filepath := path.Join(conf.Workdir, "workspace")
 	var uninstall UninstallPayload
 	err := json.Unmarshal([]byte(payload), &uninstall)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	files, err := ioutil.ReadDir(filepath)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	for _, file := range files {
@@ -37,7 +36,7 @@ func UninstallApplication(payload string, conf *config.AppConfig, store database
 			// Open the file
 			f, err := os.Open(path.Join(filepath, file.Name()))
 			if err != nil {
-				return nil, err
+				return err
 			}
 
 			// Read comments at the top
@@ -62,16 +61,24 @@ func UninstallApplication(payload string, conf *config.AppConfig, store database
 			if metadata["applicationName"] == uninstall.Application {
 				err = os.Remove(path.Join(filepath, file.Name()))
 				if err != nil {
-					return nil, err
+					id, err := store.FetchDeploymentIDByName(uninstall.Deployment)
+					err = store.UpdateApplicationStatus(id, uninstall.Application, "UNINSTALL FAILED")
+					return err
 				}
 				err := store.RemoveApplicationByName(uninstall.Deployment, uninstall.Application)
 				if err != nil {
-					return nil, err
+					id, err := store.FetchDeploymentIDByName(uninstall.Deployment)
+					err = store.UpdateApplicationStatus(id, uninstall.Application, "UNINSTALL FAILED")
+					return err
 				}
-				return []byte(fmt.Sprintf("%s removed", uninstall.Application)), nil
+				err = fetchAllApplications(store)
+				if err != nil {
+					return err
+				}
+				return nil
 			}
 		}
 	}
 
-	return []byte(fmt.Sprintf("%s not found", uninstall.Application)), nil
+	return nil
 }

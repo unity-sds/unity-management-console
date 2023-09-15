@@ -5,13 +5,14 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
+	"github.com/unity-sds/unity-management-console/backend/internal/web"
 )
 
-func fetchAllApplications(store database.Datastore) ([]byte, error) {
+func fetchAllApplications(store database.Datastore) error {
 
 	dep, err := store.FetchAllApplicationStatus()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var deployments []*marketplace.Deployment
@@ -44,8 +45,9 @@ func fetchAllApplications(store database.Datastore) ([]byte, error) {
 	data, err := proto.Marshal(msg)
 	if err != nil {
 		log.WithError(err).Error("Failed to marshal config")
-		return nil, err
+		return err
 	}
 
-	return data, nil
+	web.WsManager.SendMessageToAllClients(data)
+	return nil
 }

@@ -122,6 +122,17 @@ func (g GormDatastore) StoreDeployment(model models.Deployment) (uint, error) {
 	return model.ID, nil
 }
 
+func (g GormDatastore) FetchDeploymentIDByName(deploymentID string) (uint, error) {
+	var deployment models.Deployment
+
+	result := g.db.Preload("Applications").First(&deployment, deploymentID)
+	if result.Error != nil {
+		log.WithError(result.Error).Error("Error finding deployment")
+		return 0, result.Error
+	}
+	return deployment.ID, nil
+}
+
 func (g GormDatastore) UpdateApplicationStatus(deploymentID uint, targetAppName string, newStatus string) error {
 	var deployment models.Deployment
 	result := g.db.Preload("Applications").First(&deployment, deploymentID)

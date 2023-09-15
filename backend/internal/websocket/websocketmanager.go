@@ -176,6 +176,21 @@ func (manager *WebSocketManager) SendMessageToClient(client *Client, message []b
 	}
 }
 
+func (manager *WebSocketManager) SendMessageToAllClients(message []byte) {
+	// Ensure the client is currently connected
+	for client, _ := range manager.Clients {
+		if _, ok := manager.Clients[client]; ok {
+			select {
+			case client.Send <- message:
+			default:
+				log.Error("Closing socket block sender")
+				close(client.Send)
+				delete(manager.Clients, client)
+			}
+		}
+	}
+}
+
 func (manager *WebSocketManager) SendMessageToUserID(userID string, message []byte) {
 	if userID != "" {
 		client, ok := manager.ClientsByID[userID]

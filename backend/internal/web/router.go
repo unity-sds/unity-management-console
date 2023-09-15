@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/proto"
 	"github.com/gorilla/websocket"
@@ -14,12 +13,11 @@ import (
 	websocket2 "github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"net/http"
 	"net/http/pprof"
-	"time"
 )
 
 var conf config.AppConfig
 
-var wsManager = websocket2.NewWebSocketManager()
+var WsManager = websocket2.NewWebSocketManager()
 
 var clients = make(map[*websocket.Conn]bool)
 var broadcast = make(chan websocket2.ClientMessage)
@@ -58,7 +56,7 @@ func handlePing(c *gin.Context) {
 // It upgrades the HTTP connection to a websocket connection and reads messages from the client.
 // Each message is unmarshalled into a WebsocketMessage and sent to the broadcast channel.
 func handleWebsocket(c *gin.Context) {
-	wsManager.HandleConnections(c.Writer, c.Request)
+	WsManager.HandleConnections(c.Writer, c.Request)
 }
 
 // handleNoRoute serves the index.html file for any routes that are not defined.
@@ -70,7 +68,7 @@ func handleNoRoute(c *gin.Context) {
 // It sets up basic authentication and defines handlers for various routes.
 // It also starts a goroutine to handle messages from the broadcast channel.
 func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
-	go wsManager.Start()
+	go WsManager.Start()
 
 	router := gin.Default()
 	conf = appConfig
@@ -97,28 +95,8 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 		}
 	}()
 
+	processes.RunSync()
 	return router
-}
-
-func monitorChannel(ch <-chan websocket2.ClientMessage) {
-	go func() {
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case _, ok := <-ch:
-				if !ok {
-					fmt.Println("Channel is closed.")
-					return
-				} else {
-					fmt.Println("Channel is open.") // Note: this will consume a value from the channel
-				}
-			case <-ticker.C:
-				fmt.Println("Checking the channel status...")
-			}
-		}
-	}()
 }
 
 // handleMessages reads messages from the broadcast channel and handles them based on their type.
@@ -131,7 +109,7 @@ func handleMessages() error {
 		return err
 	}
 
-	for message := range wsManager.Broadcast {
+	for message := range WsManager.Broadcast {
 		// Unmarshal the message into a WebsocketMessage
 		clientMessage := &marketplace.UnityWebsocketMessage{}
 		if err := proto.Unmarshal(message.Message, clientMessage); err != nil {
@@ -144,7 +122,7 @@ func handleMessages() error {
 		case *marketplace.UnityWebsocketMessage_Install:
 			installMessage := content.Install
 			// Handle install message
-			if err := processes.TriggerInstall(wsManager, message.Client.UserID, store, installMessage, &conf); err != nil {
+			if err := processes.TriggerInstall(WsManager, message.Client.UserID, store, installMessage, &conf); err != nil {
 				log.WithError(err).Error("Error triggering install")
 			}
 		case *marketplace.UnityWebsocketMessage_Simplemessage:
@@ -153,10 +131,10 @@ func handleMessages() error {
 			if err != nil {
 				log.WithError(err).Error("Problems parsing simple message")
 			}
-			wsManager.SendMessageToClient(message.Client, resp)
+			WsManager.SendMessageToClient(message.Client, resp)
 		case *marketplace.UnityWebsocketMessage_Parameters:
 			params := content.Parameters
-			processes.UpdateParameters(params, store, &conf, wsManager, message.Client.UserID)
+			processes.UpdateParameters(params, store, &conf, WsManager, message.Client.UserID)
 		default:
 			log.Error("Unknown message type")
 		}
