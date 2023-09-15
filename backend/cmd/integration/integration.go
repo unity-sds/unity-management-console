@@ -35,11 +35,16 @@ func main() {
 	defer conn.Close()
 	defer conn.Close()
 
-	if err := sendProtobufMessage(conn, generateConnection(), nil); err != nil {
+	if err := sendProtobufMessage(conn, generateConnection(), deployEks()); err != nil {
 		log.Fatalf("Failed to send message: %v", err)
 	}
 
+	poll()
 	fmt.Println("Message sent successfully.")
+}
+
+func poll() {
+
 }
 
 func generateConnection() *marketplace.ConnectionSetup {
@@ -47,6 +52,23 @@ func generateConnection() *marketplace.ConnectionSetup {
 		Type:   "register",
 		UserID: "integrationtest",
 	}
+}
+
+func deployEks() *marketplace.UnityWebsocketMessage {
+	app := &marketplace.Install_Applications{
+		Name:        "unity-eks",
+		Version:     "0.1",
+		Variables:   nil,
+		Postinstall: "",
+		Preinstall:  "",
+	}
+	inst := &marketplace.Install{
+		Applications:   app,
+		DeploymentName: "nightly-eks",
+	}
+
+	instm := &marketplace.UnityWebsocketMessage_Install{Install: inst}
+	return &marketplace.UnityWebsocketMessage{Content: instm}
 }
 
 func basicAuth(username, password string) string {

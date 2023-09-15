@@ -3,28 +3,70 @@
   import type { MarketplaceMetadata } from "../data/unity-cs-manager/protobuf/marketplace";
   import { getConfigValue, getEntries, getNestedValue } from "../data/utils";
 
-  // Helper function to handle the entries
+  export let product: MarketplaceMetadata;
 
+  function updateAdvancedValue(advancedKey: string, groupKey: string, subKey: string | null, newValue: any) {
+    if (
+      !product ||
+      !product.DefaultDeployment ||
+      !product.DefaultDeployment.Variables ||
+      !product.DefaultDeployment.Variables.AdvancedValues ||
+      !product.DefaultDeployment.Variables.AdvancedValues[advancedKey] ||
+      !product.DefaultDeployment.Variables.AdvancedValues[advancedKey][groupKey]
+    ) {
+      console.error("Invalid product structure");
+      return;
+    }
 
-  function toRecord(value: unknown): Record<string, unknown> {
-    return value as Record<string, unknown>;
+    // The update logic, depending on whether there's a subKey
+    let updatedGroupValue = subKey
+      ? {
+        ...product.DefaultDeployment.Variables.AdvancedValues[advancedKey][groupKey],
+        [subKey]: newValue
+      }
+      : newValue;
+
+    product = {
+      ...product,
+      DefaultDeployment: {
+        ...product.DefaultDeployment,
+        Variables: {
+          ...product.DefaultDeployment.Variables,
+          AdvancedValues: {
+            ...product.DefaultDeployment.Variables.AdvancedValues,
+            [advancedKey]: {
+              ...product.DefaultDeployment.Variables.AdvancedValues[advancedKey],
+              [groupKey]: updatedGroupValue
+            }
+          }
+        }
+      }
+    };
   }
 
+  function updateValue(valueKey: string, newValue: any) {
+    if (
+      !product ||
+      !product.DefaultDeployment ||
+      !product.DefaultDeployment.Variables
+    ) {
+      console.error("Invalid product structure");
+      return;
+    }
 
-  export let product: MarketplaceMetadata | undefined;
-  let newVariable = { key: "", value: "" };
-
-
-  console.log(product?.DefaultDeployment?.Variables);
-
-  function addVariable() {
-    // variables = [...variables, [newVariable.key, newVariable.value]];
-    // newVariable.key = '';
-    // newVariable.value = '';
-  }
-
-  function removeVariable(index: number) {
-    //variables = variables.filter((_, i) => i !== index);
+    product = {
+      ...product,
+      DefaultDeployment: {
+        ...product.DefaultDeployment,
+        Variables: {
+          ...product.DefaultDeployment.Variables,
+          Values: {
+            ...product.DefaultDeployment.Variables.Values,
+            [valueKey]: newValue
+          }
+        }
+      }
+    };
   }
 </script>
 <h2>Variables</h2>
@@ -34,20 +76,7 @@
 <!--</div>-->
 {#if product?.DefaultDeployment?.Variables}
   {#each Object.entries(product?.DefaultDeployment?.Variables) as [key, value], index}
-    {#if key === 'NestedValues'}
-      <div class="row mt-12">
-        {#each Object.entries(value) as [nestedKey, nestedValue]}
-          <legend>{nestedKey}</legend>
-          {#each Object.entries(getNestedValue(nestedValue).Config) as [configKey, configValue]}
-            <div class="form-group mt-4">
-              <label class="col-form-label">{configKey}</label>
-              <input type="text" class="form-control"
-                     value={getConfigValue(configValue).Options.default} />
-            </div>
-          {/each}
-        {/each}
-      </div>
-    {:else if key === 'AdvancedValues'}
+    {#if key === 'AdvancedValues'}
       <div class="mt-12">
         {#each getEntries(value) as [advancedKey, advancedValue]}
           <legend>{advancedKey}</legend>
@@ -58,15 +87,30 @@
                 {#each getEntries(groupValue) as [subKey, subValue]}
                   <div class="form-group mt-4">
                     <label class="col-sm-2 col-form-label">{subKey}:</label>
-                    <input class="form-control" type="text" bind:value={subValue} />
+                    <input
+                      class="form-control"
+                      type="text"
+                      value={subValue}
+                      on:input={(e) => updateAdvancedValue(advancedKey, groupKey, subKey, e.target.value)}
+                    />
                   </div>
                 {/each}
               {:else if Array.isArray(groupValue)}
                 {#each groupValue as item, index}
-                  <input class="form-control" type="text" bind:value={groupValue[index]} />
+                  <input
+                    class="form-control"
+                    type="text"
+                    value={item}
+                    on:input={(e) => updateAdvancedValue(advancedKey, groupKey, null, e.target.value)}
+                  />
                 {/each}
               {:else}
-                <input class="form-control" type="text" bind:value={groupValue} />
+                <input
+                  class="form-control"
+                  type="text"
+                  value={groupValue}
+                  on:input={(e) => updateAdvancedValue(advancedKey, groupKey, null, e.target.value)}
+                />
               {/if}
             </div>
           {/each}
@@ -76,7 +120,12 @@
       {#each Object.entries(value) as [valueKey, valueValue]}
         <div class="form-group mt-4">
           <label class="col-sm-2 col-form-label">{valueKey}:</label>
-          <input class="form-control" type="text" bind:value={valueValue} />
+          <input
+            class="form-control"
+            type="text"
+            value={valueValue}
+            on:input={(e) => updateValue(valueKey, e.target.value)}
+          />
         </div>
       {/each}
     {/if}
@@ -99,10 +148,10 @@
   <!--      placeholder="Variable value"-->
   <!--    />-->
   <!--  </div>-->
-  <div class="col-sm-2">
-    <button type="button" on:click={addVariable} class="btn btn-secondary"
-    >Add Variable
-    </button
-    >
-  </div>
+  <!--  <div class="col-sm-2">-->
+  <!--    <button type="button" on:click={addVariable} class="btn btn-secondary"-->
+  <!--    >Add Variable-->
+  <!--    </button-->
+  <!--    >-->
+  <!--  </div>-->
 </div>

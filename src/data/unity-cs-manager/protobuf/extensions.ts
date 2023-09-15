@@ -15,10 +15,11 @@ export interface UnityWebsocketMessage {
 }
 
 export interface Application {
-  name: string;
+  packageName: string;
   version: string;
   source: string;
   status: string;
+  applicationName: string;
 }
 
 export interface Deployment {
@@ -293,13 +294,13 @@ export const UnityWebsocketMessage = {
 };
 
 function createBaseApplication(): Application {
-  return { name: "", version: "", source: "", status: "" };
+  return { packageName: "", version: "", source: "", status: "", applicationName: "" };
 }
 
 export const Application = {
   encode(message: Application, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
+    if (message.packageName !== "") {
+      writer.uint32(10).string(message.packageName);
     }
     if (message.version !== "") {
       writer.uint32(18).string(message.version);
@@ -309,6 +310,9 @@ export const Application = {
     }
     if (message.status !== "") {
       writer.uint32(34).string(message.status);
+    }
+    if (message.applicationName !== "") {
+      writer.uint32(42).string(message.applicationName);
     }
     return writer;
   },
@@ -325,7 +329,7 @@ export const Application = {
             break;
           }
 
-          message.name = reader.string();
+          message.packageName = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -348,6 +352,13 @@ export const Application = {
 
           message.status = reader.string();
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.applicationName = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -359,19 +370,21 @@ export const Application = {
 
   fromJSON(object: any): Application {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
+      packageName: isSet(object.packageName) ? String(object.packageName) : "",
       version: isSet(object.version) ? String(object.version) : "",
       source: isSet(object.source) ? String(object.source) : "",
       status: isSet(object.status) ? String(object.status) : "",
+      applicationName: isSet(object.applicationName) ? String(object.applicationName) : "",
     };
   },
 
   toJSON(message: Application): unknown {
     const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
+    message.packageName !== undefined && (obj.packageName = message.packageName);
     message.version !== undefined && (obj.version = message.version);
     message.source !== undefined && (obj.source = message.source);
     message.status !== undefined && (obj.status = message.status);
+    message.applicationName !== undefined && (obj.applicationName = message.applicationName);
     return obj;
   },
 
@@ -381,10 +394,11 @@ export const Application = {
 
   fromPartial<I extends Exact<DeepPartial<Application>, I>>(object: I): Application {
     const message = createBaseApplication();
-    message.name = object.name ?? "";
+    message.packageName = object.packageName ?? "";
     message.version = object.version ?? "";
     message.source = object.source ?? "";
     message.status = object.status ?? "";
+    message.applicationName = object.applicationName ?? "";
     return message;
   },
 };

@@ -1,14 +1,18 @@
 <script lang="ts">
   import ProductForm from "./ProductForm.svelte";
-  import { get } from "svelte/store";
-  import { productInstall } from "../store/stores";
+  import { deploymentStore, productInstall } from "../store/stores";
   import VariablesForm from "./VariablesForm.svelte";
   import { HttpHandler } from "../data/httpHandler";
-  import { Install_Applications, Install_Variables } from "../data/unity-cs-manager/protobuf/extensions";
+  import { Deployments, Install_Applications, Install_Variables } from "../data/unity-cs-manager/protobuf/extensions";
   import { goto } from "$app/navigation";
   import InstallSummary from "./InstallSummary.svelte";
+  import { MarketplaceMetadata } from "../data/unity-cs-manager/protobuf/marketplace";
 
-  let product = get(productInstall);
+  let product: MarketplaceMetadata = MarketplaceMetadata.create();
+
+  productInstall.subscribe(value => {
+    product = value;
+  });
 
   let currentStep = 1;
 
@@ -39,14 +43,18 @@
 
     const httpHandler = new HttpHandler();
 
-    // const merged = {
-    //   "Values": product.DefaultDeployment?.Variables?.Values,
-    //   "AdvancedValues": product.DefaultDeployment?.Variables?.AdvancedValues
-    // };
-    const hasValidValues = (obj: { [key: string]: any } | undefined): boolean =>
-      !!obj && Object.values(obj).some(value =>
-        (typeof value === "string" && value.length >= 1) || (value !== null && value !== undefined)
-      );
+    type AnyObject = { [key: string]: any };
+
+    const removeEmptyStrings = (obj: AnyObject): void => {
+      for (const key in obj) {
+        if (typeof obj[key] === "string" && obj[key].length === 0) {
+          delete obj[key];
+        } else if (typeof obj[key] === "object" && obj[key] !== null) {
+          // Recursively clean nested objects
+          removeEmptyStrings(obj[key]);
+        }
+      }
+    };
 
     type MergedType = {
       Values?: { [key: string]: string };
@@ -55,13 +63,11 @@
 
     const merged: MergedType = {};
 
-    if (hasValidValues(product.DefaultDeployment?.Variables?.Values)) {
-      merged.Values = product.DefaultDeployment?.Variables?.Values;
-    }
+    removeEmptyStrings(product.DefaultDeployment?.Variables?.Values);
+    removeEmptyStrings(product.DefaultDeployment?.Variables?.AdvancedValues);
+    merged.Values = product.DefaultDeployment?.Variables?.Values;
+    merged.AdvancedValues = product.DefaultDeployment?.Variables?.AdvancedValues;
 
-    if (hasValidValues(product.DefaultDeployment?.Variables?.AdvancedValues)) {
-      merged.AdvancedValues = product.DefaultDeployment?.Variables?.AdvancedValues;
-    }
     const vars = Install_Variables.fromJSON(merged);
     const a = Install_Applications.create({
       name: product.Name,
@@ -74,6 +80,24 @@
   };
 
   $: managedDependenciesKeys = product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
+
+  let deployed: Deployments;
+
+  deploymentStore.subscribe(value => {
+    deployed = value;
+  });
+
+  function getVersionsForKey(key): string[] {
+    let options: string[] = [];
+    for (let d of deployed.deployment) {
+      for (let a of d.application) {
+        if (key === a.packageName) {
+          options.push(a.applicationName);
+        }
+      }
+    }
+    return options;
+  }
 
 </script>
 
@@ -120,7 +144,9 @@
                         <!--                  <strong>{key}</strong>: Minimum Version - {dependency[key].MinimumVersion}-->
                         <label class="col-form-label">{key} <select class="form-control">
                           <option></option>
-                          <option>test_deployment</option>
+                          {#each getVersionsForKey(key) as version}
+                            <option>{version}</option>
+                          {/each}
                         </select></label>
                       </div>
                     {/each}
@@ -215,7 +241,7 @@
     /* Style for the connecting line */
     .connecting-line {
         width: 75%;
-        margin: 0px auto;
+        margin: 0 auto;
         height: 2px;
         background: #e0e0e0;
         position: absolute;
@@ -226,38 +252,14 @@
     }
 
     /*------------------------*/
-    input:focus,
     button:focus,
     .form-control:focus {
         outline: none;
         box-shadow: none;
     }
 
-    .form-control:disabled, .form-control[readonly] {
+    .form-control:disabled {
         background-color: #fff;
-    }
-
-    /*----------step-wizard------------*/
-    .d-flex {
-        display: flex;
-    }
-
-    .justify-content-center {
-        justify-content: center;
-    }
-
-    .align-items-center {
-        align-items: center;
-    }
-
-    /*---------signup-step-------------*/
-    .bg-color {
-        background-color: #333;
-    }
-
-    .signup-step-container {
-        padding: 150px 0px;
-        padding-bottom: 60px;
     }
 
 
@@ -298,10 +300,6 @@
         border: 1px solid #ddd;
     }
 
-    span.round-tab i {
-        color: #555555;
-    }
-
     .wizard li.active span.round-tab {
         background: #0db02b;
         color: #fff;
@@ -326,7 +324,7 @@
         left: 46%;
         opacity: 0;
         margin: 0 auto;
-        bottom: 0px;
+        bottom: 0;
         border: 5px solid transparent;
         border-bottom-color: red;
         transition: 0.1s ease-in-out;
@@ -348,7 +346,6 @@
         position: absolute;
         top: -15px;
         font-style: normal;
-        font-weight: 400;
         white-space: nowrap;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -359,16 +356,6 @@
 
     .wizard .nav-tabs > li a:hover {
         background: transparent;
-    }
-
-    .wizard .tab-pane {
-        position: relative;
-        padding-top: 20px;
-    }
-
-
-    .wizard h3 {
-        margin-top: 0;
     }
 
     .prev-step,
@@ -384,97 +371,8 @@
         background-color: #0db02b;
     }
 
-    .skip-btn {
-        background-color: #cec12d;
-    }
-
-    .step-head {
-        font-size: 20px;
-        text-align: center;
-        font-weight: 500;
-        margin-bottom: 20px;
-    }
-
-    .term-check {
-        font-size: 14px;
-        font-weight: 400;
-    }
-
-    .custom-file {
-        position: relative;
-        display: inline-block;
-        width: 100%;
-        height: 40px;
-        margin-bottom: 0;
-    }
-
-    .custom-file-input {
-        position: relative;
-        z-index: 2;
-        width: 100%;
-        height: 40px;
-        margin: 0;
-        opacity: 0;
-    }
-
-    .custom-file-label {
-        position: absolute;
-        top: 0;
-        right: 0;
-        left: 0;
-        z-index: 1;
-        height: 40px;
-        padding: .375rem .75rem;
-        font-weight: 400;
-        line-height: 2;
-        color: #495057;
-        background-color: #fff;
-        border: 1px solid #ced4da;
-        border-radius: .25rem;
-    }
-
-    .custom-file-label::after {
-        position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 3;
-        display: block;
-        height: 38px;
-        padding: .375rem .75rem;
-        line-height: 2;
-        color: #495057;
-        content: "Browse";
-        background-color: #e9ecef;
-        border-left: inherit;
-        border-radius: 0 .25rem .25rem 0;
-    }
-
-    .footer-link {
-        margin-top: 30px;
-    }
-
-    .all-info-container {
-
-    }
-
     .list-content {
         margin-bottom: 10px;
-    }
-
-    .list-content a {
-        padding: 10px 15px;
-        width: 100%;
-        display: inline-block;
-        background-color: #f5f5f5;
-        position: relative;
-        color: #565656;
-        font-weight: 400;
-        border-radius: 4px;
-    }
-
-    .list-content a[aria-expanded="true"] i {
-        transform: rotate(180deg);
     }
 
     .list-content a i {
@@ -485,26 +383,12 @@
         transition: 0.5s;
     }
 
-    .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control {
+    .form-control {
         background-color: #fdfdfd;
     }
 
-    .list-box {
-        padding: 10px;
-    }
-
-    .signup-logo-header .logo_area {
-        width: 200px;
-    }
-
-    .signup-logo-header .nav > li {
+    .nav > li {
         padding: 0;
-    }
-
-    .signup-logo-header .header-flex {
-        display: flex;
-        justify-content: center;
-        align-items: center;
     }
 
     .list-inline li {
@@ -517,69 +401,13 @@
 
     /*-----------custom-checkbox-----------*/
     /*----------Custom-Checkbox---------*/
-    input[type="checkbox"] {
-        position: relative;
-        display: inline-block;
-        margin-right: 5px;
-    }
-
-    input[type="checkbox"]::before,
-    input[type="checkbox"]::after {
-        position: absolute;
-        content: "";
-        display: inline-block;
-    }
-
-    input[type="checkbox"]::before {
-        height: 16px;
-        width: 16px;
-        border: 1px solid #999;
-        left: 0px;
-        top: 0px;
-        background-color: #fff;
-        border-radius: 2px;
-    }
-
-    input[type="checkbox"]::after {
-        height: 5px;
-        width: 9px;
-        left: 4px;
-        top: 4px;
-    }
-
-    input[type="checkbox"]:checked::after {
-        content: "";
-        border-left: 1px solid #fff;
-        border-bottom: 1px solid #fff;
-        transform: rotate(-45deg);
-    }
-
-    input[type="checkbox"]:checked::before {
-        background-color: #18ba60;
-        border-color: #18ba60;
-    }
 
 
     @media (max-width: 767px) {
-        .sign-content h3 {
-            font-size: 40px;
-        }
 
         .wizard .nav-tabs > li a i {
             display: none;
         }
 
-        .signup-logo-header .navbar-toggle {
-            margin: 0;
-            margin-top: 8px;
-        }
-
-        .signup-logo-header .logo_area {
-            margin-top: 0;
-        }
-
-        .signup-logo-header .header-flex {
-            display: block;
-        }
     }
 </style>
