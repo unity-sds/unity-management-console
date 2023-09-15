@@ -14,7 +14,8 @@ var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
-		return true // or check the origin if you want to add more security
+		// TODO: Implement a proper check for security reasons.
+		return true
 	},
 }
 
@@ -59,26 +60,17 @@ func (manager *WebSocketManager) Start() {
 				delete(manager.ClientsByID, client.UserID)
 				close(client.Send)
 			}
-			//case clientMessage := <-manager.Broadcast:
-			//	for client := range manager.Clients {
-			//		if client == clientMessage.Client {
-			//			// Skip the client that sent the message
-			//			continue
-			//		}
-			//		select {
-			//		case client.Send <- clientMessage.Message:
-			//		default:
-			//			close(client.Send)
-			//			delete(manager.Clients, client)
-			//			delete(manager.ClientsByID, client.UserID)
-			//		}
-			//	}
 		}
 	}
 }
 
 func (manager *WebSocketManager) HandleConnections(w http.ResponseWriter, r *http.Request) {
-	conn, _ := upgrader.Upgrade(w, r, nil)
+	conn, err := upgrader.Upgrade(w, r, nil)
+
+	if err != nil {
+		log.WithError(err).Error("Failed to upgrade the connection")
+		return
+	}
 
 	// Read the first message from the client
 	_, message, err := conn.ReadMessage()
@@ -166,38 +158,37 @@ func (manager *WebSocketManager) HandleReceiving(client *Client) {
 }
 
 func (manager *WebSocketManager) SendMessageToClient(client *Client, message []byte) {
-	// Ensure the client is currently connected
-	if _, ok := manager.Clients[client]; ok {
-		select {
-		case client.Send <- message:
-		default:
-			log.Error("Closing socket block sender")
-			close(client.Send)
-			delete(manager.Clients, client)
-		}
-	}
+	manager.sendMessage(client, message)
 }
 
 func (manager *WebSocketManager) SendMessageToAllClients(message []byte) {
-	// Ensure the client is currently connected
-	for client, _ := range manager.Clients {
-		if _, ok := manager.Clients[client]; ok {
-			select {
-			case client.Send <- message:
-			default:
-				log.Error("Closing socket block sender")
-				close(client.Send)
-				delete(manager.Clients, client)
-			}
-		}
+	for client := range manager.Clients {
+		manager.sendMessage(client, message)
 	}
 }
 
 func (manager *WebSocketManager) SendMessageToUserID(userID string, message []byte) {
-	if userID != "" {
-		client, ok := manager.ClientsByID[userID]
-		if ok {
-			manager.SendMessageToClient(client, message)
-		}
+	if client, ok := manager.ClientsByID[userID]; ok {
+		manager.sendMessage(client, message)
+	}
+}
+
+func (manager *WebSocketManager) isConnected(client *Client) bool {
+	_, ok := manager.Clients[client]
+	return ok
+}
+
+func (manager *WebSocketManager) sendMessage(client *Client, message []byte) {
+	if !manager.isConnected(client) {
+		log.Error("Client not connected")
+		return
+	}
+
+	select {
+	case client.Send <- message:
+	default:
+		log.Error("Closing socket block sender")
+		close(client.Send)
+		delete(manager.Clients, client)
 	}
 }
