@@ -45,7 +45,9 @@
 
     type AnyObject = { [key: string]: any };
 
-    const removeEmptyStrings = (obj: AnyObject): void => {
+    const removeEmptyStrings = (obj?: AnyObject): void => {
+      if (!obj) return;
+
       for (const key in obj) {
         if (typeof obj[key] === "string" && obj[key].length === 0) {
           delete obj[key];
@@ -87,7 +89,7 @@
     deployed = value;
   });
 
-  function getVersionsForKey(key): string[] {
+  function getVersionsForKey(key: string): string[] {
     let options: string[] = [];
     for (let d of deployed.deployment) {
       for (let a of d.application) {

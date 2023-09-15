@@ -5,6 +5,16 @@
 
   export let product: MarketplaceMetadata;
 
+  function handleAdvancedInput(e: Event, advancedKey: string, groupKey: string, subKey: string | null) {
+    const target = e.target as HTMLInputElement;
+    updateAdvancedValue(advancedKey, groupKey, subKey, target.value);
+  }
+
+  function handleInput(e: Event, callback: (value: string) => void) {
+    const target = e.target as HTMLInputElement;
+    callback(target.value);
+  }
+
   function updateAdvancedValue(advancedKey: string, groupKey: string, subKey: string | null, newValue: any) {
     if (
       !product ||
@@ -91,7 +101,7 @@
                       class="form-control"
                       type="text"
                       value={subValue}
-                      on:input={(e) => updateAdvancedValue(advancedKey, groupKey, subKey, e.target.value)}
+                      on:input={(e) => handleAdvancedInput(e, advancedKey, groupKey, subKey)}
                     />
                   </div>
                 {/each}
@@ -101,7 +111,7 @@
                     class="form-control"
                     type="text"
                     value={item}
-                    on:input={(e) => updateAdvancedValue(advancedKey, groupKey, null, e.target.value)}
+                    on:input={(e) => handleAdvancedInput(e, advancedKey, groupKey, null)}
                   />
                 {/each}
               {:else}
@@ -109,7 +119,7 @@
                   class="form-control"
                   type="text"
                   value={groupValue}
-                  on:input={(e) => updateAdvancedValue(advancedKey, groupKey, null, e.target.value)}
+                  on:input={(e) => handleAdvancedInput(e, advancedKey, groupKey, null)}
                 />
               {/if}
             </div>
@@ -124,7 +134,7 @@
             class="form-control"
             type="text"
             value={valueValue}
-            on:input={(e) => updateValue(valueKey, e.target.value)}
+            on:input={(e) => handleInput(e, (value) => updateValue(valueKey, value))}
           />
         </div>
       {/each}

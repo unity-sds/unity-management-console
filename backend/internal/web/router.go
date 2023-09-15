@@ -17,8 +17,6 @@ import (
 
 var conf config.AppConfig
 
-var WsManager = websocket2.NewWebSocketManager()
-
 var clients = make(map[*websocket.Conn]bool)
 var broadcast = make(chan websocket2.ClientMessage)
 
@@ -56,7 +54,7 @@ func handlePing(c *gin.Context) {
 // It upgrades the HTTP connection to a websocket connection and reads messages from the client.
 // Each message is unmarshalled into a WebsocketMessage and sent to the broadcast channel.
 func handleWebsocket(c *gin.Context) {
-	WsManager.HandleConnections(c.Writer, c.Request)
+	websocket2.WsManager.HandleConnections(c.Writer, c.Request)
 }
 
 // handleNoRoute serves the index.html file for any routes that are not defined.
@@ -68,7 +66,7 @@ func handleNoRoute(c *gin.Context) {
 // It sets up basic authentication and defines handlers for various routes.
 // It also starts a goroutine to handle messages from the broadcast channel.
 func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
-	go WsManager.Start()
+	go websocket2.WsManager.Start()
 
 	router := gin.Default()
 	conf = appConfig
@@ -109,7 +107,7 @@ func handleMessages() error {
 		return err
 	}
 
-	for message := range WsManager.Broadcast {
+	for message := range websocket2.WsManager.Broadcast {
 		// Unmarshal the message into a WebsocketMessage
 		clientMessage := &marketplace.UnityWebsocketMessage{}
 		if err := proto.Unmarshal(message.Message, clientMessage); err != nil {
@@ -122,7 +120,7 @@ func handleMessages() error {
 		case *marketplace.UnityWebsocketMessage_Install:
 			installMessage := content.Install
 			// Handle install message
-			if err := processes.TriggerInstall(WsManager, message.Client.UserID, store, installMessage, &conf); err != nil {
+			if err := processes.TriggerInstall(websocket2.WsManager, message.Client.UserID, store, installMessage, &conf); err != nil {
 				log.WithError(err).Error("Error triggering install")
 			}
 		case *marketplace.UnityWebsocketMessage_Simplemessage:
@@ -131,10 +129,10 @@ func handleMessages() error {
 			if err != nil {
 				log.WithError(err).Error("Problems parsing simple message")
 			}
-			WsManager.SendMessageToClient(message.Client, resp)
+			websocket2.WsManager.SendMessageToClient(message.Client, resp)
 		case *marketplace.UnityWebsocketMessage_Parameters:
 			params := content.Parameters
-			processes.UpdateParameters(params, store, &conf, WsManager, message.Client.UserID)
+			processes.UpdateParameters(params, store, &conf, websocket2.WsManager, message.Client.UserID)
 		default:
 			log.Error("Unknown message type")
 		}

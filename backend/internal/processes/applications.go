@@ -5,7 +5,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
-	"github.com/unity-sds/unity-management-console/backend/internal/web"
+	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 )
 
 func fetchAllApplications(store database.Datastore) error {
@@ -48,6 +48,6 @@ func fetchAllApplications(store database.Datastore) error {
 		return err
 	}
 
-	web.WsManager.SendMessageToAllClients(data)
+	websocket.WsManager.SendMessageToAllClients(data)
 	return nil
 }
