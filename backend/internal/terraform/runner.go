@@ -95,7 +95,7 @@ func (w *wsWriter) Write(p []byte) (n int, err error) {
 	return n, err
 }
 
-func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string, executor TerraformExecutor) error {
+func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string, executor TerraformExecutor, target string) error {
 	bucket := fmt.Sprintf("bucket=%s", appconf.BucketName)
 	key := fmt.Sprintf("key=%s", "default")
 	region := fmt.Sprintf("region=%s", appconf.AWSRegion)
@@ -138,7 +138,12 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 		return err
 	}
 
-	change, err := executor.Plan(context.Background())
+	change := false
+	if target != "" {
+		change, err = executor.Plan(context.Background(), tfexec.Target(target))
+	} else {
+		change, err = executor.Plan(context.Background())
+	}
 
 	if err != nil {
 		log.WithError(err).Error("error running plan")
@@ -153,10 +158,12 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 		return err
 	}
 
-	fmt.Printf("change: %v", change)
-
 	if change {
-		err = executor.Apply(context.Background())
+		if target != "" {
+			err = executor.Apply(context.Background(), tfexec.Target(target))
+		} else {
+			err = executor.Apply(context.Background())
+		}
 
 		if err != nil {
 			message := marketplace.SimpleMessage{

@@ -39,7 +39,7 @@ func initTerraform(appconf *config.AppConfig) {
 	executor := &terraform.RealTerraformExecutor{}
 	fs := afero.NewOsFs()
 	writeInitTemplate(fs, appconf)
-	terraform.RunTerraform(appconf, nil, "", executor)
+	terraform.RunTerraform(appconf, nil, "", executor, "unity-cloud-env")
 
 }
 

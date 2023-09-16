@@ -72,7 +72,7 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 		}
 		db.UpdateApplicationStatus(deploymentID, install.Applications.Name, "INSTALLING")
 		fetchAllApplications(db)
-		err = terraform.RunTerraform(appConfig, conn, userid, executor)
+		err = terraform.RunTerraform(appConfig, conn, userid, executor, "")
 		if err != nil {
 			db.UpdateApplicationStatus(deploymentID, install.Applications.Name, "FAILED")
 			fetchAllApplications(db)
