@@ -16,10 +16,11 @@
   export let subtext = "";
 </script>
 
-<div class="form-group">
+<div class="flex flex-col space-y-2">
   {#if multiple}
-    <label for={`${id}-multiple`}>{label}</label>
-    <select bind:value={value} id={`${id}-multiple`} class="form-control" on:change={handleChange} multiple>
+    <label for={`${id}-multiple`} class="text-sm font-medium text-gray-700">{label}</label>
+    <select bind:value={value} id={`${id}-multiple`} on:change={handleChange} multiple
+            class="border rounded-md px-3 py-2 w-full text-gray-700">
       {#each options as option, index}
         <option value={option.value ? option.value : option}>
           {option.label ? option.label : option}
@@ -27,8 +28,9 @@
       {/each}
     </select>
   {:else}
-    <label for={`${id}-single`}>{label}</label>
-    <select bind:value={value} id={`${id}-single`} on:change={handleChange} class="form-control">
+    <label for={`${id}-single`} class="text-sm font-medium text-gray-700">{label}</label>
+    <select bind:value={value} id={`${id}-single`} on:change={handleChange}
+            class="border rounded-md px-3 py-2 w-full text-gray-700">
       {#each options as option, index}
         <option value={option.value ? option.value : option}>
           {option.label ? option.label : option}
@@ -36,10 +38,8 @@
       {/each}
     </select>
   {/if}
-  <div class="form-text">{subtext}</div>
-
+  <div class="text-sm text-gray-500 mt-1">{subtext}</div>
 </div>
-
 <style>
     /* Add any additional styles here */
 </style>

@@ -106,14 +106,14 @@
   }
 </script>
 
-<div class="container">
-  <div class="row">
-    <div class="col-3">
-      <p>
+<div class="container mx-auto px-4">
+  <div class="flex flex-wrap -mx-4">
+    <div class="w-full lg:w-1/4 px-4">
+      <p class="mb-4">
         Welcome to the Unity Management Console setup wizard. Here we set some values that are
         mandatory for the reliable operation of your Unity platform.
       </p>
-      <p>
+      <p class="mb-4">
         During the setup process, you will have the opportunity to configure vital parameters such
         as server resources allocation, system performance thresholds, and logging options. These
         settings are essential for maintaining the stability and optimal performance of your Unity
@@ -121,7 +121,7 @@
         environment.
       </p>
 
-      <p>
+      <p class="mb-4">
         Additionally, the setup wizard provides an intuitive interface that simplifies the
         configuration process, ensuring that even users with limited technical expertise can easily
         navigate and set up the mandatory values. With clear instructions and helpful tooltips, the
@@ -129,23 +129,22 @@
         setup experience.
       </p>
 
-      <p>
+      <p class="mb-4">
         By investing time and attention in properly configuring these mandatory values through the
         setup wizard, you can establish a robust foundation for your Unity platform, guaranteeing
         its reliability, scalability, and ability to handle the demands of your applications and
         users effectively.
       </p>
     </div>
-    <div class="col">
+    <div class="w-full lg:w-3/4 px-4">
       {#if $installRunning === false}
-        <form>
+        <form class="space-y-4">
           <InputField label="Project Name" id="project" isValid={$venueAndProjectStore.projectIsValid}
                       on:input={handleInputChange} subtext="The project managing this Unity environment."
                       value={$projectStore} />
           <InputField label="Venue Name" id="venue" isValid={$venueAndProjectStore.venueIsValid}
                       on:input={handleInputChange} subtext="The venue this Unity environment is deployed into."
                       value={$venueStore} />
-
 
           <SelectField label="Private Subnets" id="privateSubnets" multiple={true}
                        options={transformedPrivateOptions} bind:value={privateSubnets}
@@ -154,9 +153,9 @@
                        bind:value={publicSubnets}
                        subtext="Select the public subnets you would like to use for Unity." />
 
-
           <OptionalParametersAccordion {list} {key} {value} />
-          <button type="submit" on:click|preventDefault={handleSubmit} class="st-button large mt-5"
+          <button type="submit" on:click|preventDefault={handleSubmit}
+                  class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mt-5"
           >Save
           </button
           >

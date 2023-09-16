@@ -16,12 +16,12 @@
 
 </script>
 
-<div class="form-group">
-  <label for={id}>{label}</label>
-  <input type="text" class="form-control" id={id} class:invalid={!isValid} on:input={handleInput} value={value} />
+<div class="flex flex-col space-y-2">
+  <label for={id} class="text-sm font-medium text-gray-700">{label}</label>
+  <input type="text" class={`form-input border rounded-md px-3 py-2 ${!isValid ? 'border-red-500' : 'border-gray-300'}`}
+         id={id} on:input={handleInput} value={value} />
   {#if !isValid}
-    <div class="invalid-feedback" style="display: block;">{label} should be alphanumeric.</div>
+    <div class="text-sm text-red-500">{label} should be alphanumeric.</div>
   {/if}
-  <div class="form-text">{subtext}</div>
-
+  <div class="text-sm text-gray-500">{subtext}</div>
 </div>

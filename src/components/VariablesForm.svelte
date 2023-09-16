@@ -79,26 +79,23 @@
     };
   }
 </script>
-<h2>Variables</h2>
-<!--<div class="form-group row mt-4">-->
-<!--<label class="col-sm-2 col-form-label">Variable Override</label>-->
-<!--<input class="form-control" type="text">-->
-<!--</div>-->
+<h2 class="text-xl font-bold">Variables</h2>
+
 {#if product?.DefaultDeployment?.Variables}
   {#each Object.entries(product?.DefaultDeployment?.Variables) as [key, value], index}
     {#if key === 'AdvancedValues'}
       <div class="mt-12">
         {#each getEntries(value) as [advancedKey, advancedValue]}
-          <legend>{advancedKey}</legend>
+          <legend class="font-medium">{advancedKey}</legend>
           {#each getEntries(advancedValue) as [groupKey, groupValue]}
-            <div class="form-group mt-4">
-              <label class="col-sm-2 col-form-label fw-bolder">{groupKey}:</label>
+            <div class="mt-4">
+              <label class="block text-sm font-medium">{groupKey}:</label>
               {#if typeof groupValue === 'object' && !Array.isArray(groupValue)}
                 {#each getEntries(groupValue) as [subKey, subValue]}
-                  <div class="form-group mt-4">
-                    <label class="col-sm-2 col-form-label">{subKey}:</label>
+                  <div class="mt-4">
+                    <label class="block text-sm font-medium">{subKey}:</label>
                     <input
-                      class="form-control"
+                      class="mt-1 p-2 w-full border rounded-md"
                       type="text"
                       value={subValue}
                       on:input={(e) => handleAdvancedInput(e, advancedKey, groupKey, subKey)}
@@ -108,7 +105,7 @@
               {:else if Array.isArray(groupValue)}
                 {#each groupValue as item, index}
                   <input
-                    class="form-control"
+                    class="mt-1 p-2 w-full border rounded-md"
                     type="text"
                     value={item}
                     on:input={(e) => handleAdvancedInput(e, advancedKey, groupKey, null)}
@@ -116,7 +113,7 @@
                 {/each}
               {:else}
                 <input
-                  class="form-control"
+                  class="mt-1 p-2 w-full border rounded-md"
                   type="text"
                   value={groupValue}
                   on:input={(e) => handleAdvancedInput(e, advancedKey, groupKey, null)}
@@ -128,10 +125,10 @@
       </div>
     {:else if key === 'Values'}
       {#each Object.entries(value) as [valueKey, valueValue]}
-        <div class="form-group mt-4">
-          <label class="col-sm-2 col-form-label">{valueKey}:</label>
+        <div class="mt-4">
+          <label class="block text-sm font-medium">{valueKey}:</label>
           <input
-            class="form-control"
+            class="mt-1 p-2 w-full border rounded-md"
             type="text"
             value={valueValue}
             on:input={(e) => handleInput(e, (value) => updateValue(valueKey, value))}
