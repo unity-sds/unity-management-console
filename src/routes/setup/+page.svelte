@@ -66,18 +66,18 @@
     const projectkey = "/unity/core/project";
 
     // Check if the value is not null and has the key
-    // if (parameters && parameters.parameterlist && Object.prototype.hasOwnProperty.call(parameters?.parameterlist, projectkey)) {
-    //   project = parameters.parameterlist[projectkey].value;
-    // } else {
-    //   console.log("Key does not exist or parameters is null/undefined.");
-    // }
-    //
-    // // Check if the value is not null and has the key
-    // if (parameters && parameters.parameterlist && Object.prototype.hasOwnProperty.call(parameters?.parameterlist, venuekey)) {
-    //   venue = parameters.parameterlist[venuekey].value;
-    // } else {
-    //   console.log("Key does not exist or parameters is null/undefined.");
-    // }
+    if (parameters && parameters.parameterlist && Object.prototype.hasOwnProperty.call(parameters?.parameterlist, projectkey)) {
+      projectStore.set(parameters.parameterlist[projectkey].value);
+    } else {
+      console.log("Key does not exist or parameters is null/undefined.");
+    }
+
+    // Check if the value is not null and has the key
+    if (parameters && parameters.parameterlist && Object.prototype.hasOwnProperty.call(parameters?.parameterlist, venuekey)) {
+      venueStore.set(parameters.parameterlist[venuekey].value);
+    } else {
+      console.log("Key does not exist or parameters is null/undefined.");
+    }
 
     for (const key in parameters.parameterlist) {
       if (key !== "/unity/core/venue" && key !== "/unity/core/project") {

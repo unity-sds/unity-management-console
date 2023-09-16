@@ -93,7 +93,7 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 		}
 	}()
 
-	processes.RunSync()
+	//processes.RunSync()
 	return router
 }
 
