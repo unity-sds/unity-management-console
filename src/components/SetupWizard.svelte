@@ -128,7 +128,7 @@
   <div class="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8">
     <div class="mx-auto max-w-2xl">
       <nav aria-label="Progress">
-        <ol role="list" class="space-y-4 md:flex md:space-x-8 md:space-y-0">
+        <ol class="space-y-4 md:flex md:space-x-8 md:space-y-0">
           <li class="md:flex-1">
             <!-- Completed Step -->
             <a href="#"

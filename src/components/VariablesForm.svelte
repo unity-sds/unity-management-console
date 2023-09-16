@@ -89,17 +89,18 @@
           <legend class="font-medium">{advancedKey}</legend>
           {#each getEntries(advancedValue) as [groupKey, groupValue]}
             <div class="mt-4">
-              <label class="block text-sm font-medium">{groupKey}:</label>
+              <h3 class="block text-sm font-medium">{groupKey}:</h3>
               {#if typeof groupValue === 'object' && !Array.isArray(groupValue)}
                 {#each getEntries(groupValue) as [subKey, subValue]}
                   <div class="mt-4">
-                    <label class="block text-sm font-medium">{subKey}:</label>
-                    <input
-                      class="mt-1 p-2 w-full border rounded-md"
-                      type="text"
-                      value={subValue}
-                      on:input={(e) => handleAdvancedInput(e, advancedKey, groupKey, subKey)}
-                    />
+                    <label class="block text-sm font-medium">{subKey}:
+                      <input
+                        class="mt-1 p-2 w-full border rounded-md"
+                        type="text"
+                        value={subValue}
+                        on:input={(e) => handleAdvancedInput(e, advancedKey, groupKey, subKey)}
+                      />
+                    </label>
                   </div>
                 {/each}
               {:else if Array.isArray(groupValue)}
@@ -126,13 +127,14 @@
     {:else if key === 'Values'}
       {#each Object.entries(value) as [valueKey, valueValue]}
         <div class="mt-4">
-          <label class="block text-sm font-medium">{valueKey}:</label>
-          <input
-            class="mt-1 p-2 w-full border rounded-md"
-            type="text"
-            value={valueValue}
-            on:input={(e) => handleInput(e, (value) => updateValue(valueKey, value))}
-          />
+          <label class="block text-sm font-medium">{valueKey}:
+            <input
+              class="mt-1 p-2 w-full border rounded-md"
+              type="text"
+              value={valueValue}
+              on:input={(e) => handleInput(e, (value) => updateValue(valueKey, value))}
+            />
+          </label>
         </div>
       {/each}
     {/if}

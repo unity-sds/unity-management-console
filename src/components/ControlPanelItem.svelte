@@ -3,6 +3,7 @@
   export let description = "";
   export let link = "";
   export let disabled = false;
+
 </script>
 
 <div class="lg:w-1/3 md:w-1/2 mb-4">
@@ -15,7 +16,7 @@
       {#if !disabled}
         <a href="{link}" class="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded">Go!</a>
       {:else}
-        <a href="#" class="px-4 py-2 text-gray-400 bg-gray-300 cursor-not-allowed rounded">Go!</a>
+        <span class="px-4 py-2 text-gray-400 bg-gray-300 cursor-not-allowed rounded">Go!</span>
       {/if}
     </div>
   </div>

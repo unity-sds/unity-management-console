@@ -1,5 +1,6 @@
-<script>
+<script lang="ts">
   import { uninstallApplication } from "../data/httpHandler";
+  import { goto } from "$app/navigation";
 
   export let title = "";
   export let description = "";
@@ -7,9 +8,20 @@
   export let status = "";
   export let appPackage = "";
   export let deployment = "";
+
+  export let objectnumber = 0;
   const uninstallApp = () => {
     uninstallApplication(title, appPackage, deployment);
   };
+
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.ctrlKey && event.key === objectnumber.toString()) {
+      uninstallApp();
+    } else if (event.key === objectnumber.toString()) {
+      goto(link);
+    }
+  };
+
 </script>
 
 <div class="lg:w-1/4 md:w-1/2 mb-4">
@@ -19,8 +31,11 @@
       <p class="text-gray-700">{status} - {description}</p>
     </div>
     <div class="p-4 border-t">
-      <a href="{link}" class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded mr-2 inline-block">Explore</a>
-      <a on:click={uninstallApp} class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded inline-block">Uninstall</a>
+      <a href="{link}" on:keydown={handleKeydown}
+         class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded mr-2 inline-block">Explore</a>
+      <button on:click={uninstallApp} on:keydown={handleKeydown}
+              class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded inline-block">Uninstall
+      </button>
     </div>
   </div>
 </div>
