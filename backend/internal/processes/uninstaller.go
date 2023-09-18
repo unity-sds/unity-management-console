@@ -3,6 +3,7 @@ package processes
 import (
 	"bufio"
 	"encoding/json"
+	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"io/ioutil"
@@ -32,7 +33,9 @@ func UninstallApplication(payload string, conf *config.AppConfig, store database
 	}
 
 	for _, file := range files {
+		log.Infof("Checking file	%s has prefix: %s", file.Name(), uninstall.ApplicationPackage)
 		if strings.HasPrefix(file.Name(), uninstall.ApplicationPackage) {
+			log.Infof("File was a match")
 			// Open the file
 			f, err := os.Open(path.Join(filepath, file.Name()))
 			if err != nil {
@@ -58,6 +61,7 @@ func UninstallApplication(payload string, conf *config.AppConfig, store database
 			f.Close()
 
 			// Check applicationName from the comments and delete the file if it matches
+			log.Infof("Check if appname %s == %s", metadata["applicationName"], uninstall.Application)
 			if metadata["applicationName"] == uninstall.Application {
 				err = os.Remove(path.Join(filepath, file.Name()))
 				if err != nil {
