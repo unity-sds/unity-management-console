@@ -33,6 +33,7 @@ type Application struct {
 	Source       string
 	Status       string
 	DeploymentID uint
+	PackageName  string
 	Deployment   Deployment `gorm:"foreignKey:DeploymentID"`
 }
 type Deployment struct {

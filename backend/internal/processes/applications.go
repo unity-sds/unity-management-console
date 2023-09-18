@@ -20,10 +20,11 @@ func fetchAllApplications(store database.Datastore) error {
 		var apps []*marketplace.Application
 		for _, a := range d.Applications {
 			app := marketplace.Application{
-				Name:    a.Name,
-				Version: a.Version,
-				Source:  a.Source,
-				Status:  a.Status,
+				ApplicationName: a.Name,
+				PackageName:     a.PackageName,
+				Version:         a.Version,
+				Source:          a.Source,
+				Status:          a.Status,
 			}
 			apps = append(apps, &app)
 		}

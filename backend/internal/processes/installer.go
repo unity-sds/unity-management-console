@@ -38,10 +38,11 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 
 		err := terraform.AddApplicationToStack(appConfig, location, meta, install, db)
 		app := models.Application{
-			Name:    install.Applications.Name,
-			Version: install.Applications.Version,
-			Source:  meta.Package,
-			Status:  "STAGED",
+			Name:        install.Applications.Name,
+			Version:     install.Applications.Version,
+			PackageName: meta.Name,
+			Source:      meta.Package,
+			Status:      "STAGED",
 		}
 		deployment := models.Deployment{
 			Name:         install.DeploymentName,
@@ -101,7 +102,7 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 
 	if meta.PostInstall != "" {
 		//TODO UNPIN ME
-		cmd := exec.Command(filepath.Join(appConfig.Workdir, "workspace", "terraform", "modules", meta.Name, meta.Version, meta.PostInstall))
+		cmd := exec.Command(filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PostInstall))
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", meta.Name))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
@@ -116,7 +117,7 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata) error {
 	if meta.PreInstall != "" {
 		// TODO UNPIN ME
-		cmd := exec.Command(filepath.Join(appConfig.Workdir, "workspace", "terraform", "modules", meta.Name, meta.Version, meta.PreInstall))
+		cmd := exec.Command(filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PreInstall))
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", meta.Name))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
