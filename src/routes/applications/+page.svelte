@@ -19,6 +19,21 @@
     await fetchDeployedApplications();
   });
 
+  type CardItem = {
+    title: string;
+    source: string;
+    version: string;
+    status: string;
+    link: string;
+    deploymentName: string;
+  };
+
+  let cardData: CardItem[] = [];
+
+  $: {
+    cardData;
+  }
+
   const unsubscribe = deploymentStore.subscribe(value => {
 
     console.log(value);
