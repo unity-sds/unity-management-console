@@ -168,8 +168,10 @@ func (manager *WebSocketManager) SendMessageToAllClients(message []byte) {
 }
 
 func (manager *WebSocketManager) SendMessageToUserID(userID string, message []byte) {
-	if client, ok := manager.ClientsByID[userID]; ok {
-		manager.sendMessage(client, message)
+	if userID != "" {
+		if client, ok := manager.ClientsByID[userID]; ok {
+			manager.sendMessage(client, message)
+		}
 	}
 }
 
