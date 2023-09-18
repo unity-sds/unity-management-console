@@ -22,7 +22,7 @@
       // if (typeof window !== 'undefined') {
       // 	createWebsocketStore('ws://' + window.location.host + '/ws');
       // }
-      await httpHandler.setupws();
+      httpHandler.setupws();
       // await httpHandler.fetchConfig();
 
       // Update the store to indicate that the initialization has run

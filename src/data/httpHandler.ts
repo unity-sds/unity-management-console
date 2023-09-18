@@ -68,7 +68,7 @@ export class HttpHandler {
 		return '';
 	}
 
-	async setupws() {
+	setupws() {
 		debugger;
 		if (!dev) {
 			const set = ConnectionSetup.create({ type: 'register', userID: 'test' });
