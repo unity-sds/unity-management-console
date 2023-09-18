@@ -1,7 +1,11 @@
 import { writable, derived } from 'svelte/store';
 import type { Writable } from 'svelte/store';
 import type { Readable } from 'svelte/store';
-import { UnityWebsocketMessage } from '../data/unity-cs-manager/protobuf/extensions';
+import {
+	ConnectionSetup,
+	UnityWebsocketMessage
+} from '../data/unity-cs-manager/protobuf/extensions';
+import { websocketStore } from '../data/websocketStore';
 
 type WritableStore = Writable<UnityWebsocketMessage[]>;
 
@@ -26,6 +30,10 @@ function createWebsocketStore(url: string): WebsocketStore {
 
 		socket.onopen = () => {
 			console.log('Socket is open');
+			const set = ConnectionSetup.create({ type: 'register', userID: 'test' });
+			console.log(ConnectionSetup.toJSON(set));
+			websocketStore.send(ConnectionSetup.encode(set).finish());
+
 			sendQueuedMessages();
 		};
 
