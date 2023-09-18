@@ -11,6 +11,7 @@
 
   export let objectnumber = 0;
   const uninstallApp = () => {
+    console.log("Uninstalling: " + title);
     uninstallApplication(title, appPackage, deployment);
   };
 

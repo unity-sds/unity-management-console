@@ -133,7 +133,14 @@ interface GithubContent {
 export async function uninstallApplication(name: string, appPackage: string, deployment: string) {
 	const uninstallMessage = SimpleMessage.create({
 		operation: 'uninstall application',
-		payload: '{ "Application: "", "ApplicationPackage": "", "Deployment":""'
+		payload:
+			'{ "Application: "' +
+			name +
+			'", "ApplicationPackage": "' +
+			appPackage +
+			'", "Deployment":"' +
+			deployment +
+			'"}'
 	});
 
 	const m = UnityWebsocketMessage.create({ simplemessage: uninstallMessage });

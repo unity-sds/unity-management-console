@@ -51,27 +51,7 @@
       console.log("store not set");
     }
   }
-  $: cardData = [
-    {
-      title: "test_sps",
-      //description: "Unity SPS",
-      link: "/ui/applications/unity-sps/test_sps/explore",
-      //disabled: false,
-      status: "",
-      source: "",
-      deploymentName: ""
-    },
-    {
-      title: "test_deployment",
-      //description: "Unity EKS.",
-      link: "/ui/applications/unity-eks/test_deployment/explore",
-      //disabled: false,
-      status: "",
-      source: "",
-      deploymentName: ""
-    }
-
-  ];
+  $: cardData = [];
 </script>
 <header class="bg-primary text-white text-center py-5 mb-5">
   <h1>Installed Applications</h1>
