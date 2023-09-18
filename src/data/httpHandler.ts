@@ -69,6 +69,7 @@ export class HttpHandler {
 	}
 
 	async setupws() {
+		debugger;
 		if (!dev) {
 			const set = ConnectionSetup.create({ type: 'register', userID: 'test' });
 			console.log(ConnectionSetup.toJSON(set));

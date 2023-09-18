@@ -91,6 +91,7 @@ func (manager *WebSocketManager) HandleConnections(w http.ResponseWriter, r *htt
 	// Check that the message type is "register"
 	if msgMap.Type != "register" {
 		log.Error("First message type is not 'register'")
+		log.Error("Message received: %v", msgMap)
 		conn.Close()
 		return
 	}
