@@ -140,6 +140,7 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 
 	change := false
 	if target != "" {
+		log.Infof("Running terraform with target: %s", target)
 		change, err = executor.Plan(context.Background(), tfexec.Target(target))
 	} else {
 		change, err = executor.Plan(context.Background())
@@ -160,6 +161,7 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 
 	if change {
 		if target != "" {
+			log.Infof("Running terraform with target: %s", target)
 			err = executor.Apply(context.Background(), tfexec.Target(target))
 		} else {
 			err = executor.Apply(context.Background())
