@@ -134,7 +134,7 @@ export async function uninstallApplication(name: string, appPackage: string, dep
 	const uninstallMessage = SimpleMessage.create({
 		operation: 'uninstall application',
 		payload:
-			'{ "Application: "' +
+			'{ "Application": "' +
 			name +
 			'", "ApplicationPackage": "' +
 			appPackage +
