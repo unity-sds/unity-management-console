@@ -59,7 +59,7 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 
 		err = terraform.AddApplicationToStack(appConfig, location, meta, install, db, deploymentID)
 
-		return execute(db, appConfig, meta, install.Applications.Name, deploymentID, conn, userid)
+		return execute(db, appConfig, meta, install.DeploymentName, deploymentID, conn, userid)
 
 	} else {
 		return errors.New("backend not implemented")
@@ -74,7 +74,7 @@ func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketpla
 	//	return err
 	//}
 	//terraform.WriteTFVars(m, appConfig)
-	err := runPreInstall(appConfig, meta)
+	err := runPreInstall(appConfig, meta, name)
 	if err != nil {
 		return err
 	}
@@ -117,12 +117,12 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 	return nil
 }
 
-func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata) error {
+func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, name string) error {
 	if meta.PreInstall != "" {
 		// TODO UNPIN ME
 		cmd := exec.Command(filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PreInstall))
 		cmd.Env = os.Environ()
-		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", meta.Name))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", name))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("EKS_NAME=%s", "test_deployment"))
 		if err := cmd.Run(); err != nil {
