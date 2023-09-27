@@ -59,14 +59,14 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 
 		err = terraform.AddApplicationToStack(appConfig, location, meta, install, db, deploymentID)
 
-		return execute(db, appConfig, meta, install.DeploymentName, deploymentID, conn, userid)
+		return execute(db, appConfig, meta, install.Applications.Name, deploymentID, conn, userid, install.DeploymentName)
 
 	} else {
 		return errors.New("backend not implemented")
 	}
 }
 
-func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, name string, deploymentID uint, conn *websocket.WebSocketManager, userid string) error {
+func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, name string, deploymentID uint, conn *websocket.WebSocketManager, userid string, deploymentname string) error {
 	executor := &terraform.RealTerraformExecutor{}
 
 	//m, err := fetchMandatoryVars()
@@ -74,7 +74,7 @@ func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketpla
 	//	return err
 	//}
 	//terraform.WriteTFVars(m, appConfig)
-	err := runPreInstall(appConfig, meta, name)
+	err := runPreInstall(appConfig, meta, deploymentname)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketpla
 	}
 	db.UpdateApplicationStatus(deploymentID, name, "INSTALLED")
 	fetchAllApplications(db)
-	err = runPostInstall(appConfig, meta, name)
+	err = runPostInstall(appConfig, meta, deploymentname)
 
 	if err != nil {
 		db.UpdateApplicationStatus(deploymentID, name, "POSTINSTALL FAILED")
