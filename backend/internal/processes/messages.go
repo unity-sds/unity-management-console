@@ -11,7 +11,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 )
 
-func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppConfig, store database.Datastore) ([]byte, error) {
+func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppConfig, store database.Datastore, wsmgr *websocket.WebSocketManager, userid string) ([]byte, error) {
 	if message.Operation == "request config" {
 		log.Info("Request Config received")
 		return fetchConfig(conf, store)
@@ -32,6 +32,10 @@ func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppCo
 	} else if message.Operation == "uninstall deployment" {
 		log.Info("Request to uninstall deployment")
 		return uninstallDeployment(message.Payload)
+	} else if message.Operation == "reapply application" {
+		log.Info("Request to reapply application")
+		err := reapplyApplication(message.Payload, conf, store, wsmgr, userid)
+		return nil, err
 	}
 	return nil, nil
 }
@@ -140,6 +144,12 @@ func uninstallApplication(name string, conf *config.AppConfig, store database.Da
 	log.Infof("Uninstalling application %s", name)
 
 	return UninstallApplication(name, conf, store)
+}
+
+func reapplyApplication(name string, conf *config.AppConfig, store database.Datastore, wsmgr *websocket.WebSocketManager, userid string) error {
+	log.Infof("Repplying application %s", name)
+
+	return ReapplyApplication(name, conf, store, wsmgr, userid)
 }
 
 func uninstallDeployment(name string) ([]byte, error) {

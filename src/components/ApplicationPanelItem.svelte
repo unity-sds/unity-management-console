@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { uninstallApplication } from "../data/httpHandler";
+  import { reapplyApplication, uninstallApplication } from "../data/httpHandler";
   import { goto } from "$app/navigation";
 
   export let title = "";
@@ -23,6 +23,11 @@
     }
   };
 
+  const reapplyApp = () => {
+    console.log("Reapplying: " + title);
+    reapplyApplication(title, appPackage, deployment);
+  };
+
 </script>
 
 <div class="lg:w-1/4 md:w-1/2 mb-4">
@@ -34,6 +39,9 @@
     <div class="p-4 border-t">
       <a href="{link}" on:keydown={handleKeydown}
          class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded mr-2 inline-block">Explore</a>
+      <button on:click={reapplyApp} on:keydown={handleKeydown}
+              class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded inline-block">Uninstall
+      </button>
       <button on:click={uninstallApp} on:keydown={handleKeydown}
               class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded inline-block">Uninstall
       </button>

@@ -69,7 +69,6 @@ export class HttpHandler {
 	}
 
 	setupws() {
-		debugger;
 		if (!dev) {
 			const configrequest = SimpleMessage.create({ operation: 'request config', payload: '' });
 			const wsm = UnityWebsocketMessage.create({ simplemessage: configrequest });
@@ -143,6 +142,20 @@ export async function uninstallApplication(name: string, appPackage: string, dep
 
 	const m = UnityWebsocketMessage.create({ simplemessage: uninstallMessage });
 	websocketStore.send(UnityWebsocketMessage.encode(m).finish());
+}
+
+export async function reapplyApplication(name: string, appPackage: string, deployment: string) {
+	const reapplyMessage = SimpleMessage.create({
+		operation: 'reapply application',
+		payload:
+			'{ "Application": "' +
+			name +
+			'", "ApplicationPackage": "' +
+			appPackage +
+			'", "Deployment":"' +
+			deployment +
+			'"}'
+	});
 }
 
 export async function fetchDeployedApplications() {

@@ -89,13 +89,13 @@ func parseAdvancedVariables(install *marketplace.Install, cloudenv *map[string]c
 	}
 }
 
-func generateMetadataHeader(cloudenv *hclwrite.Body, id string, application string, applicationName string, version string, creator string) {
+func generateMetadataHeader(cloudenv *hclwrite.Body, id string, application string, applicationName string, version string, creator string, deploymentID uint) {
 	currentTime := time.Now()
 	dateString := currentTime.Format("2006-01-02")
 	comment := hclwrite.Tokens{
 		&hclwrite.Token{
 			Type:         hclsyntax.TokenComment,
-			Bytes:        []byte(fmt.Sprintf("# id: %v\n# application: %v\n# applicationName: %v\n# version: %v\n# creator: %v\n# creationDate: %v\n", id, application, applicationName, version, creator, dateString)),
+			Bytes:        []byte(fmt.Sprintf("# id: %v\n# application: %v\n# applicationName: %v\n# version: %v\n# creator: %v\n# creationDate: %v\n# deploymentID: %v\n", id, application, applicationName, version, creator, dateString, deploymentID)),
 			SpacesBefore: 0,
 		},
 	}
@@ -145,7 +145,7 @@ func appendBlockToBody(body *hclwrite.Body, blockType string, labels []string, s
 // AddApplicationToStack adds the given application configuration to the stack.
 // It takes care of creating the necessary workspace directory, generating the
 // HCL file, and writing the required attributes.
-func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, install *marketplace.Install, db database.Datastore) error {
+func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, install *marketplace.Install, db database.Datastore, deploymentID uint) error {
 	rand.Seed(time.Now().UnixNano())
 
 	s := generateRandomString(8)
@@ -169,7 +169,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		return err
 	}
 
-	generateMetadataHeader(rootBody, u.String(), meta.Name, install.Applications.Name, install.Applications.Version, "admin")
+	generateMetadataHeader(rootBody, u.String(), meta.Name, install.Applications.Name, install.Applications.Version, "admin", deploymentID)
 
 	attributes := map[string]cty.Value{
 		"name": cty.StringVal(install.DeploymentName),

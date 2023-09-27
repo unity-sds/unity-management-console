@@ -125,7 +125,7 @@ func handleMessages() error {
 			}
 		case *marketplace.UnityWebsocketMessage_Simplemessage:
 			simpleMessage := content.Simplemessage
-			resp, err := processes.ProcessSimpleMessage(simpleMessage, &conf, store)
+			resp, err := processes.ProcessSimpleMessage(simpleMessage, &conf, store, websocket2.WsManager, message.Client.UserID)
 			if err != nil {
 				log.WithError(err).Error("Problems parsing simple message")
 			}
