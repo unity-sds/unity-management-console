@@ -147,7 +147,7 @@ func ReapplyApplication(payload string, conf *config.AppConfig, store database.D
 				}
 				val, err := strconv.ParseUint(metadata["deploymentID"], 10, 0)
 				uintVal := uint(val)
-				execute(store, conf, meta, metadata["applicationName"], uintVal, wsmgr, userid)
+				execute(store, conf, meta, metadata["applicationName"], uintVal, wsmgr, userid, metadata["deploymentID"])
 			}
 		}
 	}
