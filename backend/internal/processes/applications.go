@@ -21,6 +21,7 @@ func fetchAllApplications(store database.Datastore) error {
 		for _, a := range d.Applications {
 			app := marketplace.Application{
 				ApplicationName: a.Name,
+				DisplayName:     a.DisplayName,
 				PackageName:     a.PackageName,
 				Version:         a.Version,
 				Source:          a.Source,

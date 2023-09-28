@@ -133,7 +133,7 @@ func (g GormDatastore) FetchDeploymentIDByName(deploymentID string) (uint, error
 	return deployment.ID, nil
 }
 
-func (g GormDatastore) UpdateApplicationStatus(deploymentID uint, targetAppName string, newStatus string) error {
+func (g GormDatastore) UpdateApplicationStatus(deploymentID uint, targetAppName string, displayName string, newStatus string) error {
 	var deployment models.Deployment
 	result := g.db.Preload("Applications").First(&deployment, deploymentID)
 	if result.Error != nil {
@@ -143,7 +143,7 @@ func (g GormDatastore) UpdateApplicationStatus(deploymentID uint, targetAppName 
 
 	// Directly find and update the application by name within the deployment
 	for index, app := range deployment.Applications {
-		if app.Name == targetAppName {
+		if app.Name == targetAppName && app.DisplayName == displayName {
 			deployment.Applications[index].Status = newStatus
 			if err := g.db.Save(&deployment.Applications[index]).Error; err != nil {
 				log.WithError(err).Error("Problem updating application status")

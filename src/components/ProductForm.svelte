@@ -4,13 +4,12 @@
 
   export let product: MarketplaceMetadata | null;
 
-  export let installName = "";
 </script>
 
 {#if product}
   <div class="form-group mb-4">
     <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-    <input id="name" class="mt-1 p-2 w-full border rounded-md" bind:value={installName} required />
+    <input id="name" class="mt-1 p-2 w-full border rounded-md" bind:value={product.DisplayName} required />
   </div>
 
   <div class="form-group mb-4">

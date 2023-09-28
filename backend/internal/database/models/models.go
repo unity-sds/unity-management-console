@@ -29,6 +29,7 @@ type Audit struct {
 type Application struct {
 	gorm.Model
 	Name         string
+	DisplayName  string
 	Version      string
 	Source       string
 	Status       string

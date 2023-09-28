@@ -110,7 +110,7 @@ type Datastore interface {
 	FetchSSMParams() ([]models.SSMParameters, error)
 	StoreSSMParams(p []config.SSMParameter, owner string) error
 	StoreDeployment(p models.Deployment) (uint, error)
-	UpdateApplicationStatus(deploymentid uint, application string, status string) error
+	UpdateApplicationStatus(deploymentid uint, application string, displayName string, status string) error
 	FetchDeploymentIDByName(deploymentname string) (uint, error)
 	FetchAllApplicationStatus() ([]models.Deployment, error)
 	FetchAllApplicationStatusByDeployment(deploymentid uint) ([]models.Application, error)

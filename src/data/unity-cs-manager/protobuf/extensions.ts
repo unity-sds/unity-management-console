@@ -20,6 +20,7 @@ export interface Application {
   source: string;
   status: string;
   applicationName: string;
+  displayName: string;
 }
 
 export interface Deployment {
@@ -84,6 +85,7 @@ export interface Install_Applications {
   variables: Install_Variables | undefined;
   postinstall: string;
   preinstall: string;
+  displayname: string;
 }
 
 export interface SimpleMessage {
@@ -294,7 +296,7 @@ export const UnityWebsocketMessage = {
 };
 
 function createBaseApplication(): Application {
-  return { packageName: "", version: "", source: "", status: "", applicationName: "" };
+  return { packageName: "", version: "", source: "", status: "", applicationName: "", displayName: "" };
 }
 
 export const Application = {
@@ -313,6 +315,9 @@ export const Application = {
     }
     if (message.applicationName !== "") {
       writer.uint32(42).string(message.applicationName);
+    }
+    if (message.displayName !== "") {
+      writer.uint32(50).string(message.displayName);
     }
     return writer;
   },
@@ -359,6 +364,13 @@ export const Application = {
 
           message.applicationName = reader.string();
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.displayName = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -375,6 +387,7 @@ export const Application = {
       source: isSet(object.source) ? String(object.source) : "",
       status: isSet(object.status) ? String(object.status) : "",
       applicationName: isSet(object.applicationName) ? String(object.applicationName) : "",
+      displayName: isSet(object.displayName) ? String(object.displayName) : "",
     };
   },
 
@@ -385,6 +398,7 @@ export const Application = {
     message.source !== undefined && (obj.source = message.source);
     message.status !== undefined && (obj.status = message.status);
     message.applicationName !== undefined && (obj.applicationName = message.applicationName);
+    message.displayName !== undefined && (obj.displayName = message.displayName);
     return obj;
   },
 
@@ -399,6 +413,7 @@ export const Application = {
     message.source = object.source ?? "";
     message.status = object.status ?? "";
     message.applicationName = object.applicationName ?? "";
+    message.displayName = object.displayName ?? "";
     return message;
   },
 };
@@ -1279,7 +1294,7 @@ export const Install_Variables_NestedValuesEntry = {
 };
 
 function createBaseInstall_Applications(): Install_Applications {
-  return { name: "", version: "", variables: undefined, postinstall: "", preinstall: "" };
+  return { name: "", version: "", variables: undefined, postinstall: "", preinstall: "", displayname: "" };
 }
 
 export const Install_Applications = {
@@ -1298,6 +1313,9 @@ export const Install_Applications = {
     }
     if (message.preinstall !== "") {
       writer.uint32(42).string(message.preinstall);
+    }
+    if (message.displayname !== "") {
+      writer.uint32(50).string(message.displayname);
     }
     return writer;
   },
@@ -1344,6 +1362,13 @@ export const Install_Applications = {
 
           message.preinstall = reader.string();
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.displayname = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1360,6 +1385,7 @@ export const Install_Applications = {
       variables: isSet(object.variables) ? Install_Variables.fromJSON(object.variables) : undefined,
       postinstall: isSet(object.postinstall) ? String(object.postinstall) : "",
       preinstall: isSet(object.preinstall) ? String(object.preinstall) : "",
+      displayname: isSet(object.displayname) ? String(object.displayname) : "",
     };
   },
 
@@ -1371,6 +1397,7 @@ export const Install_Applications = {
       (obj.variables = message.variables ? Install_Variables.toJSON(message.variables) : undefined);
     message.postinstall !== undefined && (obj.postinstall = message.postinstall);
     message.preinstall !== undefined && (obj.preinstall = message.preinstall);
+    message.displayname !== undefined && (obj.displayname = message.displayname);
     return obj;
   },
 
@@ -1387,6 +1414,7 @@ export const Install_Applications = {
       : undefined;
     message.postinstall = object.postinstall ?? "";
     message.preinstall = object.preinstall ?? "";
+    message.displayname = object.displayname ?? "";
     return message;
   },
 };

@@ -2,11 +2,17 @@
   import ProductForm from "./ProductForm.svelte";
   import { deploymentStore, productInstall } from "../store/stores";
   import VariablesForm from "./VariablesForm.svelte";
-  import { HttpHandler } from "../data/httpHandler";
+  import { fetchDeployedApplications, HttpHandler } from "../data/httpHandler";
   import { Deployments, Install_Applications, Install_Variables } from "../data/unity-cs-manager/protobuf/extensions";
   import { goto } from "$app/navigation";
   import InstallSummary from "./InstallSummary.svelte";
   import { MarketplaceMetadata } from "../data/unity-cs-manager/protobuf/marketplace";
+  import { onMount } from "svelte";
+  import Deployment from "./Deployment.svelte";
+
+  onMount(async () => {
+    await fetchDeployedApplications();
+  });
 
   let product: MarketplaceMetadata = MarketplaceMetadata.create();
 
@@ -18,12 +24,15 @@
   let step2Class = "";
   let step3Class = "";
   let step4Class = "";
+  let step5Class = "";
+
 
   $: {
     step1Class = getStepStatus(1, currentStep);
     step2Class = getStepStatus(2, currentStep);
     step3Class = getStepStatus(3, currentStep);
     step4Class = getStepStatus(4, currentStep);
+    step5Class = getStepStatus(5, currentStep);
   }
 
   let currentStep = 1;
@@ -91,7 +100,8 @@
     const a = Install_Applications.create({
       name: product.Name,
       version: product.Version,
-      variables: vars
+      variables: vars,
+      displayname: product.DisplayName
     } as any);
     const id = await httpHandler.installSoftware(a, installName);
     console.log(id);
@@ -103,13 +113,11 @@
   let deployed: Deployments;
 
   deploymentStore.subscribe(value => {
-    debugger;
     deployed = value;
   });
 
   function getVersionsForKey(key: string): string[] {
     let options: string[] = [];
-    debugger;
     if (deployed && deployed.deployment) {
       for (let d of deployed.deployment) {
         for (let a of d.application) {
@@ -137,29 +145,38 @@
                class="{step1Class}"
                aria-current="step">
               <span class="text-sm font-medium text-indigo-600">Step 1</span>
+              <span class="text-sm font-medium">Deployment Details</span>
+            </a>
+          </li>
+          <li class="md:flex-1">
+            <!-- Completed Step -->
+            <a href="#"
+               class="{step2Class}"
+               aria-current="step">
+              <span class="text-sm font-medium text-indigo-600">Step 2</span>
               <span class="text-sm font-medium">Application Details</span>
             </a>
           </li>
           <li class="md:flex-1">
             <!-- Current Step -->
             <a href="#"
-               class="{step2Class}"
+               class="{step3Class}"
                aria-current="step">
-              <span class="text-sm font-medium text-indigo-600">Step 2</span>
+              <span class="text-sm font-medium text-indigo-600">Step 3</span>
               <span class="text-sm font-medium">Dependencies</span>
-            </a>
-          </li>
-          <li class="md:flex-1">
-            <!-- Upcoming Step -->
-            <a href="#" class="{step3Class}">
-              <span class="text-sm font-medium text-gray-500 group-hover:text-gray-700">Step 3</span>
-              <span class="text-sm font-medium">Variables</span>
             </a>
           </li>
           <li class="md:flex-1">
             <!-- Upcoming Step -->
             <a href="#" class="{step4Class}">
               <span class="text-sm font-medium text-gray-500 group-hover:text-gray-700">Step 4</span>
+              <span class="text-sm font-medium">Variables</span>
+            </a>
+          </li>
+          <li class="md:flex-1">
+            <!-- Upcoming Step -->
+            <a href="#" class="{step5Class}">
+              <span class="text-sm font-medium text-gray-500 group-hover:text-gray-700">Step 5</span>
               <span class="text-sm font-medium">Summary</span>
             </a>
           </li>
@@ -168,9 +185,12 @@
 
       <form on:submit|preventDefault={installSoftware}>
         {#if currentStep === 1}
-          <ProductForm bind:product bind:installName={installName} />
+          <Deployment bind:product bind:installName={installName} />
         {/if}
         {#if currentStep === 2}
+          <ProductForm bind:product bind:installName={installName} />
+        {/if}
+        {#if currentStep === 3}
           <!-- Collapse 2 content -->
           <div class="list-content">
             {#if product.ManagedDependencies}
@@ -191,14 +211,14 @@
           </div>
         {/if}
 
-        {#if currentStep === 3}
+        {#if currentStep === 4}
           <!-- Collapse 3 content -->
           <div class="list-content">
             <VariablesForm bind:product />
           </div>
         {/if}
 
-        {#if currentStep === 4}
+        {#if currentStep === 5}
           <div class="list-content">
             <h1>Installation Summary</h1>
             <InstallSummary bind:product bind:installName={installName} />
@@ -208,10 +228,10 @@
           {#if currentStep > 1}
             <button type="button" on:click={prevStep} class="btn btn-gray">Back</button>
           {/if}
-          {#if currentStep < 4}
+          {#if currentStep < 5}
             <button type="button" on:click={nextStep} class="btn btn-gray">Next</button>
           {/if}
-          {#if currentStep === 4}
+          {#if currentStep === 5}
             <button type="submit" class="btn btn-primary">Install Software</button>
           {/if}
         </div>

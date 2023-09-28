@@ -52,21 +52,21 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 
 		deploymentID, err := db.StoreDeployment(deployment)
 		if err != nil {
-			db.UpdateApplicationStatus(deploymentID, install.Applications.Name, "STAGINGFAILED")
+			db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "STAGINGFAILED")
 
 			return err
 		}
 
 		err = terraform.AddApplicationToStack(appConfig, location, meta, install, db, deploymentID)
 
-		return execute(db, appConfig, meta, install.Applications.Name, deploymentID, conn, userid, install.DeploymentName)
+		return execute(db, appConfig, meta, install.Applications.Name, install.Applications.Displayname, deploymentID, conn, userid, install.DeploymentName)
 
 	} else {
 		return errors.New("backend not implemented")
 	}
 }
 
-func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, name string, deploymentID uint, conn *websocket.WebSocketManager, userid string, deploymentname string) error {
+func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, appname string, appdisplayname string, deploymentID uint, conn *websocket.WebSocketManager, userid string, deploymentname string) error {
 	executor := &terraform.RealTerraformExecutor{}
 
 	//m, err := fetchMandatoryVars()
@@ -78,25 +78,25 @@ func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketpla
 	if err != nil {
 		return err
 	}
-	db.UpdateApplicationStatus(deploymentID, name, "INSTALLING")
+	db.UpdateApplicationStatus(deploymentID, appname, appdisplayname, "INSTALLING")
 	fetchAllApplications(db)
 	err = terraform.RunTerraform(appConfig, conn, userid, executor, "")
 	if err != nil {
-		db.UpdateApplicationStatus(deploymentID, name, "FAILED")
+		db.UpdateApplicationStatus(deploymentID, appname, appdisplayname, "FAILED")
 		fetchAllApplications(db)
 		return err
 	}
-	db.UpdateApplicationStatus(deploymentID, name, "INSTALLED")
+	db.UpdateApplicationStatus(deploymentID, appname, appdisplayname, "INSTALLED")
 	fetchAllApplications(db)
 	err = runPostInstall(appConfig, meta, deploymentname)
 
 	if err != nil {
-		db.UpdateApplicationStatus(deploymentID, name, "POSTINSTALL FAILED")
+		db.UpdateApplicationStatus(deploymentID, appname, appdisplayname, "POSTINSTALL FAILED")
 		fetchAllApplications(db)
 
 		return err
 	}
-	db.UpdateApplicationStatus(deploymentID, name, "COMPLETE")
+	db.UpdateApplicationStatus(deploymentID, appname, appdisplayname, "COMPLETE")
 	fetchAllApplications(db)
 
 	return nil
