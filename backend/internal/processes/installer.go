@@ -126,8 +126,11 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 			log.Infof("Adding environment variable: %s = %s", cleanKey, v)
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", cleanKey, v))
 		}
-		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", install.DeploymentName))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DEPLOYMENTNAME=%s", install.DeploymentName))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", install.Applications.Displayname))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("APPNAME=%s", install.Applications.Name))
+
 		if err := cmd.Run(); err != nil {
 			log.WithError(err).Error("Error running post install script")
 			return err
@@ -157,8 +160,10 @@ func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMet
 			log.Infof("Adding environment variable: %s = %s", cleanKey, v)
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", cleanKey, v))
 		}
-		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", install.DeploymentName))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DEPLOYMENTNAME=%s", install.DeploymentName))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", install.Applications.Displayname))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("APPNAME=%s", install.Applications.Name))
 		if err := cmd.Run(); err != nil {
 			log.WithError(err).Error("Error running pre install script")
 			return err
