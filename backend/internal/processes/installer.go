@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -110,8 +111,18 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 		cmd := exec.Command(filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PostInstall))
 		cmd.Env = os.Environ()
 		for k, v := range install.Applications.Dependencies {
-			upperKey := strings.ToUpper(k)
-			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", upperKey, v))
+			// Replace hyphens with underscores
+			formattedKey := strings.ReplaceAll(k, "-", "_")
+
+			// Convert to upper case
+			upperKey := strings.ToUpper(formattedKey)
+
+			// Use a regex to keep only alphanumeric characters and underscores
+			re := regexp.MustCompile("[^A-Z0-9_]+")
+			cleanKey := re.ReplaceAllString(upperKey, "")
+
+			log.Infof("Adding environment variable: %s = %s", cleanKey, v)
+			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", cleanKey, v))
 		}
 		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", install.DeploymentName))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
@@ -129,8 +140,18 @@ func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMet
 		cmd := exec.Command(filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PreInstall))
 		cmd.Env = os.Environ()
 		for k, v := range install.Applications.Dependencies {
-			upperKey := strings.ToUpper(k)
-			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", upperKey, v))
+			// Replace hyphens with underscores
+			formattedKey := strings.ReplaceAll(k, "-", "_")
+
+			// Convert to upper case
+			upperKey := strings.ToUpper(formattedKey)
+
+			// Use a regex to keep only alphanumeric characters and underscores
+			re := regexp.MustCompile("[^A-Z0-9_]+")
+			cleanKey := re.ReplaceAllString(upperKey, "")
+
+			log.Infof("Adding environment variable: %s = %s", cleanKey, v)
+			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", cleanKey, v))
 		}
 		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", install.DeploymentName))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
