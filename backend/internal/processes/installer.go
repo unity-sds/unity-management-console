@@ -39,6 +39,7 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 		app := models.Application{
 			Name:        install.Applications.Name,
 			Version:     install.Applications.Version,
+			DisplayName: install.Applications.Displayname,
 			PackageName: meta.Name,
 			Source:      meta.Package,
 			Status:      "STAGED",

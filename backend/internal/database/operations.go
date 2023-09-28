@@ -153,7 +153,7 @@ func (g GormDatastore) UpdateApplicationStatus(deploymentID uint, targetAppName 
 		}
 	}
 
-	err := errors.New("Application not found")
+	err := errors.New("application not found")
 	log.WithError(err).Error("Problem finding application")
 	return err
 }
