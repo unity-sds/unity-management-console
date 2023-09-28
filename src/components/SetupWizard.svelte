@@ -105,6 +105,8 @@
       displayname: product.DisplayName,
       dependencies: dependencyMap
     } as any);
+    console.log("installing");
+    console.log(a);
     const id = await httpHandler.installSoftware(a, installName);
     console.log(id);
     goto("/ui/progress", { replaceState: true });
@@ -137,6 +139,7 @@
     const selectElement = event.target as HTMLSelectElement;
     const selectedValue = selectElement.value;
 
+    console.log("adding dependency: " + key + " " + selectedValue);
     if (selectedValue) {
       dependencyMap.set(key, selectedValue);
     } else {
