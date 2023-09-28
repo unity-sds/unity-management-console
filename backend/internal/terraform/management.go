@@ -180,7 +180,13 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		attributes[key] = cty.StringVal(element)
 	}
 	parseAdvancedVariables(install, &attributes)
-	appendBlockToBody(rootBody, "module", []string{install.Applications.Name}, path, attributes)
+	rand.Seed(time.Now().UnixNano())
+	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	randomChars := make([]byte, 5)
+	for i, v := range rand.Perm(52)[:5] {
+		randomChars[i] = chars[v]
+	}
+	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", install.Applications.Name, string(randomChars))}, path, attributes)
 
 	_, err = tfFile.Write(hclFile.Bytes())
 	if err != nil {
