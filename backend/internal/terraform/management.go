@@ -169,10 +169,10 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		return err
 	}
 
-	generateMetadataHeader(rootBody, u.String(), meta.Name, install.Applications.Name, install.Applications.Version, "admin", deploymentID)
+	generateMetadataHeader(rootBody, u.String(), meta.Name, install.Applications.Displayname, install.Applications.Version, "admin", deploymentID)
 
 	attributes := map[string]cty.Value{
-		"name": cty.StringVal(install.DeploymentName),
+		"name": cty.StringVal(install.Applications.Displayname),
 		"tags": cty.MapValEmpty(cty.String), // Example of setting an empty map
 		// Add other attributes as needed
 	}
