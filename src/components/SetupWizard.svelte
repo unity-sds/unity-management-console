@@ -185,10 +185,10 @@
 
       <form on:submit|preventDefault={installSoftware}>
         {#if currentStep === 1}
-          <Deployment bind:product bind:installName={installName} />
+          <Deployment bind:installName={installName} />
         {/if}
         {#if currentStep === 2}
-          <ProductForm bind:product bind:installName={installName} />
+          <ProductForm bind:product />
         {/if}
         {#if currentStep === 3}
           <!-- Collapse 2 content -->
