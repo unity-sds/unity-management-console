@@ -13,7 +13,7 @@
   onMount(async () => {
     await fetchDeployedApplications();
   });
-  let dependencyMap = new Map<string, string>();
+  let dependencyMap: { [key: string]: string } = {};
 
   let product: MarketplaceMetadata = MarketplaceMetadata.create();
 
@@ -97,6 +97,7 @@
     merged.Values = product.DefaultDeployment?.Variables?.Values;
     merged.AdvancedValues = product.DefaultDeployment?.Variables?.AdvancedValues;
 
+
     const vars = Install_Variables.fromJSON(merged);
     const a = Install_Applications.create({
       name: product.Name,
@@ -141,9 +142,9 @@
 
     console.log("adding dependency: " + key + " " + selectedValue);
     if (selectedValue) {
-      dependencyMap.set(key, selectedValue);
+      dependencyMap[key] = selectedValue;
     } else {
-      dependencyMap.delete(key);
+      delete dependencyMap[key];
     }
   }
 
