@@ -135,6 +135,10 @@ func ReapplyApplication(payload string, conf *config.AppConfig, store database.D
 			// Check applicationName from the comments and delete the file if it matches
 			log.Infof("Check if appname %s == %s", metadata["applicationName"], uninstall.Application)
 			if metadata["applicationName"] == uninstall.Application {
+				inst := &marketplace.Install{
+					Applications:   nil,
+					DeploymentName: metadata["deploymentID"],
+				}
 				app := marketplace.Install_Applications{
 					Name:        metadata["application"],
 					Version:     metadata["version"],
@@ -148,7 +152,7 @@ func ReapplyApplication(payload string, conf *config.AppConfig, store database.D
 				}
 				val, err := strconv.ParseUint(metadata["deploymentID"], 10, 0)
 				uintVal := uint(val)
-				err = execute(store, conf, meta, metadata["applicationName"], metadata["displayName"], uintVal, wsmgr, userid, metadata["deploymentID"])
+				err = execute(store, conf, meta, inst, uintVal, wsmgr, userid)
 				if err != nil {
 					return err
 				}

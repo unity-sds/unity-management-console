@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -60,14 +61,14 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 
 		err = terraform.AddApplicationToStack(appConfig, location, meta, install, db, deploymentID)
 
-		return execute(db, appConfig, meta, install.Applications.Name, install.Applications.Displayname, deploymentID, conn, userid, install.DeploymentName)
+		return execute(db, appConfig, meta, install, deploymentID, conn, userid)
 
 	} else {
 		return errors.New("backend not implemented")
 	}
 }
 
-func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, appname string, appdisplayname string, deploymentID uint, conn *websocket.WebSocketManager, userid string, deploymentname string) error {
+func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, install *marketplace.Install, deploymentID uint, conn *websocket.WebSocketManager, userid string) error {
 	executor := &terraform.RealTerraformExecutor{}
 
 	//m, err := fetchMandatoryVars()
@@ -75,40 +76,44 @@ func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketpla
 	//	return err
 	//}
 	//terraform.WriteTFVars(m, appConfig)
-	err := runPreInstall(appConfig, meta, deploymentname)
+	err := runPreInstall(appConfig, meta, install)
 	if err != nil {
 		return err
 	}
-	db.UpdateApplicationStatus(deploymentID, appname, appdisplayname, "INSTALLING")
+	db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "INSTALLING")
 	fetchAllApplications(db)
 	err = terraform.RunTerraform(appConfig, conn, userid, executor, "")
 	if err != nil {
-		db.UpdateApplicationStatus(deploymentID, appname, appdisplayname, "FAILED")
+		db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "FAILED")
 		fetchAllApplications(db)
 		return err
 	}
-	db.UpdateApplicationStatus(deploymentID, appname, appdisplayname, "INSTALLED")
+	db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "INSTALLED")
 	fetchAllApplications(db)
-	err = runPostInstall(appConfig, meta, deploymentname)
+	err = runPostInstall(appConfig, meta, install)
 
 	if err != nil {
-		db.UpdateApplicationStatus(deploymentID, appname, appdisplayname, "POSTINSTALL FAILED")
+		db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "POSTINSTALL FAILED")
 		fetchAllApplications(db)
 
 		return err
 	}
-	db.UpdateApplicationStatus(deploymentID, appname, appdisplayname, "COMPLETE")
+	db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "COMPLETE")
 	fetchAllApplications(db)
 
 	return nil
 }
-func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, name string) error {
+func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, install *marketplace.Install) error {
 
 	if meta.PostInstall != "" {
 		//TODO UNPIN ME
 		cmd := exec.Command(filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PostInstall))
 		cmd.Env = os.Environ()
-		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", name))
+		for k, v := range install.Applications.Dependencies {
+			upperKey := strings.ToUpper(k)
+			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", upperKey, v))
+		}
+		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", install.DeploymentName))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
 		if err := cmd.Run(); err != nil {
 			log.WithError(err).Error("Error running post install script")
@@ -118,14 +123,17 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 	return nil
 }
 
-func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, name string) error {
+func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, install *marketplace.Install) error {
 	if meta.PreInstall != "" {
 		// TODO UNPIN ME
 		cmd := exec.Command(filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PreInstall))
 		cmd.Env = os.Environ()
-		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", name))
+		for k, v := range install.Applications.Dependencies {
+			upperKey := strings.ToUpper(k)
+			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", upperKey, v))
+		}
+		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", install.DeploymentName))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("EKS_NAME=%s", eks_name))
 		if err := cmd.Run(); err != nil {
 			log.WithError(err).Error("Error running pre install script")
 			return err
