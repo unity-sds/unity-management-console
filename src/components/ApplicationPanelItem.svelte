@@ -40,7 +40,7 @@
       <a href="{link}" on:keydown={handleKeydown}
          class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded mr-2 inline-block">Explore</a>
       <button on:click={reapplyApp} on:keydown={handleKeydown}
-              class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded inline-block">Uninstall
+              class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded inline-block">Reapply Installation
       </button>
       <button on:click={uninstallApp} on:keydown={handleKeydown}
               class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded inline-block">Uninstall
