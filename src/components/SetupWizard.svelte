@@ -122,7 +122,7 @@
       for (let d of deployed.deployment) {
         for (let a of d.application) {
           if (key === a.packageName) {
-            options.push(a.applicationName);
+            options.push(a.displayName);
           }
         }
       }
