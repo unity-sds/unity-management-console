@@ -108,7 +108,9 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 
 	if meta.PostInstall != "" {
 		//TODO UNPIN ME
-		cmd := exec.Command(filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PostInstall))
+		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PostInstall)
+		log.Infof("Post install command path: %s", path)
+		cmd := exec.Command(path)
 		cmd.Env = os.Environ()
 		for k, v := range install.Applications.Dependencies {
 			// Replace hyphens with underscores
@@ -137,7 +139,9 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, install *marketplace.Install) error {
 	if meta.PreInstall != "" {
 		// TODO UNPIN ME
-		cmd := exec.Command(filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PreInstall))
+		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PreInstall)
+		log.Infof("Pre install command path: %s", path)
+		cmd := exec.Command(path)
 		cmd.Env = os.Environ()
 		for k, v := range install.Applications.Dependencies {
 			// Replace hyphens with underscores
