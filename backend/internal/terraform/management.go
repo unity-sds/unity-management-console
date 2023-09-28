@@ -186,7 +186,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	for i, v := range rand.Perm(52)[:5] {
 		randomChars[i] = chars[v]
 	}
-	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", install.Applications.Name, string(randomChars))}, path, attributes)
+	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", install.Applications.Displayname, string(randomChars))}, path, attributes)
 
 	_, err = tfFile.Write(hclFile.Bytes())
 	if err != nil {
