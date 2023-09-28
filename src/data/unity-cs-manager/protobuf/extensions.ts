@@ -44,39 +44,14 @@ export interface Install {
   DeploymentName: string;
 }
 
-export interface Install_TypeMap {
-  type: string;
-  default: string;
-}
-
-export interface Install_SubMap {
-  Options: Install_TypeMap | undefined;
-}
-
-export interface Install_InnerMap {
-  Config: { [key: string]: Install_SubMap };
-  Type: string;
-}
-
-export interface Install_InnerMap_ConfigEntry {
-  key: string;
-  value: Install_SubMap | undefined;
-}
-
 export interface Install_Variables {
   Values: { [key: string]: string };
-  NestedValues: { [key: string]: Install_InnerMap };
   AdvancedValues: { [key: string]: any } | undefined;
 }
 
 export interface Install_Variables_ValuesEntry {
   key: string;
   value: string;
-}
-
-export interface Install_Variables_NestedValuesEntry {
-  key: string;
-  value: Install_InnerMap | undefined;
 }
 
 export interface Install_Applications {
@@ -86,6 +61,12 @@ export interface Install_Applications {
   postinstall: string;
   preinstall: string;
   displayname: string;
+  dependencies: { [key: string]: string };
+}
+
+export interface Install_Applications_DependenciesEntry {
+  key: string;
+  value: string;
 }
 
 export interface SimpleMessage {
@@ -728,312 +709,14 @@ export const Install = {
   },
 };
 
-function createBaseInstall_TypeMap(): Install_TypeMap {
-  return { type: "", default: "" };
-}
-
-export const Install_TypeMap = {
-  encode(message: Install_TypeMap, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.type !== "") {
-      writer.uint32(10).string(message.type);
-    }
-    if (message.default !== "") {
-      writer.uint32(18).string(message.default);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Install_TypeMap {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInstall_TypeMap();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.type = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.default = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Install_TypeMap {
-    return {
-      type: isSet(object.type) ? String(object.type) : "",
-      default: isSet(object.default) ? String(object.default) : "",
-    };
-  },
-
-  toJSON(message: Install_TypeMap): unknown {
-    const obj: any = {};
-    message.type !== undefined && (obj.type = message.type);
-    message.default !== undefined && (obj.default = message.default);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Install_TypeMap>, I>>(base?: I): Install_TypeMap {
-    return Install_TypeMap.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Install_TypeMap>, I>>(object: I): Install_TypeMap {
-    const message = createBaseInstall_TypeMap();
-    message.type = object.type ?? "";
-    message.default = object.default ?? "";
-    return message;
-  },
-};
-
-function createBaseInstall_SubMap(): Install_SubMap {
-  return { Options: undefined };
-}
-
-export const Install_SubMap = {
-  encode(message: Install_SubMap, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.Options !== undefined) {
-      Install_TypeMap.encode(message.Options, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Install_SubMap {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInstall_SubMap();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.Options = Install_TypeMap.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Install_SubMap {
-    return { Options: isSet(object.Options) ? Install_TypeMap.fromJSON(object.Options) : undefined };
-  },
-
-  toJSON(message: Install_SubMap): unknown {
-    const obj: any = {};
-    message.Options !== undefined &&
-      (obj.Options = message.Options ? Install_TypeMap.toJSON(message.Options) : undefined);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Install_SubMap>, I>>(base?: I): Install_SubMap {
-    return Install_SubMap.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Install_SubMap>, I>>(object: I): Install_SubMap {
-    const message = createBaseInstall_SubMap();
-    message.Options = (object.Options !== undefined && object.Options !== null)
-      ? Install_TypeMap.fromPartial(object.Options)
-      : undefined;
-    return message;
-  },
-};
-
-function createBaseInstall_InnerMap(): Install_InnerMap {
-  return { Config: {}, Type: "" };
-}
-
-export const Install_InnerMap = {
-  encode(message: Install_InnerMap, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    Object.entries(message.Config).forEach(([key, value]) => {
-      Install_InnerMap_ConfigEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
-    });
-    if (message.Type !== "") {
-      writer.uint32(18).string(message.Type);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Install_InnerMap {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInstall_InnerMap();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          const entry1 = Install_InnerMap_ConfigEntry.decode(reader, reader.uint32());
-          if (entry1.value !== undefined) {
-            message.Config[entry1.key] = entry1.value;
-          }
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.Type = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Install_InnerMap {
-    return {
-      Config: isObject(object.Config)
-        ? Object.entries(object.Config).reduce<{ [key: string]: Install_SubMap }>((acc, [key, value]) => {
-          acc[key] = Install_SubMap.fromJSON(value);
-          return acc;
-        }, {})
-        : {},
-      Type: isSet(object.Type) ? String(object.Type) : "",
-    };
-  },
-
-  toJSON(message: Install_InnerMap): unknown {
-    const obj: any = {};
-    obj.Config = {};
-    if (message.Config) {
-      Object.entries(message.Config).forEach(([k, v]) => {
-        obj.Config[k] = Install_SubMap.toJSON(v);
-      });
-    }
-    message.Type !== undefined && (obj.Type = message.Type);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Install_InnerMap>, I>>(base?: I): Install_InnerMap {
-    return Install_InnerMap.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Install_InnerMap>, I>>(object: I): Install_InnerMap {
-    const message = createBaseInstall_InnerMap();
-    message.Config = Object.entries(object.Config ?? {}).reduce<{ [key: string]: Install_SubMap }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = Install_SubMap.fromPartial(value);
-        }
-        return acc;
-      },
-      {},
-    );
-    message.Type = object.Type ?? "";
-    return message;
-  },
-};
-
-function createBaseInstall_InnerMap_ConfigEntry(): Install_InnerMap_ConfigEntry {
-  return { key: "", value: undefined };
-}
-
-export const Install_InnerMap_ConfigEntry = {
-  encode(message: Install_InnerMap_ConfigEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.key !== "") {
-      writer.uint32(10).string(message.key);
-    }
-    if (message.value !== undefined) {
-      Install_SubMap.encode(message.value, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Install_InnerMap_ConfigEntry {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInstall_InnerMap_ConfigEntry();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.key = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.value = Install_SubMap.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Install_InnerMap_ConfigEntry {
-    return {
-      key: isSet(object.key) ? String(object.key) : "",
-      value: isSet(object.value) ? Install_SubMap.fromJSON(object.value) : undefined,
-    };
-  },
-
-  toJSON(message: Install_InnerMap_ConfigEntry): unknown {
-    const obj: any = {};
-    message.key !== undefined && (obj.key = message.key);
-    message.value !== undefined && (obj.value = message.value ? Install_SubMap.toJSON(message.value) : undefined);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Install_InnerMap_ConfigEntry>, I>>(base?: I): Install_InnerMap_ConfigEntry {
-    return Install_InnerMap_ConfigEntry.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Install_InnerMap_ConfigEntry>, I>>(object: I): Install_InnerMap_ConfigEntry {
-    const message = createBaseInstall_InnerMap_ConfigEntry();
-    message.key = object.key ?? "";
-    message.value = (object.value !== undefined && object.value !== null)
-      ? Install_SubMap.fromPartial(object.value)
-      : undefined;
-    return message;
-  },
-};
-
 function createBaseInstall_Variables(): Install_Variables {
-  return { Values: {}, NestedValues: {}, AdvancedValues: undefined };
+  return { Values: {}, AdvancedValues: undefined };
 }
 
 export const Install_Variables = {
   encode(message: Install_Variables, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     Object.entries(message.Values).forEach(([key, value]) => {
       Install_Variables_ValuesEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
-    });
-    Object.entries(message.NestedValues).forEach(([key, value]) => {
-      Install_Variables_NestedValuesEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).ldelim();
     });
     if (message.AdvancedValues !== undefined) {
       Struct.encode(Struct.wrap(message.AdvancedValues), writer.uint32(26).fork()).ldelim();
@@ -1056,16 +739,6 @@ export const Install_Variables = {
           const entry1 = Install_Variables_ValuesEntry.decode(reader, reader.uint32());
           if (entry1.value !== undefined) {
             message.Values[entry1.key] = entry1.value;
-          }
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          const entry2 = Install_Variables_NestedValuesEntry.decode(reader, reader.uint32());
-          if (entry2.value !== undefined) {
-            message.NestedValues[entry2.key] = entry2.value;
           }
           continue;
         case 3:
@@ -1092,12 +765,6 @@ export const Install_Variables = {
           return acc;
         }, {})
         : {},
-      NestedValues: isObject(object.NestedValues)
-        ? Object.entries(object.NestedValues).reduce<{ [key: string]: Install_InnerMap }>((acc, [key, value]) => {
-          acc[key] = Install_InnerMap.fromJSON(value);
-          return acc;
-        }, {})
-        : {},
       AdvancedValues: isObject(object.AdvancedValues) ? object.AdvancedValues : undefined,
     };
   },
@@ -1108,12 +775,6 @@ export const Install_Variables = {
     if (message.Values) {
       Object.entries(message.Values).forEach(([k, v]) => {
         obj.Values[k] = v;
-      });
-    }
-    obj.NestedValues = {};
-    if (message.NestedValues) {
-      Object.entries(message.NestedValues).forEach(([k, v]) => {
-        obj.NestedValues[k] = Install_InnerMap.toJSON(v);
       });
     }
     message.AdvancedValues !== undefined && (obj.AdvancedValues = message.AdvancedValues);
@@ -1132,15 +793,6 @@ export const Install_Variables = {
       }
       return acc;
     }, {});
-    message.NestedValues = Object.entries(object.NestedValues ?? {}).reduce<{ [key: string]: Install_InnerMap }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = Install_InnerMap.fromPartial(value);
-        }
-        return acc;
-      },
-      {},
-    );
     message.AdvancedValues = object.AdvancedValues ?? undefined;
     return message;
   },
@@ -1216,85 +868,16 @@ export const Install_Variables_ValuesEntry = {
   },
 };
 
-function createBaseInstall_Variables_NestedValuesEntry(): Install_Variables_NestedValuesEntry {
-  return { key: "", value: undefined };
-}
-
-export const Install_Variables_NestedValuesEntry = {
-  encode(message: Install_Variables_NestedValuesEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.key !== "") {
-      writer.uint32(10).string(message.key);
-    }
-    if (message.value !== undefined) {
-      Install_InnerMap.encode(message.value, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Install_Variables_NestedValuesEntry {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInstall_Variables_NestedValuesEntry();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.key = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.value = Install_InnerMap.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Install_Variables_NestedValuesEntry {
-    return {
-      key: isSet(object.key) ? String(object.key) : "",
-      value: isSet(object.value) ? Install_InnerMap.fromJSON(object.value) : undefined,
-    };
-  },
-
-  toJSON(message: Install_Variables_NestedValuesEntry): unknown {
-    const obj: any = {};
-    message.key !== undefined && (obj.key = message.key);
-    message.value !== undefined && (obj.value = message.value ? Install_InnerMap.toJSON(message.value) : undefined);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Install_Variables_NestedValuesEntry>, I>>(
-    base?: I,
-  ): Install_Variables_NestedValuesEntry {
-    return Install_Variables_NestedValuesEntry.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<Install_Variables_NestedValuesEntry>, I>>(
-    object: I,
-  ): Install_Variables_NestedValuesEntry {
-    const message = createBaseInstall_Variables_NestedValuesEntry();
-    message.key = object.key ?? "";
-    message.value = (object.value !== undefined && object.value !== null)
-      ? Install_InnerMap.fromPartial(object.value)
-      : undefined;
-    return message;
-  },
-};
-
 function createBaseInstall_Applications(): Install_Applications {
-  return { name: "", version: "", variables: undefined, postinstall: "", preinstall: "", displayname: "" };
+  return {
+    name: "",
+    version: "",
+    variables: undefined,
+    postinstall: "",
+    preinstall: "",
+    displayname: "",
+    dependencies: {},
+  };
 }
 
 export const Install_Applications = {
@@ -1317,6 +900,9 @@ export const Install_Applications = {
     if (message.displayname !== "") {
       writer.uint32(50).string(message.displayname);
     }
+    Object.entries(message.dependencies).forEach(([key, value]) => {
+      Install_Applications_DependenciesEntry.encode({ key: key as any, value }, writer.uint32(58).fork()).ldelim();
+    });
     return writer;
   },
 
@@ -1369,6 +955,16 @@ export const Install_Applications = {
 
           message.displayname = reader.string();
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          const entry7 = Install_Applications_DependenciesEntry.decode(reader, reader.uint32());
+          if (entry7.value !== undefined) {
+            message.dependencies[entry7.key] = entry7.value;
+          }
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1386,6 +982,12 @@ export const Install_Applications = {
       postinstall: isSet(object.postinstall) ? String(object.postinstall) : "",
       preinstall: isSet(object.preinstall) ? String(object.preinstall) : "",
       displayname: isSet(object.displayname) ? String(object.displayname) : "",
+      dependencies: isObject(object.dependencies)
+        ? Object.entries(object.dependencies).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
     };
   },
 
@@ -1398,6 +1000,12 @@ export const Install_Applications = {
     message.postinstall !== undefined && (obj.postinstall = message.postinstall);
     message.preinstall !== undefined && (obj.preinstall = message.preinstall);
     message.displayname !== undefined && (obj.displayname = message.displayname);
+    obj.dependencies = {};
+    if (message.dependencies) {
+      Object.entries(message.dependencies).forEach(([k, v]) => {
+        obj.dependencies[k] = v;
+      });
+    }
     return obj;
   },
 
@@ -1415,6 +1023,87 @@ export const Install_Applications = {
     message.postinstall = object.postinstall ?? "";
     message.preinstall = object.preinstall ?? "";
     message.displayname = object.displayname ?? "";
+    message.dependencies = Object.entries(object.dependencies ?? {}).reduce<{ [key: string]: string }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = String(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    return message;
+  },
+};
+
+function createBaseInstall_Applications_DependenciesEntry(): Install_Applications_DependenciesEntry {
+  return { key: "", value: "" };
+}
+
+export const Install_Applications_DependenciesEntry = {
+  encode(message: Install_Applications_DependenciesEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Install_Applications_DependenciesEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseInstall_Applications_DependenciesEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Install_Applications_DependenciesEntry {
+    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object.value) ? String(object.value) : "" };
+  },
+
+  toJSON(message: Install_Applications_DependenciesEntry): unknown {
+    const obj: any = {};
+    message.key !== undefined && (obj.key = message.key);
+    message.value !== undefined && (obj.value = message.value);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Install_Applications_DependenciesEntry>, I>>(
+    base?: I,
+  ): Install_Applications_DependenciesEntry {
+    return Install_Applications_DependenciesEntry.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Install_Applications_DependenciesEntry>, I>>(
+    object: I,
+  ): Install_Applications_DependenciesEntry {
+    const message = createBaseInstall_Applications_DependenciesEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
     return message;
   },
 };

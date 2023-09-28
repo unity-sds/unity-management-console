@@ -125,9 +125,9 @@ func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMet
 		cmd.Env = os.Environ()
 		cmd.Env = append(cmd.Env, fmt.Sprintf("NAME=%s", name))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("EKS_NAME=%s", "test_deployment"))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("EKS_NAME=%s", eks_name))
 		if err := cmd.Run(); err != nil {
-			log.WithError(err).Error("Error running post install script")
+			log.WithError(err).Error("Error running pre install script")
 			return err
 		}
 	}

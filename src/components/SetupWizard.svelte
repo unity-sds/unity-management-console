@@ -13,6 +13,7 @@
   onMount(async () => {
     await fetchDeployedApplications();
   });
+  let dependencyMap = new Map<string, string>();
 
   let product: MarketplaceMetadata = MarketplaceMetadata.create();
 
@@ -101,7 +102,8 @@
       name: product.Name,
       version: product.Version,
       variables: vars,
-      displayname: product.DisplayName
+      displayname: product.DisplayName,
+      dependencies: dependencyMap
     } as any);
     const id = await httpHandler.installSoftware(a, installName);
     console.log(id);
@@ -128,6 +130,18 @@
       }
     }
     return options;
+  }
+
+  // Add a new function to handle the select change
+  function handleDependencyChange(event: Event, key: string) {
+    const selectElement = event.target as HTMLSelectElement;
+    const selectedValue = selectElement.value;
+
+    if (selectedValue) {
+      dependencyMap.set(key, selectedValue);
+    } else {
+      dependencyMap.delete(key);
+    }
   }
 
   let i = 0;
@@ -198,13 +212,15 @@
               <!--{#each product.ManagedDependencies as dependency}-->
               {#each managedDependenciesKeys as key}
                 <div class="form-group">
-                  <!--                  <strong>{key}</strong>: Minimum Version - {dependency[key].MinimumVersion}-->
-                  <label class="col-form-label">{key} <select class="form-control">
-                    <option></option>
-                    {#each getVersionsForKey(key) as version}
-                      <option>{version}</option>
-                    {/each}
-                  </select></label>
+                  <label class="col-form-label">
+                    {key}
+                    <select class="form-control" on:change="{(e) => handleDependencyChange(e, key)}">
+                      <option></option>
+                      {#each getVersionsForKey(key) as version}
+                        <option>{version}</option>
+                      {/each}
+                    </select>
+                  </label>
                 </div>
               {/each}
             {/if}
