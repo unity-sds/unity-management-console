@@ -103,11 +103,13 @@
   let deployed: Deployments;
 
   deploymentStore.subscribe(value => {
+    debugger;
     deployed = value;
   });
 
   function getVersionsForKey(key: string): string[] {
     let options: string[] = [];
+    debugger;
     if (deployed && deployed.deployment) {
       for (let d of deployed.deployment) {
         for (let a of d.application) {

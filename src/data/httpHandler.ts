@@ -104,6 +104,7 @@ export class HttpHandler {
 							);
 						}
 					} else if (message.deployments) {
+						debugger;
 						deploymentStore.set(message.deployments);
 					}
 					lastProcessedIndex = i; // Update the last processed index
