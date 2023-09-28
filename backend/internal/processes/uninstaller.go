@@ -17,6 +17,7 @@ import (
 
 type UninstallPayload struct {
 	Application        string
+	DisplayName        string
 	ApplicationPackage string
 	Deployment         string
 }
@@ -69,13 +70,13 @@ func UninstallApplication(payload string, conf *config.AppConfig, store database
 				err = os.Remove(path.Join(filepath, file.Name()))
 				if err != nil {
 					id, err := store.FetchDeploymentIDByName(uninstall.Deployment)
-					err = store.UpdateApplicationStatus(id, uninstall.Application, "UNINSTALL FAILED")
+					err = store.UpdateApplicationStatus(id, uninstall.Application, uninstall.DisplayName, "UNINSTALL FAILED")
 					return err
 				}
 				err := store.RemoveApplicationByName(uninstall.Deployment, uninstall.Application)
 				if err != nil {
 					id, err := store.FetchDeploymentIDByName(uninstall.Deployment)
-					err = store.UpdateApplicationStatus(id, uninstall.Application, "UNINSTALL FAILED")
+					err = store.UpdateApplicationStatus(id, uninstall.Application, uninstall.DisplayName, "UNINSTALL FAILED")
 					return err
 				}
 				err = fetchAllApplications(store)
@@ -147,7 +148,10 @@ func ReapplyApplication(payload string, conf *config.AppConfig, store database.D
 				}
 				val, err := strconv.ParseUint(metadata["deploymentID"], 10, 0)
 				uintVal := uint(val)
-				execute(store, conf, meta, metadata["applicationName"], uintVal, wsmgr, userid, metadata["deploymentID"])
+				err = execute(store, conf, meta, metadata["applicationName"], metadata["displayName"], uintVal, wsmgr, userid, metadata["deploymentID"])
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
