@@ -43,7 +43,7 @@
       const deploymentName = el.name;
       el.application.forEach(ar => {
         const newCardItem = {
-          title: ar.applicationName,
+          title: ar.displayName,
           source: ar.source,
           version: ar.version,
           status: ar.status,
