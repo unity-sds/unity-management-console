@@ -222,8 +222,10 @@ func lookUpVariablePointer(element string, inst *marketplace.Install) (string, e
 func lookUpFromDependencies(element string, inst *marketplace.Install_Applications) (string, error) {
 	deps := inst.Dependencies
 	for k, v := range deps {
+		//Stripping * from string
+		newStr := strings.Replace(element, "*", "", 1)
 		log.Infof("Checking dependency: %s, %s for value %s", k, v, element)
-		if k == element {
+		if k == newStr {
 			return v, nil
 		}
 	}
