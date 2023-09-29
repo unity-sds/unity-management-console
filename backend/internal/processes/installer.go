@@ -127,7 +127,7 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", cleanKey, v))
 		}
 		cmd.Env = append(cmd.Env, fmt.Sprintf("DEPLOYMENTNAME=%s", install.DeploymentName))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", appConfig.Workdir))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", install.Applications.Displayname))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("APPNAME=%s", install.Applications.Name))
 
@@ -161,7 +161,7 @@ func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMet
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", cleanKey, v))
 		}
 		cmd.Env = append(cmd.Env, fmt.Sprintf("DEPLOYMENTNAME=%s", install.DeploymentName))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", meta.WorkDirectory))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", appConfig.Workdir))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", install.Applications.Displayname))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("APPNAME=%s", install.Applications.Name))
 		if err := cmd.Run(); err != nil {

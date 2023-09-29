@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -172,11 +173,19 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	generateMetadataHeader(rootBody, u.String(), meta.Name, install.Applications.Displayname, install.Applications.Version, "admin", deploymentID)
 
 	attributes := map[string]cty.Value{
-		"name": cty.StringVal(install.Applications.Displayname),
-		"tags": cty.MapValEmpty(cty.String), // Example of setting an empty map
+		"deployment_name": cty.StringVal(install.Applications.Displayname),
+		"tags":            cty.MapValEmpty(cty.String), // Example of setting an empty map
 		// Add other attributes as needed
 	}
 	for key, element := range install.Applications.Variables.Values {
+		if strings.HasPrefix("*", element) {
+			element, err = lookUpVariablePointer(element, install)
+			if err != nil {
+				return err
+			}
+		} else if strings.HasPrefix("\\*", element) {
+			element = strings.Replace(element, "\\", "", 1)
+		}
 		attributes[key] = cty.StringVal(element)
 	}
 	parseAdvancedVariables(install, &attributes)
@@ -195,4 +204,28 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	}
 
 	return nil
+}
+
+func lookUpVariablePointer(element string, inst *marketplace.Install) (string, error) {
+	val, err := lookUpFromDependencies(element, inst.Applications)
+	if err != nil {
+		return "", err
+	}
+	if val != "" {
+		return val, err
+	}
+
+	return "", nil
+}
+
+func lookUpFromDependencies(element string, inst *marketplace.Install_Applications) (string, error) {
+	deps := inst.Dependencies
+	for k, v := range deps {
+		if k == element {
+			return v, nil
+		}
+	}
+
+	return "", nil
+
 }
