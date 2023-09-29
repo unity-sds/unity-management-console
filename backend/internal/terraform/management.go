@@ -187,6 +187,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		} else if strings.HasPrefix("\\*", element) {
 			element = strings.Replace(element, "\\", "", 1)
 		}
+		log.Infof("Adding variable: %s, %s", key, element)
 		attributes[key] = cty.StringVal(element)
 	}
 	parseAdvancedVariables(install, &attributes)
