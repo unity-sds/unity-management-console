@@ -178,13 +178,13 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		// Add other attributes as needed
 	}
 	for key, element := range install.Applications.Variables.Values {
-		if strings.HasPrefix("*", element) {
+		if strings.HasPrefix(element, "*") {
 			log.Infof("Element %s has prefix: %s", key, element)
 			element, err = lookUpVariablePointer(element, install)
 			if err != nil {
 				return err
 			}
-		} else if strings.HasPrefix("\\*", element) {
+		} else if strings.HasPrefix(element, "\\*") {
 			element = strings.Replace(element, "\\", "", 1)
 		}
 		log.Infof("Adding variable: %s, %s", key, element)
