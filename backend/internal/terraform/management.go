@@ -179,6 +179,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	}
 	for key, element := range install.Applications.Variables.Values {
 		if strings.HasPrefix("*", element) {
+			log.Infof("Element %s has prefix: %s", key, element)
 			element, err = lookUpVariablePointer(element, install)
 			if err != nil {
 				return err
@@ -221,6 +222,7 @@ func lookUpVariablePointer(element string, inst *marketplace.Install) (string, e
 func lookUpFromDependencies(element string, inst *marketplace.Install_Applications) (string, error) {
 	deps := inst.Dependencies
 	for k, v := range deps {
+		log.Infof("Checking dependency: %s, %s for value %s", k, v, element)
 		if k == element {
 			return v, nil
 		}
