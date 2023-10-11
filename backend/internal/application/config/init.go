@@ -23,6 +23,7 @@ type AppConfig struct {
 	BucketName           string
 	Workdir              string
 	DefaultSSMParameters []SSMParameter
+	BasePath             string
 }
 
 type FeatureFlagClient interface {
