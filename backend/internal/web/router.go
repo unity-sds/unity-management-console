@@ -13,6 +13,8 @@ import (
 	websocket2 "github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"net/http"
 	"net/http/pprof"
+	"path"
+	"strings"
 )
 
 var conf config.AppConfig
@@ -39,7 +41,10 @@ func setupFeatureFlags(c *gin.Context) {
 
 // handleRoot redirects the root URL to "/ui".
 func handleRoot(c *gin.Context) {
-	c.Redirect(http.StatusMovedPermanently, "/ui")
+	basePath := path.Dir(c.Request.URL.Path)
+	redirectURL := path.Join(basePath, "/ui")
+
+	c.Redirect(http.StatusMovedPermanently, redirectURL)
 }
 
 // handlePing responds with a JSON message containing "pong".
@@ -62,6 +67,27 @@ func handleNoRoute(c *gin.Context) {
 	c.File("./build/index.html")
 }
 
+func serveUI(c *gin.Context) {
+	basePath := path.Dir(c.Request.URL.Path)
+
+	// If the request is for /dev/mgmtproxy/ui/somefile.js,
+	// then the relPath will be /ui/somefile.js
+	relPath := strings.TrimPrefix(c.Request.URL.Path, basePath)
+
+	// Ensure that this handler only serves files under /ui
+	if !strings.HasPrefix(relPath, "/ui") {
+		c.Status(http.StatusNotFound)
+		return
+	}
+
+	// Extract the actual file path from relPath
+	filePath := strings.TrimPrefix(relPath, "/ui")
+
+	// Serve the file from the ./build directory
+	http.ServeFile(c.Writer, c.Request, "./build"+filePath)
+
+}
+
 // DefineRoutes defines the routes for the gin engine.
 // It sets up basic authentication and defines handlers for various routes.
 // It also starts a goroutine to handle messages from the broadcast channel.
@@ -77,7 +103,8 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	}))
 	router.GET("/", handleRoot)
 	router.GET("/ping", handlePing)
-	authorized.StaticFS("/ui", http.Dir("./build"))
+	//authorized.StaticFS("/ui", http.Dir("./build"))
+	authorized.GET("/*filepath", serveUI)
 	authorized.GET("/ws", handleWebsocket)
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
 
