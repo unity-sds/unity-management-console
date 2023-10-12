@@ -41,7 +41,7 @@ func setupFeatureFlags(c *gin.Context) {
 
 // handleRoot redirects the root URL to "/ui".
 func handleRoot(c *gin.Context) {
-	log.Infof("Inside handleRoot, mismatched path: %s", c.Request.URL)
+	log.Infof("Inside handleRoot")
 	//c.Redirect(http.StatusMovedPermanently, appConf.BasePath+"/ui")
 	c.JSON(http.StatusOK, gin.H{
 		"error": "you hit the root",
@@ -66,7 +66,7 @@ func handleWebsocket(c *gin.Context) {
 
 // handleNoRoute serves the index.html file for any routes that are not defined.
 func handleNoRoute(c *gin.Context) {
-	log.Info("Inside handleNoRoute")
+	log.Infof("Inside handleNoRoute, mismatched path: %s", c.Request.URL)
 	//c.File("./build/index.html")
 	c.JSON(http.StatusOK, gin.H{
 		"error": "route not found",
