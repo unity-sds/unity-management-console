@@ -34,9 +34,9 @@ func ErrorHandlingMiddleware() gin.HandlerFunc {
 func EnsureTrailingSlash() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !strings.HasSuffix(c.Request.URL.Path, "/") {
-			c.Request.URL.Path += "/"
+			c.Redirect(http.StatusMovedPermanently, c.Request.URL.Path+"/")
+			c.Abort() // important to prevent the next handlers from being called
 		}
-		c.Next()
 	}
 }
 
