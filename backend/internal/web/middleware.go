@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	log "github.com/sirupsen/logrus"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -27,6 +28,15 @@ func ErrorHandlingMiddleware() gin.HandlerFunc {
 			// Respond with 500 Internal Server Error
 			c.JSON(http.StatusInternalServerError, gin.H{"error": multiError.Error()})
 		}
+	}
+}
+
+func EnsureTrailingSlash() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !strings.HasSuffix(c.Request.URL.Path, "/") {
+			c.Request.URL.Path += "/"
+		}
+		c.Next()
 	}
 }
 

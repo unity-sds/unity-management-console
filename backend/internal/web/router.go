@@ -93,7 +93,7 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	authorized.StaticFS(appConfig.BasePath+"/ui", http.Dir("./build"))
 	authorized.GET(appConfig.BasePath+"/ws", handleWebsocket)
 	router.GET(appConfig.BasePath+"/debug/pprof/*profile", gin.WrapF(pprof.Index))
-
+	router.Use(EnsureTrailingSlash())
 	router.Use(LoggingMiddleware())
 	router.Use(ErrorHandlingMiddleware())
 
