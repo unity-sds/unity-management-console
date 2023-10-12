@@ -20,6 +20,8 @@ var conf config.AppConfig
 var clients = make(map[*websocket.Conn]bool)
 var broadcast = make(chan websocket2.ClientMessage)
 
+var appConf config.AppConfig
+
 // setupFeatureFlags sets up feature flags for the application.
 // It uses the username from the gin context to create a new user for the feature flag client.
 // It then checks the value of the "test-flag" for the user and logs the result.
@@ -39,7 +41,7 @@ func setupFeatureFlags(c *gin.Context) {
 
 // handleRoot redirects the root URL to "/ui".
 func handleRoot(c *gin.Context) {
-	c.Redirect(http.StatusMovedPermanently, "/ui")
+	c.Redirect(http.StatusMovedPermanently, appConf.BasePath+"/ui")
 }
 
 // handlePing responds with a JSON message containing "pong".
@@ -59,7 +61,10 @@ func handleWebsocket(c *gin.Context) {
 
 // handleNoRoute serves the index.html file for any routes that are not defined.
 func handleNoRoute(c *gin.Context) {
-	c.File("./build/index.html")
+	//c.File("./build/index.html")
+	c.JSON(http.StatusOK, gin.H{
+		"error": "route not found",
+	})
 }
 
 // DefineRoutes defines the routes for the gin engine.
@@ -67,6 +72,7 @@ func handleNoRoute(c *gin.Context) {
 // It also starts a goroutine to handle messages from the broadcast channel.
 func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	go websocket2.WsManager.Start()
+	appConf = appConfig
 
 	router := gin.Default()
 	conf = appConfig
@@ -81,8 +87,6 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	authorized.GET(appConfig.BasePath+"/ws", handleWebsocket)
 	router.GET(appConfig.BasePath+"/debug/pprof/*profile", gin.WrapF(pprof.Index))
 
-	router.NoRoute(handleNoRoute)
-
 	router.Use(LoggingMiddleware())
 	router.Use(ErrorHandlingMiddleware())
 
@@ -92,6 +96,8 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 			log.WithError(err).Error("Go routine crashed handling messages")
 		}
 	}()
+
+	router.NoRoute(handleNoRoute)
 
 	//processes.RunSync()
 	return router
