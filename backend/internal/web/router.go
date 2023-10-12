@@ -41,6 +41,7 @@ func setupFeatureFlags(c *gin.Context) {
 
 // handleRoot redirects the root URL to "/ui".
 func handleRoot(c *gin.Context) {
+	log.Info("Inside handleRoot")
 	//c.Redirect(http.StatusMovedPermanently, appConf.BasePath+"/ui")
 	c.JSON(http.StatusOK, gin.H{
 		"error": "you hit the root",
@@ -50,6 +51,7 @@ func handleRoot(c *gin.Context) {
 // handlePing responds with a JSON message containing "pong".
 // This can be used to check if the server is running.
 func handlePing(c *gin.Context) {
+	log.Info("Inside handlePing")
 	c.JSON(http.StatusOK, gin.H{
 		"message": "pong",
 	})
@@ -64,6 +66,7 @@ func handleWebsocket(c *gin.Context) {
 
 // handleNoRoute serves the index.html file for any routes that are not defined.
 func handleNoRoute(c *gin.Context) {
+	log.Info("Inside handleNoRoute")
 	//c.File("./build/index.html")
 	c.JSON(http.StatusOK, gin.H{
 		"error": "route not found",
@@ -78,6 +81,7 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	appConf = appConfig
 
 	router := gin.Default()
+	router.RedirectTrailingSlash = false
 	conf = appConfig
 
 	authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
