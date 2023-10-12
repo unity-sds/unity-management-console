@@ -41,7 +41,7 @@ func setupFeatureFlags(c *gin.Context) {
 
 // handleRoot redirects the root URL to "/ui".
 func handleRoot(c *gin.Context) {
-	log.Info("Inside handleRoot")
+	log.Infof("Inside handleRoot, mismatched path: %s", c.Request.URL)
 	//c.Redirect(http.StatusMovedPermanently, appConf.BasePath+"/ui")
 	c.JSON(http.StatusOK, gin.H{
 		"error": "you hit the root",
