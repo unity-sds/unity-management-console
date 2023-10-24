@@ -84,14 +84,14 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router.RedirectTrailingSlash = false
 	conf = appConfig
 
-	authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
+	/*authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
 		"admin": "unity",
 		"user":  "unity",
-	}))
+	}))*/
 	router.GET(appConfig.BasePath+"/", handleRoot)
 	router.GET(appConfig.BasePath+"/ping", handlePing)
-	authorized.StaticFS("/ui", http.Dir("./build"))
-	authorized.GET(appConfig.BasePath+"/ws", handleWebsocket)
+	router.StaticFS("/ui", http.Dir("./build"))
+	router.GET(appConfig.BasePath+"/ws", handleWebsocket)
 	router.GET(appConfig.BasePath+"/debug/pprof/*profile", gin.WrapF(pprof.Index))
 	//router.Use(EnsureTrailingSlash())
 	router.Use(LoggingMiddleware())
