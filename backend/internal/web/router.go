@@ -90,7 +90,10 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	}))*/
 	router.GET(appConfig.BasePath+"/", handleRoot)
 	router.GET(appConfig.BasePath+"/ping", handlePing)
-	router.StaticFS("/ui", http.Dir("./build"))
+	router.GET("/ui", func(c *gin.Context) {
+		c.File("./build/index.html")
+	})
+	router.StaticFS("/ui/", http.Dir("./build"))
 	router.GET(appConfig.BasePath+"/ws", handleWebsocket)
 	router.GET(appConfig.BasePath+"/debug/pprof/*profile", gin.WrapF(pprof.Index))
 	//router.Use(EnsureTrailingSlash())
