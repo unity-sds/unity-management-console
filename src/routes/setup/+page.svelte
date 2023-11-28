@@ -141,10 +141,10 @@
         <form class="space-y-4">
           <InputField label="Project Name" id="project" isValid={$venueAndProjectStore.projectIsValid}
                       on:input={handleInputChange} subtext="The project managing this Unity environment."
-                      value={$projectStore} />
+                      value={$projectStore} disabled={true} />
           <InputField label="Venue Name" id="venue" isValid={$venueAndProjectStore.venueIsValid}
                       on:input={handleInputChange} subtext="The venue this Unity environment is deployed into."
-                      value={$venueStore} />
+                      value={$venueStore} disabled={true} />
 
           <SelectField label="Private Subnets" id="privateSubnets" multiple={true}
                        options={transformedPrivateOptions} bind:value={privateSubnets}

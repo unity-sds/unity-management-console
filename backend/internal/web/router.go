@@ -61,6 +61,7 @@ func handlePing(c *gin.Context) {
 // It upgrades the HTTP connection to a websocket connection and reads messages from the client.
 // Each message is unmarshalled into a WebsocketMessage and sent to the broadcast channel.
 func handleWebsocket(c *gin.Context) {
+	log.Infof("Headers: %v", c.Request.Header)
 	websocket2.WsManager.HandleConnections(c.Writer, c.Request)
 }
 

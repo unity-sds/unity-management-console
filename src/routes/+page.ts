@@ -2,6 +2,5 @@ import { redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async () => {
-	throw redirect(301, '/ui/landing');
+	throw redirect(301, '/dev/mgmtproxy/ui/landing');
 };
-
