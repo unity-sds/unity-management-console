@@ -182,18 +182,20 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	}
 
 	log.Info("Organising variable replacement")
-	for key, element := range install.Applications.Variables.Values {
-		if strings.HasPrefix(element, "*") {
-			log.Infof("Element %s has prefix: %s", key, element)
-			element, err = lookUpVariablePointer(element, install)
-			if err != nil {
-				return err
+	if install.Applications.Variables != nil && install.Applications.Variables.Values != nil {
+		for key, element := range install.Applications.Variables.Values {
+			if strings.HasPrefix(element, "*") {
+				log.Infof("Element %s has prefix: %s", key, element)
+				element, err = lookUpVariablePointer(element, install)
+				if err != nil {
+					return err
+				}
+			} else if strings.HasPrefix(element, "\\*") {
+				element = strings.Replace(element, "\\", "", 1)
 			}
-		} else if strings.HasPrefix(element, "\\*") {
-			element = strings.Replace(element, "\\", "", 1)
+			log.Infof("Adding variable: %s, %s", key, element)
+			attributes[key] = cty.StringVal(element)
 		}
-		log.Infof("Adding variable: %s, %s", key, element)
-		attributes[key] = cty.StringVal(element)
 	}
 	log.Info("Parsing advanced vars")
 	parseAdvancedVariables(install, &attributes)
