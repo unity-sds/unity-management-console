@@ -72,7 +72,7 @@ func initConfig() {
 			return
 		}
 	}
-
+	path, err := os.Getwd()
 	if cfgFile != "" { //
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
@@ -83,7 +83,7 @@ func initConfig() {
 		viper.SetDefault("GithubToken", "unset")
 		viper.SetDefault("MarketplaceOwner", "unity-sds")
 		viper.SetDefault("MarketplaceRepo", "unity-marketplace")
-		viper.SetDefault("Workdir", "./workdir")
+		viper.SetDefault("Workdir", filepath.Join(path, "workdir"))
 		viper.SetDefault("AWSRegion", "us-west-2")
 		viper.SetDefault("MarketplaceBaseUrl", "https://raw.githubusercontent.com/")
 		viper.SetDefault("BasePath", "")
