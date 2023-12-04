@@ -117,21 +117,26 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 		log.WithError(err).Error("Problem fetching venue")
 		return err
 	}
+	log.Infof("Venue found: %s", venue)
 	project, err := getSSMParameterValueFromDatabase("project", store)
 	if err != nil {
 		log.WithError(err).Error("Problem fetching project")
 		return err
 	}
+	log.Infof("Project found: %s", project)
+
 	publicsubnets, err := getSSMParameterValueFromDatabase("publicsubnets", store)
 	if err != nil {
 		log.WithError(err).Error("Problem fetching public subnets")
 		return err
 	}
+	log.Infof("Public subnets found: %s", publicsubnets)
 	privatesubnets, err := getSSMParameterValueFromDatabase("privatesubnets", store)
 	if err != nil {
 		log.WithError(err).Error("Problem fetching private subnets")
 		return err
 	}
+	log.Infof("Private subnets found: %s", privatesubnets)
 
 	//ssmParameters, err := generateSSMParameters(db)
 	//if err != nil {
