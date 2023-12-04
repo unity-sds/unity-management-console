@@ -147,6 +147,7 @@ func appendBlockToBody(body *hclwrite.Body, blockType string, labels []string, s
 // It takes care of creating the necessary workspace directory, generating the
 // HCL file, and writing the required attributes.
 func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, install *marketplace.Install, db database.Datastore, deploymentID uint) error {
+	log.Infof("Adding application to stack. Location: %v, meta %v, install: %v, deploymentID: %v", location, meta, install, deploymentID)
 	rand.Seed(time.Now().UnixNano())
 
 	s := generateRandomString(8)
