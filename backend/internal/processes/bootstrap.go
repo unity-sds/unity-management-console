@@ -110,19 +110,59 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) {
 	}
 }
 
-func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig) {
+func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig) error {
+
+	venue, err := getSSMParameterValueFromDatabase("venue", store)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching venue")
+		return err
+	}
+	project, err := getSSMParameterValueFromDatabase("project", store)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching project")
+		return err
+	}
+	publicsubnets, err := getSSMParameterValueFromDatabase("publicsubnets", store)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching public subnets")
+		return err
+	}
+	privatesubnets, err := getSSMParameterValueFromDatabase("privatesubnets", store)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching private subnets")
+		return err
+	}
+
+	//ssmParameters, err := generateSSMParameters(db)
+	//if err != nil {
+	//	log.WithError(err).Error("Problem fetching params")
+	//	return err
+	//}
+
+	varmap := make(map[string]string)
+
+	varmap["venue"] = venue
+	varmap["project"] = project
+	varmap["publicsubnets"] = publicsubnets
+	varmap["privatesubnets"] = privatesubnets
+	vars := marketplace.Install_Variables{
+		Values:         varmap,
+		AdvancedValues: nil,
+	}
 	applications := marketplace.Install_Applications{
 		Name:        "unity-cloud-env",
 		Version:     "0.1",
-		Variables:   nil,
+		Variables:   &vars,
 		Displayname: "unity-cloud-env",
 	}
 	install := marketplace.Install{
 		Applications:   &applications,
 		DeploymentName: "Unity Cloud Environment",
 	}
-	err := TriggerInstall(nil, "", store, &install, appConfig)
+	err = TriggerInstall(nil, "", store, &install, appConfig)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Unity Cloud Env")
+		return err
 	}
+	return nil
 }
