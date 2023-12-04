@@ -82,7 +82,7 @@ func convertToCty(data interface{}) cty.Value {
 }
 
 func parseAdvancedVariables(install *marketplace.Install, cloudenv *map[string]cty.Value) {
-	if install.Applications.Variables.AdvancedValues != nil && len(install.Applications.Variables.AdvancedValues.Fields) > 0 {
+	if install.Applications.Variables != nil && install.Applications.Variables.AdvancedValues != nil && len(install.Applications.Variables.AdvancedValues.Fields) > 0 {
 		for key, str := range convertStruct(install.Applications.Variables.AdvancedValues) {
 			ctyValue := convertToCty(str)
 			(*cloudenv)[key] = ctyValue
