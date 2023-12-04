@@ -7,7 +7,6 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
-	"github.com/unity-sds/unity-management-console/backend/internal/terraform"
 	"path/filepath"
 )
 
@@ -15,7 +14,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	store, err := database.NewGormDatastore()
 
 	provisionS3(appconf)
-	initTerraform(appconf)
+	initTerraform(store, appconf)
 
 	storeDefaultSSMParameters(appconf, store)
 	//r := action.ActRunnerImpl{}
@@ -35,14 +34,10 @@ func provisionS3(appConfig *config.AppConfig) {
 	}
 }
 
-func initTerraform(appconf *config.AppConfig) {
-	executor := &terraform.RealTerraformExecutor{}
+func initTerraform(store database.Datastore, appconf *config.AppConfig) {
 	fs := afero.NewOsFs()
 	writeInitTemplate(fs, appconf)
-	err := terraform.RunTerraform(appconf, nil, "", executor, "unity-cloud-env")
-	if err != nil {
-		return
-	}
+	installUnityCloudEnv(store, appconf)
 
 }
 
@@ -111,5 +106,21 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) {
 	err := TriggerInstall(nil, "", store, &install, appConfig)
 	if err != nil {
 		log.WithError(err).Error("Issue installing API Gateway")
+	}
+}
+
+func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig) {
+	applications := marketplace.Install_Applications{
+		Name:      "unity-cloud-env",
+		Version:   "0.1",
+		Variables: nil,
+	}
+	install := marketplace.Install{
+		Applications:   &applications,
+		DeploymentName: "Unity Cloud Environment",
+	}
+	err := TriggerInstall(nil, "", store, &install, appConfig)
+	if err != nil {
+		log.WithError(err).Error("Issue installing Unity Cloud Env")
 	}
 }
