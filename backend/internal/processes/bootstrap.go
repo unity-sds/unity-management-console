@@ -64,7 +64,7 @@ provider "aws" {
   region = "us-west-2"
 }`
 
-	err := fs.MkdirAll(appConfig.Workdir, 0755)
+	err := fs.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
 	if err != nil {
 		log.WithError(err).Error("Couldn't create new working directory")
 	}
