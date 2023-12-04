@@ -95,9 +95,10 @@ func storeDefaultSSMParameters(appConfig *config.AppConfig, store database.Datas
 
 func installGateway(store database.Datastore, appConfig *config.AppConfig) {
 	applications := marketplace.Install_Applications{
-		Name:      "unity-proxy",
-		Version:   "0.1",
-		Variables: nil,
+		Name:        "unity-proxy",
+		Version:     "0.1",
+		Variables:   nil,
+		Displayname: "unity-proxy",
 	}
 	install := marketplace.Install{
 		Applications:   &applications,
@@ -111,9 +112,10 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) {
 
 func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig) {
 	applications := marketplace.Install_Applications{
-		Name:      "unity-cloud-env",
-		Version:   "0.1",
-		Variables: nil,
+		Name:        "unity-cloud-env",
+		Version:     "0.1",
+		Variables:   nil,
+		Displayname: "unity-cloud-env",
 	}
 	install := marketplace.Install{
 		Applications:   &applications,
