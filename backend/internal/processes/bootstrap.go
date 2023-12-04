@@ -112,18 +112,28 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) {
 
 func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig) error {
 
-	venue, err := getSSMParameterValueFromDatabase("venue", store)
+	//venue, err := getSSMParameterValueFromDatabase("venue", store)
+	//if err != nil {
+	//	log.WithError(err).Error("Problem fetching venue")
+	//	return err
+	//}
+	//log.Infof("Venue found: %s", venue)
+	//project, err := getSSMParameterValueFromDatabase("project", store)
+	//if err != nil {
+	//	log.WithError(err).Error("Problem fetching project")
+	//	return err
+	//}
+	//log.Infof("Project found: %s", project)
+
+	venue, err := aws.ReadSSMParameter("/unity/core/venue")
 	if err != nil {
 		log.WithError(err).Error("Problem fetching venue")
-		return err
 	}
-	log.Infof("Venue found: %s", venue)
-	project, err := getSSMParameterValueFromDatabase("project", store)
+
+	project, err := aws.ReadSSMParameter("/unity/core/project")
 	if err != nil {
 		log.WithError(err).Error("Problem fetching project")
-		return err
 	}
-	log.Infof("Project found: %s", project)
 
 	publicsubnets, err := getSSMParameterValueFromDatabase("publicsubnets", store)
 	if err != nil {
@@ -146,8 +156,8 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 
 	varmap := make(map[string]string)
 
-	varmap["venue"] = venue
-	varmap["project"] = project
+	varmap["venue"] = *venue.Parameter.Value
+	varmap["project"] = *project.Parameter.Value
 	varmap["publicsubnets"] = publicsubnets
 	varmap["privatesubnets"] = privatesubnets
 	vars := marketplace.Install_Variables{
