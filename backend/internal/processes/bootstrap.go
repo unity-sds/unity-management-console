@@ -12,16 +12,18 @@ import (
 
 func BootstrapEnv(appconf *config.AppConfig) {
 	store, err := database.NewGormDatastore()
-
+	if err != nil {
+		log.WithError(err).Error("Problem creating database")
+	}
 	provisionS3(appconf)
+	storeDefaultSSMParameters(appconf, store)
 	initTerraform(store, appconf)
 
-	storeDefaultSSMParameters(appconf, store)
 	//r := action.ActRunnerImpl{}
-	err = UpdateCoreConfig(appconf, store, nil, "")
-	if err != nil {
-		log.WithError(err).Error("Problem updating ssm config")
-	}
+	//err = UpdateCoreConfig(appconf, store, nil, "")
+	//if err != nil {
+	//	log.WithError(err).Error("Problem updating ssm config")
+	//}
 	installGateway(store, appconf)
 }
 
@@ -37,7 +39,10 @@ func provisionS3(appConfig *config.AppConfig) {
 func initTerraform(store database.Datastore, appconf *config.AppConfig) {
 	fs := afero.NewOsFs()
 	writeInitTemplate(fs, appconf)
-	installUnityCloudEnv(store, appconf)
+	err := installUnityCloudEnv(store, appconf)
+	if err != nil {
+		return
+	}
 
 }
 
