@@ -23,7 +23,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	if err != nil {
 		log.WithError(err).Error("Problem updating ssm config")
 	}
-	//installGateway(store, appconf)
+	installGateway(store, appconf)
 }
 
 func provisionS3(appConfig *config.AppConfig) {
@@ -39,7 +39,10 @@ func initTerraform(appconf *config.AppConfig) {
 	executor := &terraform.RealTerraformExecutor{}
 	fs := afero.NewOsFs()
 	writeInitTemplate(fs, appconf)
-	terraform.RunTerraform(appconf, nil, "", executor, "unity-cloud-env")
+	err := terraform.RunTerraform(appconf, nil, "", executor, "unity-cloud-env")
+	if err != nil {
+		return
+	}
 
 }
 
@@ -97,7 +100,7 @@ func storeDefaultSSMParameters(appConfig *config.AppConfig, store database.Datas
 
 func installGateway(store database.Datastore, appConfig *config.AppConfig) {
 	applications := marketplace.Install_Applications{
-		Name:      "unity-apigateway",
+		Name:      "unity-proxy",
 		Version:   "0.1",
 		Variables: nil,
 	}
