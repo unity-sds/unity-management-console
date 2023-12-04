@@ -171,13 +171,17 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		return err
 	}
 
+	log.Info("Generating header")
 	generateMetadataHeader(rootBody, u.String(), meta.Name, install.Applications.Displayname, install.Applications.Version, "admin", deploymentID)
 
+	log.Info("adding attributes")
 	attributes := map[string]cty.Value{
 		"deployment_name": cty.StringVal(install.Applications.Displayname),
 		"tags":            cty.MapValEmpty(cty.String), // Example of setting an empty map
 		// Add other attributes as needed
 	}
+
+	log.Info("Organising variable replacement")
 	for key, element := range install.Applications.Variables.Values {
 		if strings.HasPrefix(element, "*") {
 			log.Infof("Element %s has prefix: %s", key, element)
@@ -191,6 +195,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		log.Infof("Adding variable: %s, %s", key, element)
 		attributes[key] = cty.StringVal(element)
 	}
+	log.Info("Parsing advanced vars")
 	parseAdvancedVariables(install, &attributes)
 	rand.Seed(time.Now().UnixNano())
 	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -198,8 +203,10 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	for i, v := range rand.Perm(52)[:5] {
 		randomChars[i] = chars[v]
 	}
+	log.Info("Appending block to body")
 	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", install.Applications.Displayname, string(randomChars))}, path, attributes)
 
+	log.Info("Writing hcl file.")
 	_, err = tfFile.Write(hclFile.Bytes())
 	if err != nil {
 		log.WithError(err).Error("error writing hcl file")
