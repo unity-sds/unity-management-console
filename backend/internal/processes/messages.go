@@ -114,12 +114,26 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	}
 	auditline := application.Config_Updated
 	audit, err := store.FindLastAuditLineByOperation(auditline)
+
+	auditline = application.Bootstrap_Unsuccessful
+	bootstrapfailed, err := store.FindLastAuditLineByOperation(auditline)
+
+	auditline = application.Bootstrap_Successful
+	bootstrapsuccess, err := store.FindLastAuditLineByOperation(auditline)
+
+	bsoutput := ""
+	if bootstrapsuccess.Owner != "" {
+		bsoutput = "complete"
+	} else if bootstrapfailed.Owner != "" {
+		bsoutput = "failed"
+	}
 	genconfig := &marketplace.Config{
 
 		ApplicationConfig: &appConfig,
 		NetworkConfig:     &netconfig,
 		Lastupdated:       audit.CreatedAt.Format("2006-01-02T15:04:05.000"),
 		Updatedby:         audit.Owner,
+		Bootstrap:         bsoutput,
 	}
 
 	mpcfg := marketplace.UnityWebsocketMessage_Config{Config: genconfig}

@@ -4,6 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
+	"github.com/unity-sds/unity-management-console/backend/internal/application"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
@@ -14,39 +15,83 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	store, err := database.NewGormDatastore()
 	if err != nil {
 		log.WithError(err).Error("Problem creating database")
+		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
+		return
 	}
-	provisionS3(appconf)
-	storeDefaultSSMParameters(appconf, store)
-	initTerraform(store, appconf)
+
+	err = provisionS3(appconf)
+	if err != nil {
+		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
+		return
+	}
+	err = storeDefaultSSMParameters(appconf, store)
+	if err != nil {
+		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
+		return
+	}
+	err = initTerraform(store, appconf)
+	if err != nil {
+		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
+		return
+	}
 
 	//r := action.ActRunnerImpl{}
 	//err = UpdateCoreConfig(appconf, store, nil, "")
 	//if err != nil {
 	//	log.WithError(err).Error("Problem updating ssm config")
 	//}
-	installGateway(store, appconf)
+	err = installGateway(store, appconf)
+	if err != nil {
+		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
+		return
+	}
+
+	err = store.AddToAudit(application.Bootstrap_Successful, "test")
+	if err != nil {
+		log.WithError(err).Error("Problem writing to auditlog")
+	}
+
 }
 
-func provisionS3(appConfig *config.AppConfig) {
+func provisionS3(appConfig *config.AppConfig) error {
 	aws.CreateBucket(nil, appConfig)
 	err := aws.CreateTable(appConfig)
 	if err != nil {
 		log.WithError(err).Error("Error creating table")
-		return
+		return err
 	}
+
+	return nil
 }
 
-func initTerraform(store database.Datastore, appconf *config.AppConfig) {
+func initTerraform(store database.Datastore, appconf *config.AppConfig) error {
 	fs := afero.NewOsFs()
 	writeInitTemplate(fs, appconf)
 	err := installUnityCloudEnv(store, appconf)
 	if err != nil {
-		return
+		return err
 	}
+
+	return nil
 
 }
 
-func writeInitTemplate(fs afero.Fs, appConfig *config.AppConfig) {
+func writeInitTemplate(fs afero.Fs, appConfig *config.AppConfig) error {
 	// Define the terraform configuration
 	tfconfig := `terraform {
 required_providers {
@@ -67,12 +112,14 @@ provider "aws" {
 	err := fs.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
 	if err != nil {
 		log.WithError(err).Error("Couldn't create new working directory")
+		return err
 	}
 
 	// Create a new file
 	file, err := fs.Create(filepath.Join(appConfig.Workdir, "workspace", "provider.tf"))
 	if err != nil {
 		log.WithError(err).Error("Couldn't create new provider.tf file")
+		return err
 	}
 	defer file.Close()
 
@@ -80,25 +127,30 @@ provider "aws" {
 	_, err = file.WriteString(tfconfig)
 	if err != nil {
 		log.WithError(err).Error("Could not write provider string")
+		return err
 	}
 
 	// Save changes to the file
 	err = file.Sync()
 	if err != nil {
 		log.WithError(err).Error("Could not write provider.tf")
+		return err
 	}
 
 	log.Println("File 'provider.tf' has been written")
+	return nil
 }
-func storeDefaultSSMParameters(appConfig *config.AppConfig, store database.Datastore) {
+func storeDefaultSSMParameters(appConfig *config.AppConfig, store database.Datastore) error {
 
 	err := store.StoreSSMParams(appConfig.DefaultSSMParameters, "bootstrap")
 	if err != nil {
 		log.WithError(err).Error("Problem storing parameters in database.")
+		return err
 	}
+	return nil
 }
 
-func installGateway(store database.Datastore, appConfig *config.AppConfig) {
+func installGateway(store database.Datastore, appConfig *config.AppConfig) error {
 	applications := marketplace.Install_Applications{
 		Name:        "unity-proxy",
 		Version:     "0.1",
@@ -112,7 +164,9 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) {
 	err := TriggerInstall(nil, "", store, &install, appConfig)
 	if err != nil {
 		log.WithError(err).Error("Issue installing API Gateway")
+		return err
 	}
+	return nil
 }
 
 func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig) error {

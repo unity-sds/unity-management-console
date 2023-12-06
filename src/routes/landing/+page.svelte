@@ -17,7 +17,19 @@
   });
 
   let setuprun: boolean;
+  let bootstrapfailed: boolean;
+  let bootstrapped: boolean;
   $: {
+    if (conf && conf.bootstrap == "complete") {
+      bootstrapped = true;
+      bootstrapfailed = false;
+    } else if (conf && conf.bootstrap == "failed") {
+      bootstrapped = false;
+      bootstrapfailed = true;
+    } else if (conf && conf.bootstrap == "") {
+      bootstrapped = false;
+      bootstrapfailed = false;
+    }
     setuprun = !!(conf && conf.updatedby !== "");
   }
   $: cardData = [
@@ -50,7 +62,15 @@
 <div class="container mx-auto">
   <div class="flex justify-center">
     <div class="flex-initial">
-      {#if !setuprun}
+      {#if bootstrapfailed}
+        <div>
+          <h5 class="text-xl">The Bootstrap Process Failed Please Check The Logs</h5>
+        </div>
+      {:else if !bootstrapped}
+        <div>
+          <h5 class="text-xl">Bootstrap is either in progress or has not been run</h5>
+        </div>
+      {:else if !setuprun}
         <div>
           <h5 class="text-xl">Setup has not been run, please go to Core Management</h5>
         </div>

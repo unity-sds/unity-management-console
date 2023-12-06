@@ -79,6 +79,7 @@ export interface Config {
   networkConfig: Config_NetworkConfig | undefined;
   lastupdated: string;
   updatedby: string;
+  bootstrap: string;
 }
 
 export interface Config_ApplicationConfig {
@@ -1180,7 +1181,7 @@ export const SimpleMessage = {
 };
 
 function createBaseConfig(): Config {
-  return { applicationConfig: undefined, networkConfig: undefined, lastupdated: "", updatedby: "" };
+  return { applicationConfig: undefined, networkConfig: undefined, lastupdated: "", updatedby: "", bootstrap: "" };
 }
 
 export const Config = {
@@ -1196,6 +1197,9 @@ export const Config = {
     }
     if (message.updatedby !== "") {
       writer.uint32(34).string(message.updatedby);
+    }
+    if (message.bootstrap !== "") {
+      writer.uint32(42).string(message.bootstrap);
     }
     return writer;
   },
@@ -1235,6 +1239,13 @@ export const Config = {
 
           message.updatedby = reader.string();
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.bootstrap = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1252,6 +1263,7 @@ export const Config = {
       networkConfig: isSet(object.networkConfig) ? Config_NetworkConfig.fromJSON(object.networkConfig) : undefined,
       lastupdated: isSet(object.lastupdated) ? String(object.lastupdated) : "",
       updatedby: isSet(object.updatedby) ? String(object.updatedby) : "",
+      bootstrap: isSet(object.bootstrap) ? String(object.bootstrap) : "",
     };
   },
 
@@ -1264,6 +1276,7 @@ export const Config = {
       (obj.networkConfig = message.networkConfig ? Config_NetworkConfig.toJSON(message.networkConfig) : undefined);
     message.lastupdated !== undefined && (obj.lastupdated = message.lastupdated);
     message.updatedby !== undefined && (obj.updatedby = message.updatedby);
+    message.bootstrap !== undefined && (obj.bootstrap = message.bootstrap);
     return obj;
   },
 
@@ -1281,6 +1294,7 @@ export const Config = {
       : undefined;
     message.lastupdated = object.lastupdated ?? "";
     message.updatedby = object.updatedby ?? "";
+    message.bootstrap = object.bootstrap ?? "";
     return message;
   },
 };

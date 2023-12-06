@@ -17,7 +17,7 @@ const config = {
 		}),
 		paths: {
 			// base path on the server
-			base: '/dev/mgmtproxy/ui'
+			base: '/ui'
 		}
 	}
 };
