@@ -285,7 +285,7 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 }
 
 func generateRandomString(n int) (string, error) {
-	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	bytes := make([]byte, n)
 	if _, err := rand.Read(bytes); err != nil {
 		return "", err
