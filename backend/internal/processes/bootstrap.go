@@ -9,6 +9,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"path/filepath"
+	"strings"
 )
 
 func BootstrapEnv(appconf *config.AppConfig) {
@@ -85,7 +86,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 func provisionS3(appConfig *config.AppConfig) error {
 	aws.CreateBucket(nil, appConfig)
 	err := aws.CreateTable(appConfig)
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "Table already exists") {
 		log.WithError(err).Error("Error creating table")
 		return err
 	}
