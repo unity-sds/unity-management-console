@@ -44,3 +44,5 @@ Build the frontend and the backend. This also runs various linters and other cod
 npm run serve
 ```
 Launch the frontend and the backend locally for testing.
+
+

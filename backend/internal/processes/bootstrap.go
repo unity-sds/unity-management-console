@@ -24,6 +24,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 
 	err = provisionS3(appconf)
 	if err != nil {
+		log.WithError(err).Error("Error provisioning S3 bucket")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
@@ -32,6 +33,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	}
 	err = storeDefaultSSMParameters(appconf, store)
 	if err != nil {
+		log.WithError(err).Error("Error setting SSM Parameters")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
@@ -40,6 +42,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	}
 	err = initTerraform(store, appconf)
 	if err != nil {
+		log.WithError(err).Error("Error installing Terraform")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
@@ -54,6 +57,17 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	//}
 	err = installGateway(store, appconf)
 	if err != nil {
+		log.WithError(err).Error("Error installing HTTPD Gateway")
+		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
+		return
+	}
+
+	err = installBasicAPIGateway(store, appconf)
+	if err != nil {
+		log.WithError(err).Error("Error installing API Gateway")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
@@ -151,11 +165,32 @@ func storeDefaultSSMParameters(appConfig *config.AppConfig, store database.Datas
 }
 
 func installGateway(store database.Datastore, appConfig *config.AppConfig) error {
+	simplevars := make(map[string]string)
+	simplevars["mgmt_dns"] = appConfig.ConsoleHost
+	variables := marketplace.Install_Variables{Values: simplevars}
 	applications := marketplace.Install_Applications{
 		Name:        "unity-proxy",
 		Version:     "0.1",
-		Variables:   nil,
+		Variables:   &variables,
 		Displayname: "unity-proxy",
+	}
+	install := marketplace.Install{
+		Applications:   &applications,
+		DeploymentName: "Core Mgmt Gateway",
+	}
+	err := TriggerInstall(nil, "", store, &install, appConfig)
+	if err != nil {
+		log.WithError(err).Error("Issue installing Mgmt Gateway")
+		return err
+	}
+	return nil
+}
+
+func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
+	applications := marketplace.Install_Applications{
+		Name:      "unity-apigateway",
+		Version:   "0.1",
+		Variables: nil,
 	}
 	install := marketplace.Install{
 		Applications:   &applications,
