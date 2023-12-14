@@ -99,8 +99,11 @@ func provisionS3(appConfig *config.AppConfig) error {
 
 func initTerraform(store database.Datastore, appconf *config.AppConfig) error {
 	fs := afero.NewOsFs()
-	writeInitTemplate(fs, appconf)
-	err := installUnityCloudEnv(store, appconf)
+	err := writeInitTemplate(fs, appconf)
+	if err != nil {
+		return err
+	}
+	err = installUnityCloudEnv(store, appconf)
 	if err != nil {
 		return err
 	}
