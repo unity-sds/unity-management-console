@@ -1,6 +1,7 @@
 package processes
 
 import (
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
@@ -8,6 +9,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
+	"math/rand"
 	"path/filepath"
 	"strings"
 )
@@ -50,13 +52,14 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		}
 		return
 	}
+	uniqueString, err := generateRandomString(6)
 
 	//r := action.ActRunnerImpl{}
 	//err = UpdateCoreConfig(appconf, store, nil, "")
 	//if err != nil {
 	//	log.WithError(err).Error("Problem updating ssm config")
 	//}
-	err = installGateway(store, appconf)
+	err = installGateway(store, appconf, uniqueString)
 	if err != nil {
 		log.WithError(err).Error("Error installing HTTPD Gateway")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
@@ -66,7 +69,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		return
 	}
 
-	err = installBasicAPIGateway(store, appconf)
+	err = installBasicAPIGateway(store, appconf, uniqueString)
 	if err != nil {
 		log.WithError(err).Error("Error installing API Gateway")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
@@ -165,12 +168,12 @@ func storeDefaultSSMParameters(appConfig *config.AppConfig, store database.Datas
 	return nil
 }
 
-func installGateway(store database.Datastore, appConfig *config.AppConfig) error {
+func installGateway(store database.Datastore, appConfig *config.AppConfig, prefix string) error {
 	simplevars := make(map[string]string)
 	simplevars["mgmt_dns"] = appConfig.ConsoleHost
 	variables := marketplace.Install_Variables{Values: simplevars}
 	applications := marketplace.Install_Applications{
-		Name:        "unity-proxy",
+		Name:        fmt.Sprintf("%s-%s", prefix, "unity-proxy"),
 		Version:     "0.1",
 		Variables:   &variables,
 		Displayname: "unity-proxy",
@@ -187,9 +190,9 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 	return nil
 }
 
-func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
+func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig, prefix string) error {
 	applications := marketplace.Install_Applications{
-		Name:      "unity-apigateway",
+		Name:      fmt.Sprintf("%s-%s", prefix, "unity-apigateway"),
 		Version:   "0.1",
 		Variables: nil,
 	}
@@ -275,4 +278,16 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 		return err
 	}
 	return nil
+}
+
+func generateRandomString(n int) (string, error) {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	bytes := make([]byte, n)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	for i, b := range bytes {
+		bytes[i] = letters[b%byte(len(letters))]
+	}
+	return string(bytes), nil
 }
