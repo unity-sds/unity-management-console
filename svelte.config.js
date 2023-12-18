@@ -17,7 +17,7 @@ const config = {
 		}),
 		paths: {
 			// base path on the server
-			base: '/ui'
+			base: '/management/ui'
 		}
 	}
 };
