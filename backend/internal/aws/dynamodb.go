@@ -10,7 +10,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 )
 
-func CreateTable(appConfig *config.AppConfig) error {
+func CreateTable(appConfig *config.AppConfig, prefix string) error {
 	cfg, err := awsconfig.LoadDefaultConfig(context.TODO(), awsconfig.WithRegion("us-west-2"))
 	if err != nil {
 		panic("unable to load SDK config, " + err.Error())
@@ -36,7 +36,7 @@ func CreateTable(appConfig *config.AppConfig) error {
 			ReadCapacityUnits:  aws.Int64(5),
 			WriteCapacityUnits: aws.Int64(5),
 		},
-		TableName: aws.String("terraform_state"),
+		TableName: aws.String(prefix + "-terraform_state"),
 	}
 
 	// Create the table

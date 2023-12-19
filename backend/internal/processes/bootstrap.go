@@ -24,8 +24,9 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		}
 		return
 	}
+	uniqueString, err := generateRandomString(6)
 
-	err = provisionS3(appconf)
+	err = provisionS3(appconf, uniqueString)
 	if err != nil {
 		log.WithError(err).Error("Error provisioning S3 bucket")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
@@ -43,7 +44,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		}
 		return
 	}
-	err = initTerraform(store, appconf)
+	err = initTerraform(store, appconf, uniqueString)
 	if err != nil {
 		log.WithError(err).Error("Error installing Terraform")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
@@ -52,7 +53,6 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		}
 		return
 	}
-	uniqueString, err := generateRandomString(6)
 
 	//r := action.ActRunnerImpl{}
 	//err = UpdateCoreConfig(appconf, store, nil, "")
@@ -86,9 +86,9 @@ func BootstrapEnv(appconf *config.AppConfig) {
 
 }
 
-func provisionS3(appConfig *config.AppConfig) error {
+func provisionS3(appConfig *config.AppConfig, prefix string) error {
 	aws.CreateBucket(nil, appConfig)
-	err := aws.CreateTable(appConfig)
+	err := aws.CreateTable(appConfig, prefix)
 	if err != nil && !strings.Contains(err.Error(), "Table already exists") {
 		log.WithError(err).Error("Error creating table")
 		return err
@@ -97,9 +97,9 @@ func provisionS3(appConfig *config.AppConfig) error {
 	return nil
 }
 
-func initTerraform(store database.Datastore, appconf *config.AppConfig) error {
+func initTerraform(store database.Datastore, appconf *config.AppConfig, prefix string) error {
 	fs := afero.NewOsFs()
-	err := writeInitTemplate(fs, appconf)
+	err := writeInitTemplate(fs, appconf, prefix)
 	if err != nil {
 		return err
 	}
@@ -112,9 +112,9 @@ func initTerraform(store database.Datastore, appconf *config.AppConfig) error {
 
 }
 
-func writeInitTemplate(fs afero.Fs, appConfig *config.AppConfig) error {
+func writeInitTemplate(fs afero.Fs, appConfig *config.AppConfig, prefix string) error {
 	// Define the terraform configuration
-	tfconfig := `terraform {
+	tfconfig := fmt.Sprintf(`terraform {
 required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -122,13 +122,13 @@ required_providers {
     }
   }
   backend "s3" {
-    dynamodb_table = "terraform_state"
+    dynamodb_table = "%s-terraform_state"
   }
 }
 
 provider "aws" {
   region = "us-west-2"
-}`
+}`, prefix)
 
 	err := fs.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
 	if err != nil {
