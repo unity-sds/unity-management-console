@@ -9,11 +9,11 @@
       <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">{brand}</h2>
     </div>
     <div class="mt-4 flex md:ml-4 md:mt-0">
-      <a href="/ui" type="button"
+      <a href="/management/ui" type="button"
          class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
         Home
       </a>
-      <a href="/ui/progress" type="button"
+      <a href="/management/ui/progress" type="button"
          class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
         Console Log
       </a>
