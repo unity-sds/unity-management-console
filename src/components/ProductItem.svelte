@@ -12,7 +12,7 @@
   const handleInstallApp = () => {
     productInstall.set(product);
     //localStorage.setItem('product', JSON.stringify(product));  // Store product in local storage
-    goto("/ui/install", { replaceState: true });
+    goto("/management/ui/install", { replaceState: true });
   };
 </script>
 

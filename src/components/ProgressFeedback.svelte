@@ -37,10 +37,10 @@
       <div class="w-1/4 md:w-1/4"></div>
       {#if !installRunningValue}
         {#if !installErrorValue}
-          <a href="/ui/landing" class="btn btn-primary mt-3 bg-blue-500 text-white px-4 py-2 rounded">Installation
+          <a href="/management/ui/landing" class="btn btn-primary mt-3 bg-blue-500 text-white px-4 py-2 rounded">Installation
             Complete</a>
         {:else}
-          <a href="/ui/landing" class="btn btn-primary mt-3 bg-red-500 text-white px-4 py-2 rounded">Installation
+          <a href="/management/ui/landing" class="btn btn-primary mt-3 bg-red-500 text-white px-4 py-2 rounded">Installation
             Failed!</a>
         {/if}
       {/if}

@@ -110,7 +110,7 @@
     console.log(a);
     const id = await httpHandler.installSoftware(a, installName);
     console.log(id);
-    goto("/ui/progress", { replaceState: true });
+    goto("/management/ui/progress", { replaceState: true });
   };
 
   $: managedDependenciesKeys = product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];

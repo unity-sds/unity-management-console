@@ -36,19 +36,19 @@
     {
       title: "Core Management",
       description: "Manage your core settings and features.",
-      link: "/ui/setup",
+      link: "/management/ui/setup",
       disabled: false
     },
     {
       title: "Unity Marketplace",
       description: "Explore the Unity Marketplace.",
-      link: "/ui/marketplace",
+      link: "/management/ui/marketplace",
       disabled: !setuprun
     },
     {
       title: "Application Management",
       description: "Manage your applications.",
-      link: "/ui/applications",
+      link: "/management/ui/applications",
       disabled: !setuprun
     }
     // {title: 'Extension Management', description: 'Manage your hosted extensions.', link: '#', disabled: setuprun}
