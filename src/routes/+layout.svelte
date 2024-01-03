@@ -5,8 +5,9 @@
   import { HttpHandler } from "../data/httpHandler";
   import Navbar from "../components/Navbar.svelte";
   import { onMount } from "svelte";
-  import { initialized } from "../store/stores";
+  import { initialized, isLoading } from "../store/stores";
   import "../app.css";
+  import Spinner from "../components/Spinner.svelte";
 
   onMount(async () => {
     let hasInitialized;
@@ -18,6 +19,7 @@
 
     // If the initialization has not yet run, run it now
     if (!hasInitialized) {
+      isLoading.set(true);
       const httpHandler = new HttpHandler();
       // if (typeof window !== 'undefined') {
       // 	createWebsocketStore('ws://' + window.location.host + '/ws');
@@ -27,6 +29,7 @@
 
       // Update the store to indicate that the initialization has run
       initialized.set(true);
+      isLoading.set(false);
     }
 
   });
@@ -35,8 +38,12 @@
 <svelte:head>
   <title>Unity Management Console</title>
 </svelte:head>
-<Navbar brand="Unity Management Console" logoutLink="/logout" />
-<slot />
+{#if $isLoading}
+  <Spinner />
+{:else}
+  <Navbar brand="Unity Management Console" logoutLink="/logout" />
+  <slot />
+{/if}
 
 <!--<style lang="scss" global>-->
 <!--  @import '../custom.scss';-->

@@ -1,0 +1,13 @@
+[Unit]
+Description=Unity Management Console
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/path/to/your/webapp
+ExecStart=/path/to/your/webapp/main
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

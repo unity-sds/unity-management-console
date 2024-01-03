@@ -20,6 +20,8 @@ export const marketplaceStore = writable<MarketplaceMetadata[]>([]);
 
 export const initialized = writable<boolean>(false);
 
+export const isLoading = writable<boolean>(false);
+
 export const installRunning = writable<boolean>(false);
 
 export const installError = writable<boolean>(false);
