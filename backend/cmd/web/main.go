@@ -45,8 +45,10 @@ func main() {
 
 	filename := filepath.Join(appConfig.Workdir, "workspace", "provider.tf")
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		log.Infof("File %s doesn't exist", filename)
 		initialised = false
 	} else if err == nil {
+		log.Infof("File %s exists", filename)
 		initialised = true
 	} else {
 		// There was some other error when trying to check the file
