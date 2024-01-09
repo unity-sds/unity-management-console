@@ -43,7 +43,7 @@ func main() {
 
 	cobra.OnInitialize(initConfig)
 
-	filename := filepath.Join(appConfig.Workdir, "workspace", "provider")
+	filename := filepath.Join(appConfig.Workdir, "workspace", "provider.tf")
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		initialised = false
 	} else if err == nil {
