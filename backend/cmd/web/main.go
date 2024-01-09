@@ -14,18 +14,18 @@ import (
 var (
 	appConfig config.AppConfig
 
-	cfgFile   string
-	bootstrap bool
-	rootCmd   = &cobra.Command{Use: "Unity", Short: "Unity Command Line Tool", Long: ""}
-	cplanecmd = &cobra.Command{
+	cfgFile     string
+	bootstrap   bool
+	initialised bool
+	rootCmd     = &cobra.Command{Use: "Unity", Short: "Unity Command Line Tool", Long: ""}
+	cplanecmd   = &cobra.Command{
 		Use:   "webapp",
 		Short: "Execute management console commands",
 		Long:  `Management console startup configuration commands`,
 		Run: func(cmd *cobra.Command, args []string) {
-			if bootstrap == true {
-				//appLauncher(bootstrapApplication)
+			if bootstrap == true || !initialised {
+				log.Info("Bootstrap flag set or uninitialised workdir, bootstrapping")
 				processes.BootstrapEnv(&appConfig)
-
 			}
 			router := web.DefineRoutes(appConfig)
 
@@ -42,6 +42,16 @@ func main() {
 	log.Info("Launching Unity Management Console")
 
 	cobra.OnInitialize(initConfig)
+
+	filename := filepath.Join(appConfig.Workdir, "workspace", "provider")
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		initialised = false
+	} else if err == nil {
+		initialised = true
+	} else {
+		// There was some other error when trying to check the file
+		log.Errorf("Error occurred while checking file: %s", err)
+	}
 
 	rootCmd.AddCommand(cplanecmd)
 

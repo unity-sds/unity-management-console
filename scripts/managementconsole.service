@@ -5,8 +5,10 @@ After=network.target
 [Service]
 Type=simple
 User=ubuntu
-WorkingDirectory=/path/to/your/webapp
-ExecStart=/path/to/your/webapp/main
+StandardOutput=/var/log/managementconsole.log
+StandardError=inherit
+WorkingDirectory=/home/ubuntu/management-console
+ExecStart=/home/ubuntu/management-console/main webapp
 Restart=on-failure
 
 [Install]
