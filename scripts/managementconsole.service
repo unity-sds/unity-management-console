@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=ubuntu
-StandardOutput=/var/log/managementconsole.log
+StandardOutput=append:/var/log/managementconsole.log
 StandardError=inherit
 WorkingDirectory=/home/ubuntu/management-console
 ExecStart=/home/ubuntu/management-console/main webapp
