@@ -23,6 +23,17 @@ var (
 		Short: "Execute management console commands",
 		Long:  `Management console startup configuration commands`,
 		Run: func(cmd *cobra.Command, args []string) {
+			filename := filepath.Join(appConfig.Workdir, "workspace", "provider.tf")
+			if _, err := os.Stat(filename); os.IsNotExist(err) {
+				log.Infof("File %s doesn't exist", filename)
+				initialised = false
+			} else if err == nil {
+				log.Infof("File %s exists", filename)
+				initialised = true
+			} else {
+				// There was some other error when trying to check the file
+				log.Errorf("Error occurred while checking file: %s", err)
+			}
 			if bootstrap == true || !initialised {
 				log.Info("Bootstrap flag set or uninitialised workdir, bootstrapping")
 				processes.BootstrapEnv(&appConfig)
@@ -42,18 +53,6 @@ func main() {
 	log.Info("Launching Unity Management Console")
 
 	cobra.OnInitialize(initConfig)
-
-	filename := filepath.Join(appConfig.Workdir, "workspace", "provider.tf")
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		log.Infof("File %s doesn't exist", filename)
-		initialised = false
-	} else if err == nil {
-		log.Infof("File %s exists", filename)
-		initialised = true
-	} else {
-		// There was some other error when trying to check the file
-		log.Errorf("Error occurred while checking file: %s", err)
-	}
 
 	rootCmd.AddCommand(cplanecmd)
 
