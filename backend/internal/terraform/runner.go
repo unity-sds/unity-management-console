@@ -101,7 +101,7 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 	region := fmt.Sprintf("region=%s", appconf.AWSRegion)
 
 	p := filepath.Join(appconf.Workdir, "workspace")
-	tf, err := executor.NewTerraform(p, "/usr/bin/terraform")
+	tf, err := executor.NewTerraform(p, "/usr/local/bin/terraform")
 	if err != nil {
 		log.Fatalf("error running NewTerraform: %s", err)
 	}
