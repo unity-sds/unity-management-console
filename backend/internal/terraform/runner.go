@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 var stdoutBuffer bytes.Buffer
@@ -138,6 +139,7 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 		return err
 	}
 
+	time.Sleep(60 * time.Second)
 	change := false
 	if target != "" {
 		log.Infof("Running terraform with target: %s", target)
