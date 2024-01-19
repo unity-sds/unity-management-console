@@ -63,22 +63,24 @@
   <div class="flex justify-center">
     <div class="flex-initial">
       {#if bootstrapfailed}
-        <div>
+        <div class="managementfeedback">
           <h5 class="text-xl">The Bootstrap Process Failed Please Check The Logs</h5>
         </div>
       {:else if !bootstrapped}
-        <div>
+        <div class="managementfeedback">
           <h5 class="text-xl">Bootstrap is either in progress or has not been run</h5>
         </div>
       {:else if !setuprun}
-        <div>
+        <div class="managementfeedback">
           <h5 class="text-xl">Setup has not been run, please go to Core Management</h5>
         </div>
       {:else}
+        <div class="managementfeedback">
         <ul class="list-decimal pl-5">
           <li class="bg-gray-200 p-4 border-b border-gray-300">Project: {project}</li>
           <li class="bg-gray-200 p-4">Venue: {venue}</li>
         </ul>
+        </div>
       {/if}
     </div>
   </div>
