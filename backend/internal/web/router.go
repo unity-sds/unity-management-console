@@ -69,9 +69,10 @@ func handleWebsocket(c *gin.Context) {
 func handleNoRoute(c *gin.Context) {
 	log.Infof("Inside handleNoRoute, mismatched path: %s", c.Request.URL)
 	//c.File("./build/index.html")
-	c.JSON(http.StatusOK, gin.H{
-		"error": "route not found",
-	})
+	//c.JSON(http.StatusOK, gin.H{
+	//	"error": "route not found",
+	//})
+	c.File("./build/index.html")
 }
 
 // DefineRoutes defines the routes for the gin engine.
