@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { reapplyApplication, uninstallApplication } from "../data/httpHandler";
+  import { HttpHandler, reapplyApplication, uninstallApplication } from "../data/httpHandler";
   import { goto } from "$app/navigation";
 
   export let title = "";
@@ -11,8 +11,8 @@
 
   export let objectnumber = 0;
   const uninstallApp = () => {
-    console.log("Uninstalling: " + title);
-    uninstallApplication(title, appPackage, deployment);
+    const httphandler = new HttpHandler();
+    httphandler.uninstallSoftware(appPackage, deployment);
   };
 
   const handleKeydown = (event: KeyboardEvent) => {

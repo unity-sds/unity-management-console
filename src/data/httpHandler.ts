@@ -69,6 +69,16 @@ export class HttpHandler {
 		return '';
 	}
 
+	async uninstallSoftware(app: string, deployment: string): Promise<string> {
+		const uninstallApp = Uninstall.create({
+			DeploymentName: deployment,
+			Application: app
+		});
+		const uninstallSoftware = UnityWebsocketMessage.create({ uninstall: uninstallApp });
+		websocketStore.send(UnityWebsocketMessage.encode(uninstallSoftware).finish());
+		return '';
+	}
+
 	async uninstallAllSoftware(): Promise<string> {
 		const uninstallAll = Uninstall.create({
 			All: true
