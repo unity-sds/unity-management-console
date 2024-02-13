@@ -12,6 +12,7 @@ export interface UnityWebsocketMessage {
   parameters?: Parameters | undefined;
   logs?: LogLine | undefined;
   deployments?: Deployments | undefined;
+  uninstall?: Uninstall | undefined;
 }
 
 export interface Application {
@@ -67,6 +68,12 @@ export interface Install_Applications {
 export interface Install_Applications_DependenciesEntry {
   key: string;
   value: string;
+}
+
+export interface Uninstall {
+  DeploymentName: string;
+  Application: string;
+  All: boolean;
 }
 
 export interface SimpleMessage {
@@ -126,6 +133,7 @@ function createBaseUnityWebsocketMessage(): UnityWebsocketMessage {
     parameters: undefined,
     logs: undefined,
     deployments: undefined,
+    uninstall: undefined,
   };
 }
 
@@ -151,6 +159,9 @@ export const UnityWebsocketMessage = {
     }
     if (message.deployments !== undefined) {
       Deployments.encode(message.deployments, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.uninstall !== undefined) {
+      Uninstall.encode(message.uninstall, writer.uint32(66).fork()).ldelim();
     }
     return writer;
   },
@@ -211,6 +222,13 @@ export const UnityWebsocketMessage = {
 
           message.deployments = Deployments.decode(reader, reader.uint32());
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.uninstall = Uninstall.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -229,6 +247,7 @@ export const UnityWebsocketMessage = {
       parameters: isSet(object.parameters) ? Parameters.fromJSON(object.parameters) : undefined,
       logs: isSet(object.logs) ? LogLine.fromJSON(object.logs) : undefined,
       deployments: isSet(object.deployments) ? Deployments.fromJSON(object.deployments) : undefined,
+      uninstall: isSet(object.uninstall) ? Uninstall.fromJSON(object.uninstall) : undefined,
     };
   },
 
@@ -245,6 +264,8 @@ export const UnityWebsocketMessage = {
     message.logs !== undefined && (obj.logs = message.logs ? LogLine.toJSON(message.logs) : undefined);
     message.deployments !== undefined &&
       (obj.deployments = message.deployments ? Deployments.toJSON(message.deployments) : undefined);
+    message.uninstall !== undefined &&
+      (obj.uninstall = message.uninstall ? Uninstall.toJSON(message.uninstall) : undefined);
     return obj;
   },
 
@@ -272,6 +293,9 @@ export const UnityWebsocketMessage = {
     message.logs = (object.logs !== undefined && object.logs !== null) ? LogLine.fromPartial(object.logs) : undefined;
     message.deployments = (object.deployments !== undefined && object.deployments !== null)
       ? Deployments.fromPartial(object.deployments)
+      : undefined;
+    message.uninstall = (object.uninstall !== undefined && object.uninstall !== null)
+      ? Uninstall.fromPartial(object.uninstall)
       : undefined;
     return message;
   },
@@ -1105,6 +1129,90 @@ export const Install_Applications_DependenciesEntry = {
     const message = createBaseInstall_Applications_DependenciesEntry();
     message.key = object.key ?? "";
     message.value = object.value ?? "";
+    return message;
+  },
+};
+
+function createBaseUninstall(): Uninstall {
+  return { DeploymentName: "", Application: "", All: false };
+}
+
+export const Uninstall = {
+  encode(message: Uninstall, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.DeploymentName !== "") {
+      writer.uint32(10).string(message.DeploymentName);
+    }
+    if (message.Application !== "") {
+      writer.uint32(18).string(message.Application);
+    }
+    if (message.All === true) {
+      writer.uint32(24).bool(message.All);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Uninstall {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUninstall();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.DeploymentName = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.Application = reader.string();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.All = reader.bool();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Uninstall {
+    return {
+      DeploymentName: isSet(object.DeploymentName) ? String(object.DeploymentName) : "",
+      Application: isSet(object.Application) ? String(object.Application) : "",
+      All: isSet(object.All) ? Boolean(object.All) : false,
+    };
+  },
+
+  toJSON(message: Uninstall): unknown {
+    const obj: any = {};
+    message.DeploymentName !== undefined && (obj.DeploymentName = message.DeploymentName);
+    message.Application !== undefined && (obj.Application = message.Application);
+    message.All !== undefined && (obj.All = message.All);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Uninstall>, I>>(base?: I): Uninstall {
+    return Uninstall.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Uninstall>, I>>(object: I): Uninstall {
+    const message = createBaseUninstall();
+    message.DeploymentName = object.DeploymentName ?? "";
+    message.Application = object.Application ?? "";
+    message.All = object.All ?? false;
     return message;
   },
 };

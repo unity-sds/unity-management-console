@@ -193,3 +193,53 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 	wsmgr.SendMessageToUserID(id, b)
 	return nil
 }
+
+func DestroyAllTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string, executor TerraformExecutor) error {
+	p := filepath.Join(appconf.Workdir, "workspace")
+
+	tf, err := executor.NewTerraform(p, "/usr/local/bin/terraform")
+	if err != nil {
+		log.Fatalf("error running NewTerraform: %s", err)
+	}
+
+	wwsWriter := &wsWriter{
+		userid: id,
+		wsmgr:  wsmgr,
+		level:  "INFO",
+	}
+
+	wwserrWriter := &wsWriter{
+		userid: id,
+		wsmgr:  wsmgr,
+		level:  "ERROR",
+	}
+	writerStdout := io.MultiWriter(os.Stdout, wwsWriter)
+	writerStderr := io.MultiWriter(os.Stderr, wwserrWriter)
+
+	tf.SetStdout(writerStdout)
+	tf.SetStderr(writerStderr)
+	tf.SetLogger(log.StandardLogger())
+
+	err = tf.Destroy(context.Background())
+	if err != nil {
+		log.WithError(err).Error("error running terraform destroy")
+		message := marketplace.SimpleMessage{
+			Operation: "terraform",
+			Payload:   "failed",
+		}
+		om := marketplace.UnityWebsocketMessage_Simplemessage{Simplemessage: &message}
+		wrap := marketplace.UnityWebsocketMessage{Content: &om}
+		b, _ := proto.Marshal(&wrap)
+		wsmgr.SendMessageToUserID(id, b)
+		return err
+	}
+	message := marketplace.SimpleMessage{
+		Operation: "terraform",
+		Payload:   "completed",
+	}
+	om := marketplace.UnityWebsocketMessage_Simplemessage{Simplemessage: &message}
+	wrap := marketplace.UnityWebsocketMessage{Content: &om}
+	b, _ := proto.Marshal(&wrap)
+	wsmgr.SendMessageToUserID(id, b)
+	return nil
+}

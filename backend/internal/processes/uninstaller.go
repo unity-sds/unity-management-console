@@ -7,6 +7,7 @@ import (
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
+	"github.com/unity-sds/unity-management-console/backend/internal/terraform"
 	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"io/ioutil"
 	"os"
@@ -20,6 +21,17 @@ type UninstallPayload struct {
 	DisplayName        string
 	ApplicationPackage string
 	Deployment         string
+}
+
+func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, userid string) error {
+	executor := &terraform.RealTerraformExecutor{}
+	err := terraform.DestroyAllTerraform(conf, conn, userid, executor)
+	if err != nil {
+		log.WithError(err).Error("Failed to run Terraform Destroy")
+		return err
+	}
+
+	return nil
 }
 
 func UninstallApplication(payload string, conf *config.AppConfig, store database.Datastore) error {

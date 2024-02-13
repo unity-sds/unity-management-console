@@ -18,7 +18,8 @@ import {
 	UnityWebsocketMessage,
 	Install_Applications,
 	Install,
-	Parameters_Parameter
+	Parameters_Parameter,
+	Uninstall
 } from './unity-cs-manager/protobuf/extensions';
 
 let headers = {};
@@ -65,6 +66,15 @@ export class HttpHandler {
 		});
 		const installSoftware = UnityWebsocketMessage.create({ install: installrequest });
 		websocketStore.send(UnityWebsocketMessage.encode(installSoftware).finish());
+		return '';
+	}
+
+	async uninstallAllSoftware(): Promise<string> {
+		const uninstallAll = Uninstall.create({
+			All: true
+		});
+		const uninstallSoftware = UnityWebsocketMessage.create({ uninstall: uninstallAll });
+		websocketStore.send(UnityWebsocketMessage.encode(uninstallSoftware).finish());
 		return '';
 	}
 

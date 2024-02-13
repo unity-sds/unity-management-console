@@ -30,7 +30,7 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
 	github.com/thomaspoignant/go-feature-flag v1.10.2
-	github.com/unity-sds/unity-cs-manager v0.0.0-20231206163020-d3543a638b81
+	github.com/unity-sds/unity-cs-manager v0.0.0-20240213163347-09aaa90ad6fb
 	github.com/zclconf/go-cty v1.13.0
 	golang.org/x/tools v0.7.0
 	google.golang.org/protobuf v1.30.0
