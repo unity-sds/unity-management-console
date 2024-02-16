@@ -25,13 +25,6 @@ func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppCo
 		log.Info("Request all applications received")
 		err := fetchAllApplications(store)
 		return nil, err
-	} else if message.Operation == "uninstall application" {
-		log.Info("Request to uninstall application")
-		err := uninstallApplication(message.Payload, conf, store)
-		return nil, err
-	} else if message.Operation == "uninstall deployment" {
-		log.Info("Request to uninstall deployment")
-		return uninstallDeployment(message.Payload)
 	} else if message.Operation == "reapply application" {
 		log.Info("Request to reapply application")
 		err := reapplyApplication(message.Payload, conf, store, wsmgr, userid)
@@ -153,21 +146,8 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	return data, nil
 }
 
-func uninstallApplication(name string, conf *config.AppConfig, store database.Datastore) error {
-
-	log.Infof("Uninstalling application %s", name)
-
-	return UninstallApplication(name, conf, store)
-}
-
 func reapplyApplication(name string, conf *config.AppConfig, store database.Datastore, wsmgr *websocket.WebSocketManager, userid string) error {
 	log.Infof("Repplying application %s", name)
 
 	return ReapplyApplication(name, conf, store, wsmgr, userid)
-}
-
-func uninstallDeployment(name string) ([]byte, error) {
-	log.Warn("Uninstall Deployment not yet implemented")
-
-	return nil, nil
 }
