@@ -34,14 +34,9 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 	return nil
 }
 
-func UninstallApplication(payload string, conf *config.AppConfig, store database.Datastore) error {
+func UninstallApplication(appname string, deploymentname string, displayname string, conf *config.AppConfig, store database.Datastore) error {
 
 	filepath := path.Join(conf.Workdir, "workspace")
-	var uninstall UninstallPayload
-	err := json.Unmarshal([]byte(payload), &uninstall)
-	if err != nil {
-		return err
-	}
 
 	files, err := ioutil.ReadDir(filepath)
 	if err != nil {
@@ -49,8 +44,8 @@ func UninstallApplication(payload string, conf *config.AppConfig, store database
 	}
 
 	for _, file := range files {
-		log.Infof("Checking file	%s has prefix: %s", file.Name(), uninstall.ApplicationPackage)
-		if strings.HasPrefix(file.Name(), uninstall.ApplicationPackage) {
+		log.Infof("Checking file	%s has prefix: %s", file.Name(), appname)
+		if strings.HasPrefix(file.Name(), appname) {
 			log.Infof("File was a match")
 			// Open the file
 			f, err := os.Open(path.Join(filepath, file.Name()))
@@ -77,18 +72,18 @@ func UninstallApplication(payload string, conf *config.AppConfig, store database
 			f.Close()
 
 			// Check applicationName from the comments and delete the file if it matches
-			log.Infof("Check if appname %s == %s", metadata["applicationName"], uninstall.Application)
-			if metadata["applicationName"] == uninstall.Application {
+			log.Infof("Check if appname %s == %s", metadata["applicationName"], appname)
+			if metadata["applicationName"] == appname {
 				err = os.Remove(path.Join(filepath, file.Name()))
 				if err != nil {
-					id, err := store.FetchDeploymentIDByName(uninstall.Deployment)
-					err = store.UpdateApplicationStatus(id, uninstall.Application, uninstall.DisplayName, "UNINSTALL FAILED")
+					id, err := store.FetchDeploymentIDByName(deploymentname)
+					err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL FAILED")
 					return err
 				}
-				err := store.RemoveApplicationByName(uninstall.Deployment, uninstall.Application)
+				err := store.RemoveApplicationByName(deploymentname, appname)
 				if err != nil {
-					id, err := store.FetchDeploymentIDByName(uninstall.Deployment)
-					err = store.UpdateApplicationStatus(id, uninstall.Application, uninstall.DisplayName, "UNINSTALL FAILED")
+					id, err := store.FetchDeploymentIDByName(deploymentname)
+					err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL FAILED")
 					return err
 				}
 				err = fetchAllApplications(store)

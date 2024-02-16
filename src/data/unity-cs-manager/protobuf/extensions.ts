@@ -73,6 +73,7 @@ export interface Install_Applications_DependenciesEntry {
 export interface Uninstall {
   DeploymentName: string;
   Application: string;
+  DisplayName: string;
   All: boolean;
 }
 
@@ -1134,7 +1135,7 @@ export const Install_Applications_DependenciesEntry = {
 };
 
 function createBaseUninstall(): Uninstall {
-  return { DeploymentName: "", Application: "", All: false };
+  return { DeploymentName: "", Application: "", DisplayName: "", All: false };
 }
 
 export const Uninstall = {
@@ -1144,6 +1145,9 @@ export const Uninstall = {
     }
     if (message.Application !== "") {
       writer.uint32(18).string(message.Application);
+    }
+    if (message.DisplayName !== "") {
+      writer.uint32(34).string(message.DisplayName);
     }
     if (message.All === true) {
       writer.uint32(24).bool(message.All);
@@ -1172,6 +1176,13 @@ export const Uninstall = {
 
           message.Application = reader.string();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.DisplayName = reader.string();
+          continue;
         case 3:
           if (tag !== 24) {
             break;
@@ -1192,6 +1203,7 @@ export const Uninstall = {
     return {
       DeploymentName: isSet(object.DeploymentName) ? String(object.DeploymentName) : "",
       Application: isSet(object.Application) ? String(object.Application) : "",
+      DisplayName: isSet(object.DisplayName) ? String(object.DisplayName) : "",
       All: isSet(object.All) ? Boolean(object.All) : false,
     };
   },
@@ -1200,6 +1212,7 @@ export const Uninstall = {
     const obj: any = {};
     message.DeploymentName !== undefined && (obj.DeploymentName = message.DeploymentName);
     message.Application !== undefined && (obj.Application = message.Application);
+    message.DisplayName !== undefined && (obj.DisplayName = message.DisplayName);
     message.All !== undefined && (obj.All = message.All);
     return obj;
   },
@@ -1212,6 +1225,7 @@ export const Uninstall = {
     const message = createBaseUninstall();
     message.DeploymentName = object.DeploymentName ?? "";
     message.Application = object.Application ?? "";
+    message.DisplayName = object.DisplayName ?? "";
     message.All = object.All ?? false;
     return message;
   },
