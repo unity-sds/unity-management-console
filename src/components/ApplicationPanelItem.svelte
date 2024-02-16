@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { HttpHandler, reapplyApplication, uninstallApplication } from "../data/httpHandler";
+  import { HttpHandler, reapplyApplication } from "../data/httpHandler";
   import { goto } from "$app/navigation";
 
   export let title = "";
