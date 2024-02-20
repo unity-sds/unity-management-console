@@ -196,7 +196,7 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig, prefi
 func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig, prefix string) error {
 	applications := marketplace.Install_Applications{
 		Name:        "unity-apigateway",
-		Version:     "0.1",
+		Version:     "0.2",
 		Variables:   nil,
 		Displayname: fmt.Sprintf("%s-%s", prefix, "unity-apigateway"),
 	}
