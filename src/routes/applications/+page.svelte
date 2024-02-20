@@ -40,7 +40,7 @@
     console.log(value);
 
     value?.deployment.forEach((el) => {
-      const deploymentName = el.name;
+      const dplName = el.name;
       el.application.forEach(ar => {
         const newCardItem = {
           title: ar.displayName,
@@ -49,7 +49,7 @@
           status: ar.status,
           packageName: ar.packageName,
           link: "",
-          deploymentName: deploymentName
+          deploymentName: dplName
         };
         cardData = [...cardData, newCardItem];
 

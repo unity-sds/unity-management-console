@@ -70,7 +70,7 @@ func generateFileStructure(appConfig *config.AppConfig, venue, project, publicsu
 
 	cloudenv := rootBody.AppendNewBlock("module", []string{"unity-cloud-env"})
 	cloudenvBody := cloudenv.Body()
-	cloudenvBody.SetAttributeValue("source", cty.StringVal(filepath.Join(appConfig.Workdir, "..", "terraform", "modules", "unity-cloud-env")))
+	cloudenvBody.SetAttributeValue("source", cty.StringVal(filepath.Join(appConfig.Workdir, "..", "workflowresources", "unity-cloud-env")))
 	cloudenvBody.SetAttributeValue("venue", cty.StringVal(venue))
 	cloudenvBody.SetAttributeValue("project", cty.StringVal(project))
 	cloudenvBody.SetAttributeValue("publicsubnets", cty.StringVal(publicsubnets))
