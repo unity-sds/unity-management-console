@@ -75,6 +75,8 @@ func generateFileStructure(appConfig *config.AppConfig, venue, project, publicsu
 	cloudenvBody.SetAttributeValue("project", cty.StringVal(project))
 	cloudenvBody.SetAttributeValue("publicsubnets", cty.StringVal(publicsubnets))
 	cloudenvBody.SetAttributeValue("privatesubnets", cty.StringVal(privatesubnets))
+	cloudenvBody.SetAttributeValue("tags", cty.MapValEmpty(cty.String))
+	cloudenvBody.SetAttributeValue("deployment_name", cty.StringVal("unity-cloud-env"))
 
 	if ssmParameters != nil {
 		cloudenvBody.SetAttributeValue("ssm_parameters", cty.ListVal(ssmParameters))
