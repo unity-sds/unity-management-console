@@ -177,7 +177,7 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig, prefi
 	variables := marketplace.Install_Variables{Values: simplevars}
 	applications := marketplace.Install_Applications{
 		Name:        "unity-proxy",
-		Version:     "0.1",
+		Version:     "0.2",
 		Variables:   &variables,
 		Displayname: fmt.Sprintf("%s-%s", prefix, "unity-proxy"),
 	}
