@@ -114,10 +114,12 @@ export class HttpHandler {
 						if (message.simplemessage.operation === 'terraform') {
 							if (message.simplemessage.payload === 'completed') {
 								installRunning.set(false);
+								installError.set(false);
 							}
 
 							if (message.simplemessage.payload === 'failed') {
 								installError.set(true);
+								installRunning.set(false);
 							}
 							const wsm = this.requestConfig();
 							const wsm2 = this.requestParams();
