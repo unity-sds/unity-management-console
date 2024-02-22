@@ -79,16 +79,22 @@ func UninstallApplication(appname string, deploymentname string, displayname str
 			// Check applicationName from the comments and delete the file if it matches
 			log.Infof("Check if appname %s == %s", metadata["applicationName"], displayname)
 			if metadata["applicationName"] == appname {
-				err = os.Remove(path.Join(filepath, file.Name()))
+				p := path.Join(filepath, file.Name())
+				log.Infof("Attempting to delete file: %s", p)
+				err = os.Remove(p)
 				if err != nil {
 					id, err := store.FetchDeploymentIDByName(deploymentname)
+					log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
 					err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL FAILED")
+					log.WithError(err).Error("Failed to update application status removing application")
 					return err
 				}
 				err := store.RemoveApplicationByName(deploymentname, appname)
 				if err != nil {
 					id, err := store.FetchDeploymentIDByName(deploymentname)
+					log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
 					err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL FAILED")
+					log.WithError(err).Error("Failed to update application status removing application")
 					return err
 				}
 				err = fetchAllApplications(store)
