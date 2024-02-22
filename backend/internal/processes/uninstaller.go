@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/terraform"
 	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
@@ -30,6 +31,10 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 		log.WithError(err).Error("Failed to run Terraform Destroy")
 		return err
 	}
+
+	aws.DeleteS3Bucket(conf.BucketName)
+
+	aws.DeleteStateTable(conf.InstallPrefix)
 
 	return nil
 }

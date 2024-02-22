@@ -7,12 +7,13 @@
   export let link = "";
   export let status = "";
   export let appPackage = "";
+  export let appName = "";
   export let deployment = "";
 
   export let objectnumber = 0;
   const uninstallApp = () => {
     const httphandler = new HttpHandler();
-    httphandler.uninstallSoftware(appPackage, deployment);
+    httphandler.uninstallSoftware(appName, deployment);
   };
 
   const handleKeydown = (event: KeyboardEvent) => {
@@ -25,7 +26,7 @@
 
   const reapplyApp = () => {
     console.log("Reapplying: " + title);
-    reapplyApplication(title, appPackage, deployment);
+    reapplyApplication(title, appName, deployment);
   };
 
 </script>

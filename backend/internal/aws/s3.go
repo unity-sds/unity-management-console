@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	log "github.com/sirupsen/logrus"
@@ -106,6 +107,24 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 	} else {
 		log.Infof("Bucket %s exists", bucket)
 	}
+}
+
+func DeleteS3Bucket(bucketName string) error {
+	cfg, err := awsconfig.LoadDefaultConfig(context.TODO(), awsconfig.WithRegion("us-west-2"))
+	if err != nil {
+		panic("unable to load SDK config, " + err.Error())
+	}
+
+	client := s3.NewFromConfig(cfg)
+
+	_, err = client.DeleteBucket(context.Background(), &s3.DeleteBucketInput{
+		Bucket: aws.String(bucketName),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func stringWithCharset(length int, charset string) string {

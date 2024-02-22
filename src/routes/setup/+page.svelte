@@ -8,8 +8,6 @@
   import SelectField from "../../components/SelectField.svelte";
   import OptionalParametersAccordion from "../../components/OptionalParametersAccordion.svelte";
 
-  let running = false;
-
   let httpHandler = new HttpHandler();
 
   let parameters = get(parametersStore); // Get the current value of the store

@@ -25,6 +25,7 @@ type AppConfig struct {
 	DefaultSSMParameters []SSMParameter
 	BasePath             string
 	ConsoleHost          string
+	InstallPrefix        string
 }
 
 type FeatureFlagClient interface {

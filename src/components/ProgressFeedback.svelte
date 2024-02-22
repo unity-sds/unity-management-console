@@ -1,5 +1,7 @@
 <script lang="ts">
   import { installError, installRunning } from "../store/stores";
+  import { onDestroy } from "svelte";
+  import SocketTerminal from "./SocketTerminal.svelte";
 
   let installRunningValue: boolean;
   const unsubscribeInstallRunning = installRunning.subscribe(value => {
@@ -13,8 +15,7 @@
 
 
   // Clean up the subscription when the component is destroyed
-  import { onDestroy } from "svelte";
-  import SocketTerminal from "./SocketTerminal.svelte";
+
 
   onDestroy(() => {
     unsubscribeInstallRunning();

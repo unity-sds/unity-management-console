@@ -51,3 +51,23 @@ func CreateTable(appConfig *config.AppConfig, prefix string) error {
 
 	return nil
 }
+
+func DeleteStateTable(prefix string) error {
+	cfg, err := awsconfig.LoadDefaultConfig(context.Background(), awsconfig.WithRegion("us-west-2"))
+	if err != nil {
+		return err
+	}
+
+	client := dynamodb.NewFromConfig(cfg)
+
+	input := &dynamodb.DeleteTableInput{
+		TableName: aws.String(prefix + "-terraform_state"),
+	}
+
+	_, err = client.DeleteTable(context.Background(), input)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

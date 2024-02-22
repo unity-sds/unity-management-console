@@ -1,6 +1,6 @@
 <script lang="ts">
   import ProductForm from "./ProductForm.svelte";
-  import { deploymentStore, productInstall } from "../store/stores";
+  import { deploymentStore, installError, productInstall, installRunning } from "../store/stores";
   import VariablesForm from "./VariablesForm.svelte";
   import { fetchDeployedApplications, HttpHandler } from "../data/httpHandler";
   import { Deployments, Install_Applications, Install_Variables } from "../data/unity-cs-manager/protobuf/extensions";
@@ -59,6 +59,11 @@
     return Object.keys(obj);
   }
 
+  function resetInstallValues() {
+    installError.set(false);
+    installRunning.set(false);
+  }
+
   let installName = "";
   const installSoftware = async () => {
     if (!product) {
@@ -108,6 +113,7 @@
     } as any);
     console.log("installing");
     console.log(a);
+    resetInstallValues();
     const id = await httpHandler.installSoftware(a, installName);
     console.log(id);
     goto("/management/ui/progress", { replaceState: true });

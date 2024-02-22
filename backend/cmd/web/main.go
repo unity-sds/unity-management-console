@@ -7,6 +7,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
 	"github.com/unity-sds/unity-management-console/backend/internal/web"
+	"math/rand"
 	"os"
 	"path/filepath"
 )
@@ -67,7 +68,20 @@ func main() {
 
 }
 
+func generateRandomString(n int) (string, error) {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	bytes := make([]byte, n)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	for i, b := range bytes {
+		bytes[i] = letters[b%byte(len(letters))]
+	}
+	return string(bytes), nil
+}
 func initConfig() {
+	uniqueString, err := generateRandomString(6)
+
 	dir, err := os.UserHomeDir()
 	if err != nil {
 		log.Errorf("Error fetching home directory: %v", err)
@@ -99,6 +113,7 @@ func initConfig() {
 		viper.SetDefault("MarketplaceBaseUrl", "https://raw.githubusercontent.com/")
 		viper.SetDefault("BasePath", "")
 		viper.SetDefault("ConsoleHost", "")
+		viper.SetDefault("InstallPrefix", uniqueString)
 
 	}
 

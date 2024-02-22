@@ -9,7 +9,6 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
-	"math/rand"
 	"path/filepath"
 	"strings"
 )
@@ -24,9 +23,8 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		}
 		return
 	}
-	uniqueString, err := generateRandomString(6)
 
-	err = provisionS3(appconf, uniqueString)
+	err = provisionS3(appconf)
 	if err != nil {
 		log.WithError(err).Error("Error provisioning S3 bucket")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
@@ -44,7 +42,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		}
 		return
 	}
-	err = initTerraform(store, appconf, uniqueString)
+	err = initTerraform(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing Terraform")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
@@ -59,7 +57,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	//if err != nil {
 	//	log.WithError(err).Error("Problem updating ssm config")
 	//}
-	err = installGateway(store, appconf, uniqueString)
+	err = installGateway(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing HTTPD Gateway")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
@@ -69,7 +67,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		return
 	}
 
-	err = installBasicAPIGateway(store, appconf, uniqueString)
+	err = installBasicAPIGateway(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing API Gateway")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
@@ -86,9 +84,9 @@ func BootstrapEnv(appconf *config.AppConfig) {
 
 }
 
-func provisionS3(appConfig *config.AppConfig, prefix string) error {
+func provisionS3(appConfig *config.AppConfig) error {
 	aws.CreateBucket(nil, appConfig)
-	err := aws.CreateTable(appConfig, prefix)
+	err := aws.CreateTable(appConfig, appConfig.InstallPrefix)
 	if err != nil && !strings.Contains(err.Error(), "Table already exists") {
 		log.WithError(err).Error("Error creating table")
 		return err
@@ -97,9 +95,9 @@ func provisionS3(appConfig *config.AppConfig, prefix string) error {
 	return nil
 }
 
-func initTerraform(store database.Datastore, appconf *config.AppConfig, prefix string) error {
+func initTerraform(store database.Datastore, appconf *config.AppConfig) error {
 	fs := afero.NewOsFs()
-	err := writeInitTemplate(fs, appconf, prefix)
+	err := writeInitTemplate(fs, appconf)
 	if err != nil {
 		return err
 	}
@@ -112,7 +110,7 @@ func initTerraform(store database.Datastore, appconf *config.AppConfig, prefix s
 
 }
 
-func writeInitTemplate(fs afero.Fs, appConfig *config.AppConfig, prefix string) error {
+func writeInitTemplate(fs afero.Fs, appConfig *config.AppConfig) error {
 	// Define the terraform configuration
 	tfconfig := fmt.Sprintf(`terraform {
 required_providers {
@@ -128,7 +126,7 @@ required_providers {
 
 provider "aws" {
   region = "us-west-2"
-}`, prefix)
+}`, appConfig.InstallPrefix)
 
 	err := fs.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
 	if err != nil {
@@ -171,7 +169,7 @@ func storeDefaultSSMParameters(appConfig *config.AppConfig, store database.Datas
 	return nil
 }
 
-func installGateway(store database.Datastore, appConfig *config.AppConfig, prefix string) error {
+func installGateway(store database.Datastore, appConfig *config.AppConfig) error {
 	simplevars := make(map[string]string)
 	simplevars["mgmt_dns"] = appConfig.ConsoleHost
 	variables := marketplace.Install_Variables{Values: simplevars}
@@ -179,7 +177,7 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig, prefi
 		Name:        "unity-proxy",
 		Version:     "0.3",
 		Variables:   &variables,
-		Displayname: fmt.Sprintf("%s-%s", prefix, "unity-proxy"),
+		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-proxy"),
 	}
 	install := marketplace.Install{
 		Applications:   &applications,
@@ -193,12 +191,12 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig, prefi
 	return nil
 }
 
-func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig, prefix string) error {
+func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
 	applications := marketplace.Install_Applications{
 		Name:        "unity-apigateway",
 		Version:     "0.2",
 		Variables:   nil,
-		Displayname: fmt.Sprintf("%s-%s", prefix, "unity-apigateway"),
+		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-apigateway"),
 	}
 	install := marketplace.Install{
 		Applications:   &applications,
@@ -282,16 +280,4 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 		return err
 	}
 	return nil
-}
-
-func generateRandomString(n int) (string, error) {
-	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	bytes := make([]byte, n)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	for i, b := range bytes {
-		bytes[i] = letters[b%byte(len(letters))]
-	}
-	return string(bytes), nil
 }

@@ -85,8 +85,7 @@ func (w *wsWriter) Write(p []byte) (n int, err error) {
 		Type:      "",
 	}
 	mes := marketplace.UnityWebsocketMessage_Logs{Logs: &m}
-	mess := &marketplace.UnityWebsocketMessage{Content: &mes}
-	data, err := proto.Marshal(mess)
+	data, err := proto.Marshal(&marketplace.UnityWebsocketMessage{Content: &mes})
 	if err != nil {
 		log.WithError(err).Error("Failed to marshal log line")
 		return
@@ -118,7 +117,7 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 		level:  "ERROR",
 	}
 	writerStdout := io.MultiWriter(os.Stdout, wwsWriter)
-	writerStderr := io.MultiWriter(os.Stderr, wwserrWriter)
+	writerStderr := io.MultiWriter(os.Stderr, os.Stdout, wwserrWriter)
 
 	tf.SetStdout(writerStdout)
 	tf.SetStderr(writerStderr)
