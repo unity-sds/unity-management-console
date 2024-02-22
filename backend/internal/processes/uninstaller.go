@@ -78,7 +78,7 @@ func UninstallApplication(appname string, deploymentname string, displayname str
 
 			// Check applicationName from the comments and delete the file if it matches
 			log.Infof("Check if appname %s == %s", metadata["applicationName"], displayname)
-			if metadata["applicationName"] == appname {
+			if metadata["applicationName"] == displayname {
 				p := path.Join(filepath, file.Name())
 				log.Infof("Attempting to delete file: %s", p)
 				err = os.Remove(p)

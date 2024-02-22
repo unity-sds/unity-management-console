@@ -37,7 +37,7 @@
       title: "Core Management",
       description: "Manage your core settings and features.",
       link: "/management/ui/setup",
-      disabled: false
+      disabled: !bootstrapped
     },
     {
       title: "Unity Marketplace",
@@ -51,7 +51,6 @@
       link: "/management/ui/applications",
       disabled: !setuprun
     }
-    // {title: 'Extension Management', description: 'Manage your hosted extensions.', link: '#', disabled: setuprun}
   ];
 </script>
 <header class="bg-blue-600 text-white text-center py-12 mb-12">
@@ -76,10 +75,10 @@
         </div>
       {:else}
         <div class="managementfeedback">
-        <ul class="list-decimal pl-5">
-          <li class="bg-gray-200 p-4 border-b border-gray-300">Project: {project}</li>
-          <li class="bg-gray-200 p-4">Venue: {venue}</li>
-        </ul>
+          <ul class="list-decimal pl-5">
+            <li class="bg-gray-200 p-4 border-b border-gray-300">Project: {project}</li>
+            <li class="bg-gray-200 p-4">Venue: {venue}</li>
+          </ul>
         </div>
       {/if}
     </div>
