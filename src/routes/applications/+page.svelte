@@ -79,7 +79,7 @@
   <div class="row text-center mt-5">
     {#each cardData as card, index (card.title)}
       <ApplicationPanelItem title={card.title} description={card.source} status={card.status} link={card.link}
-                            appPackage={card.packageName} appName={card.applicationName},
+                            appPackage={card.packageName} appName={card.applicationName}
                             deployment={card.deploymentName} objectnumber={index + 1} />
     {/each}
   </div>

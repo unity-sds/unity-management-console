@@ -13,6 +13,7 @@
   export let objectnumber = 0;
   const uninstallApp = () => {
     const httphandler = new HttpHandler();
+    console.log("Uninstalling " + appName);
     httphandler.uninstallSoftware(appName, deployment);
   };
 

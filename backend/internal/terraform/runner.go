@@ -139,6 +139,7 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 	}
 
 	time.Sleep(60 * time.Second)
+	writerStdout.Write([]byte("Waiting 60 seconds for the state to settle"))
 	change := false
 	if target != "" {
 		log.Infof("Running terraform with target: %s", target)

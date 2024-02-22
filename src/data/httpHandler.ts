@@ -88,13 +88,20 @@ export class HttpHandler {
 		return '';
 	}
 
+	requestConfig(): UnityWebsocketMessage {
+		const configrequest = SimpleMessage.create({ operation: 'request config', payload: '' });
+		return UnityWebsocketMessage.create({ simplemessage: configrequest });
+	}
+
+	requestParams(): UnityWebsocketMessage {
+		const paramrequest = SimpleMessage.create({ operation: 'request parameters', payload: '' });
+		return UnityWebsocketMessage.create({ simplemessage: paramrequest });
+	}
+
 	setupws() {
 		if (!dev) {
-			const configrequest = SimpleMessage.create({ operation: 'request config', payload: '' });
-			const wsm = UnityWebsocketMessage.create({ simplemessage: configrequest });
-			const paramrequest = SimpleMessage.create({ operation: 'request parameters', payload: '' });
-			const wsm2 = UnityWebsocketMessage.create({ simplemessage: paramrequest });
-
+			const wsm = this.requestConfig();
+			const wsm2 = this.requestParams();
 			websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
 			websocketStore.send(UnityWebsocketMessage.encode(wsm2).finish());
 			let lastProcessedIndex = -1;
@@ -111,6 +118,10 @@ export class HttpHandler {
 							if (message.simplemessage.payload === 'failed') {
 								installError.set(true);
 							}
+							const wsm = this.requestConfig();
+							const wsm2 = this.requestParams();
+							websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
+							websocketStore.send(UnityWebsocketMessage.encode(wsm2).finish());
 						}
 					} else if (message.parameters) {
 						parametersStore.set(message.parameters);
@@ -124,7 +135,6 @@ export class HttpHandler {
 							);
 						}
 					} else if (message.deployments) {
-						debugger;
 						deploymentStore.set(message.deployments);
 					}
 					lastProcessedIndex = i; // Update the last processed index

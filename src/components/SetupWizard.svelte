@@ -61,7 +61,7 @@
 
   function resetInstallValues() {
     installError.set(false);
-    installRunning.set(false);
+    installRunning.set(true);
   }
 
   let installName = "";
