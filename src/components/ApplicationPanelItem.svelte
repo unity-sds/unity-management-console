@@ -14,7 +14,7 @@
   const uninstallApp = () => {
     const httphandler = new HttpHandler();
     console.log("Uninstalling " + appName);
-    httphandler.uninstallSoftware(appName, deployment);
+    httphandler.uninstallSoftware(appName, appPackage, deployment);
   };
 
   const handleKeydown = (event: KeyboardEvent) => {
