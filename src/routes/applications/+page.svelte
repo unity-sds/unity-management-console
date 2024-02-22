@@ -51,7 +51,7 @@
           packageName: ar.packageName,
           link: "",
           deploymentName: dplName,
-          applicationName: ar.applicationName
+          applicationName: ar.displayName
         };
         cardData = [...cardData, newCardItem];
 
