@@ -198,6 +198,6 @@ func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, stor
 	if received.All == true {
 		return UninstallAll(conf, wsManager, userid)
 	} else {
-		return UninstallApplication(received.Application, received.DeploymentName, received.DisplayName, conf, store)
+		return UninstallApplication(received.Application, received.DeploymentName, received.DisplayName, conf, store, wsManager, userid)
 	}
 }

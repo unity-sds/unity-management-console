@@ -39,7 +39,8 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 	return nil
 }
 
-func UninstallApplication(appname string, deploymentname string, displayname string, conf *config.AppConfig, store database.Datastore) error {
+func UninstallApplication(appname string, deploymentname string, displayname string, conf *config.AppConfig, store database.Datastore, conn *websocket.WebSocketManager, userid string) error {
+	executor := &terraform.RealTerraformExecutor{}
 
 	filepath := path.Join(conf.Workdir, "workspace")
 
@@ -98,6 +99,10 @@ func UninstallApplication(appname string, deploymentname string, displayname str
 					return err
 				}
 				err = fetchAllApplications(store)
+				if err != nil {
+					return err
+				}
+				err = terraform.RunTerraform(conf, conn, userid, executor, "")
 				if err != nil {
 					return err
 				}
