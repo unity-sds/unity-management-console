@@ -175,7 +175,7 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 	variables := marketplace.Install_Variables{Values: simplevars}
 	applications := marketplace.Install_Applications{
 		Name:        "unity-proxy",
-		Version:     "0.8",
+		Version:     "0.9",
 		Variables:   &variables,
 		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-proxy"),
 	}
@@ -194,7 +194,7 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
 	applications := marketplace.Install_Applications{
 		Name:        "unity-apigateway",
-		Version:     "0.2",
+		Version:     "0.3",
 		Variables:   nil,
 		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-apigateway"),
 	}
