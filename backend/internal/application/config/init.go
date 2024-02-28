@@ -26,6 +26,8 @@ type AppConfig struct {
 	BasePath             string
 	ConsoleHost          string
 	InstallPrefix        string
+	Project              string
+	Venue                string
 }
 
 type FeatureFlagClient interface {

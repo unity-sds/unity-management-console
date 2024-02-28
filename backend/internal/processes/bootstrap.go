@@ -224,13 +224,20 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 	//	return err
 	//}
 	//log.Infof("Project found: %s", project)
+	prj := appConfig.Project
+	vne := appConfig.Venue
 
-	venue, err := aws.ReadSSMParameter("/unity/core/venue")
+	if prj == "" {
+		log.Error("Config value Project not set")
+	}
+	if vne == "" {
+		log.Error("Config value Venue not set")
+	}
+	venue, err := aws.ReadSSMParameter(fmt.Sprintf("/unity/deployment/%s/%s/venue-name", prj, vne))
 	if err != nil {
 		log.WithError(err).Error("Problem fetching venue")
 	}
-
-	project, err := aws.ReadSSMParameter("/unity/core/project")
+	project, err := aws.ReadSSMParameter(fmt.Sprintf("/unity/deployment/%s/%s/project-name", prj, vne))
 	if err != nil {
 		log.WithError(err).Error("Problem fetching project")
 	}

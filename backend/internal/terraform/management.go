@@ -178,7 +178,8 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	attributes := map[string]cty.Value{
 		"deployment_name": cty.StringVal(install.Applications.Displayname),
 		"tags":            cty.MapValEmpty(cty.String), // Example of setting an empty map
-		// Add other attributes as needed
+		"project":         cty.StringVal(appConfig.Project),
+		"venue":           cty.StringVal(appConfig.Venue),
 	}
 
 	log.Info("Organising variable replacement")
