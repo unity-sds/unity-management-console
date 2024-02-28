@@ -233,13 +233,15 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 	if vne == "" {
 		log.Error("Config value Venue not set")
 	}
-	venue, err := aws.ReadSSMParameter(fmt.Sprintf("/unity/deployment/%s/%s/venue-name", prj, vne))
+	vparam := fmt.Sprintf("/unity/deployment/%s/%s/venue-name", prj, vne)
+	venue, err := aws.ReadSSMParameter(vparam)
 	if err != nil {
-		log.WithError(err).Error("Problem fetching venue")
+		log.WithError(err).Errorf("Problem fetching venue %s", vparam)
 	}
-	project, err := aws.ReadSSMParameter(fmt.Sprintf("/unity/deployment/%s/%s/project-name", prj, vne))
+	pparam := fmt.Sprintf("/unity/deployment/%s/%s/project-name", prj, vne)
+	project, err := aws.ReadSSMParameter(pparam)
 	if err != nil {
-		log.WithError(err).Error("Problem fetching project")
+		log.WithError(err).Errorf("Problem fetching project %s", pparam)
 	}
 
 	publicsubnets, err := getSSMParameterValueFromDatabase("publicsubnets", store)

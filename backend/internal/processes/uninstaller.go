@@ -28,14 +28,21 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 	executor := &terraform.RealTerraformExecutor{}
 	err := terraform.DestroyAllTerraform(conf, conn, userid, executor)
 	if err != nil {
-		log.WithError(err).Error("Failed to run Terraform Destroy")
-		return err
+		log.WithError(err).Error("FAILED TO DESTROY ALL COMPONENTS")
+		//return err
 	}
 
-	aws.DeleteS3Bucket(conf.BucketName)
+	err = aws.DeleteS3Bucket(conf.BucketName)
+	if err != nil {
+		log.WithError(err).Error("FAILED TO REMOVE S3 BUCKET")
+	}
 
-	aws.DeleteStateTable(conf.InstallPrefix)
+	err = aws.DeleteStateTable(conf.InstallPrefix)
+	if err != nil {
+		log.WithError(err).Error("FAILED TO REMOVE DYNAMODB TABLE")
+	}
 
+	log.Info("UNITY MANAGEMENT CONSOLE UNINSTALL COMPLETE")
 	return nil
 }
 
