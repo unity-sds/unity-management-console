@@ -2,6 +2,9 @@ package aws
 
 import (
 	"context"
+	"math/rand"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -10,8 +13,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	appconfig "github.com/unity-sds/unity-management-console/backend/internal/application/config"
-	"math/rand"
-	"time"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -109,16 +110,82 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 	}
 }
 
+// Empties, then deletes a S3 bucket
 func DeleteS3Bucket(bucketName string) error {
 	cfg, err := awsconfig.LoadDefaultConfig(context.TODO(), awsconfig.WithRegion("us-west-2"))
 	if err != nil {
 		panic("unable to load SDK config, " + err.Error())
 	}
-
+	bucket := aws.String(bucketName)
 	client := s3.NewFromConfig(cfg)
 
+	// Define an inline deleteObject function (used below)
+	deleteObject := func(bucket, key, versionId *string) {
+		log.Printf("Object: %s/%s\n", *key, aws.ToString(versionId))
+		_, err := client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+			Bucket:    bucket,
+			Key:       key,
+			VersionId: versionId,
+		})
+		if err != nil {
+			log.Fatalf("Failed to delete object: %v", err)
+		}
+	}
+
+	//
+	// Get a list of objects in the S3 bucket.
+	// Iterator over them, and delete each one.
+	//
+	in := &s3.ListObjectsV2Input{Bucket: bucket}
+	for {
+		out, err := client.ListObjectsV2(context.TODO(), in)
+		if err != nil {
+			log.Fatalf("Failed to list objects: %v", err)
+		}
+
+		for _, item := range out.Contents {
+			deleteObject(bucket, item.Key, nil)
+		}
+
+		if out.IsTruncated {
+			in.ContinuationToken = out.ContinuationToken
+		} else {
+			break
+		}
+	}
+
+	//
+	// Get a list of all the object versions in the bucket.
+	// Iterate over them and delete them
+	//
+	inVer := &s3.ListObjectVersionsInput{Bucket: bucket}
+	for {
+		out, err := client.ListObjectVersions(context.TODO(), inVer)
+		if err != nil {
+			log.Fatalf("Failed to list version objects: %v", err)
+		}
+
+		for _, item := range out.DeleteMarkers {
+			deleteObject(bucket, item.Key, item.VersionId)
+		}
+
+		for _, item := range out.Versions {
+			deleteObject(bucket, item.Key, item.VersionId)
+		}
+
+		if out.IsTruncated {
+			inVer.VersionIdMarker = out.NextVersionIdMarker
+			inVer.KeyMarker = out.NextKeyMarker
+		} else {
+			break
+		}
+	}
+
+	//
+	// Finally, delete the (now empty) bucket
+	//
 	_, err = client.DeleteBucket(context.Background(), &s3.DeleteBucketInput{
-		Bucket: aws.String(bucketName),
+		Bucket: bucket,
 	})
 	if err != nil {
 		return err
