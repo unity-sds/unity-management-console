@@ -13,6 +13,8 @@ import (
 	websocket2 "github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"net/http"
 	"net/http/pprof"
+	"time"
+	ginoauth2 "github.com/zalando/gin-oauth2"
 )
 
 var conf config.AppConfig
@@ -85,6 +87,9 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router := gin.Default()
 	router.RedirectTrailingSlash = false
 	conf = appConfig
+
+	router.Use(ginoauth2.RequestLogger([]string{"uid"}, "data"))
+	ginoauth2.VarianceTimer = 300 * time.Millisecond // defaults to 30s
 
 	/*authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
 		"admin": "unity",
