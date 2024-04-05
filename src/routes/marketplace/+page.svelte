@@ -56,7 +56,7 @@
               </select>
             </div>
             <ProductItem
-              product={featuredProducts.find(
+              product={filteredProducts.find(
                 (p) => p.Name === key && p.Version === selectedVersionForProduct[key]
               )}
               on:addToCart={handelAddToCart}
