@@ -31,7 +31,7 @@
   const selectedVersionsForProducts = <SelectedVersionsForProducts>{};
 
   $: {
-    console.log('filtering!');
+    console.log(filteredProducts);
     filteredProducts.forEach((product) => {
       binnedProducts[product.Name] = binnedProducts[product.Name] || [];
       binnedProducts[product.Name].push(product);
