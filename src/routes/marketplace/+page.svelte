@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { compareVersions } from 'compare-versions';
   import ProductItem from '../../components/ProductItem.svelte';
   import CategoryList from '../../components/CategoryList.svelte';
   import Header from '../../components/Header.svelte';
@@ -41,15 +42,17 @@
       <div class="w-3/4 p-2">
         {#each Object.entries(binnedProducts) as [key, versionList]}
           <div>
-            <div class="px-4 sm:px-0">
-              <h2 class="font-semibold leading-7 text-gray-900 text-2xl">
-                {key}
-              </h2>
-              <select>
-                {#each versionList as version}
-                  <option value={version}>{version}</option>
-                {/each}
-              </select>
+            <div class="px-4 sm:px-0" style="display: flex; gap: 10px; align-items: center;">
+              <div>
+                <h2 class="font-semibold leading-7 text-gray-900 text-2xl">
+                  {key}
+                </h2>
+                <select>
+                  {#each versionList.sort(compareVersions) as version}
+                    <option value={version}>{version}</option>
+                  {/each}
+                </select>
+              </div>
             </div>
           </div>
         {/each}

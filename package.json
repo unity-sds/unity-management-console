@@ -57,6 +57,7 @@
 		"atob": "^2.1.2",
 		"axios": "^1.4.0",
 		"bootstrap": "^5.2.3",
+		"compare-versions": "^6.1.0",
 		"postcss-load-config": "^4.0.1",
 		"svelte-resize-observer": "^2.0.0",
 		"ts-proto": "^1.149.0",
