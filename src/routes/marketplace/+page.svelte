@@ -33,6 +33,10 @@
     acc[product.Name].push(product.Version);
     return acc;
   }, {});
+
+  function getSelectedVersion(name) {
+    filteredProducts.find((p) => p.Name === key && p.Version === selectedVersionForProduct[name]);
+  }
 </script>
 
 <div>
@@ -43,24 +47,20 @@
         <CategoryList {categories} on:selectCategory={handleSelectCategory} />
       </div>
       <div class="w-3/4 p-2">
-        {#each Object.entries(binnedProducts) as [key, versionList]}
+        {#each Object.entries(binnedProducts) as [name, versionList]}
           <div>
             <div class="px-4 sm:px-0" style="display: flex; gap: 10px; align-items: center;">
               <h2 class="font-semibold leading-7 text-gray-900 text-2xl">
-                {key}
+                {name}
               </h2>
-              <select bind:value={selectedVersionForProduct[key]}>
+              <select bind:value={selectedVersionForProduct[name]}>
                 {#each versionList as version}
                   <option value={version}>{version}</option>
                 {/each}
               </select>
             </div>
-            <ProductItem
-              product={filteredProducts.find(
-                (p) => p.Name === key && p.Version === selectedVersionForProduct[key]
-              )}
-              on:addToCart={handelAddToCart}
-            />
+
+            <ProductItem product={getProductAtVersion(name)} on:addToCart={handelAddToCart} />
           </div>
         {/each}
         <!--         {#each filteredProducts as product}
