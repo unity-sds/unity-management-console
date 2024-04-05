@@ -23,7 +23,8 @@
     $order = $order; // force update to trigger rerender in Header
   };
 
-  $: binnedProducts = filteredProducts.reduce((acc, product) => {
+  type BinnedProduct = Record<string, any>;
+  $: binnedProducts = filteredProducts.reduce<BinnedProduct>((acc, product) => {
     acc[product.Name] = acc[product.Name] || [];
     acc[product.Name].push(product.Version);
     return acc;
