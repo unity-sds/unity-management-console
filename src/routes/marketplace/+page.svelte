@@ -1,14 +1,14 @@
 <script lang="ts">
-  import ProductItem from "../../components/ProductItem.svelte";
-  import CategoryList from "../../components/CategoryList.svelte";
-  import Header from "../../components/Header.svelte";
-  import { marketplaceStore, selectedCategory, order } from "../../store/stores";
-  import type { OrderLine } from "../../data/entities";
-  import { fade, slide } from "svelte/transition";
+  import ProductItem from '../../components/ProductItem.svelte';
+  import CategoryList from '../../components/CategoryList.svelte';
+  import Header from '../../components/Header.svelte';
+  import { marketplaceStore, selectedCategory, order } from '../../store/stores';
+  import type { OrderLine } from '../../data/entities';
+  import { fade, slide } from 'svelte/transition';
 
-  $: categories = ["All", ...new Set($marketplaceStore.map((p) => p.Category))];
+  $: categories = ['All', ...new Set($marketplaceStore.map((p) => p.Category))];
   $: filteredProducts = $marketplaceStore.filter(
-    (p) => $selectedCategory === "All" || $selectedCategory === p.Category
+    (p) => $selectedCategory === 'All' || $selectedCategory === p.Category
   );
 
   const handleSelectCategory = (event: { detail: string }) => {
@@ -22,6 +22,13 @@
     $order.addProduct(product, quantity);
     $order = $order; // force update to trigger rerender in Header
   };
+
+  $: binnedProducts = filteredProducts.reduce((acc, product) => {
+    acc[product.Name] = acc[product.Name] || [];
+    acc[product.Name].push(product.Version);
+    return acc;
+  }, {});
+  console.log(binnedProducts);
 </script>
 
 <div>
