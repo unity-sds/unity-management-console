@@ -29,7 +29,7 @@
     acc[product.Name].push(product.Version);
     return acc;
   }, {});
-  console.log(binnedProducts);
+  $: console.log(binnedProducts);
 </script>
 
 <div>
