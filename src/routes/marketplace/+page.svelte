@@ -34,7 +34,7 @@
     return acc;
   }, {});
 
-  function getSelectedVersion(name) {
+  function getSelectedVersion(name: string) {
     filteredProducts.find((p) => p.Name === key && p.Version === selectedVersionForProduct[name]);
   }
 </script>
