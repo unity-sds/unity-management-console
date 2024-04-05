@@ -60,7 +60,7 @@
               </select>
             </div>
 
-            <ProductItem product={getProductAtVersion(name)} on:addToCart={handelAddToCart} />
+            <ProductItem product={getSelectedVersion(name)} on:addToCart={handelAddToCart} />
           </div>
         {/each}
         <!--         {#each filteredProducts as product}
