@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { compareVersions } from 'compare-versions';
   import ProductItem from '../../components/ProductItem.svelte';
   import CategoryList from '../../components/CategoryList.svelte';
   import Header from '../../components/Header.svelte';
   import { marketplaceStore, selectedCategory, order } from '../../store/stores';
+  import type { MarketplaceMetadata } from '../../data/unity-cs-manager/protobuf/marketplace';
   import type { OrderLine } from '../../data/entities';
   import { fade, slide } from 'svelte/transition';
 
@@ -24,19 +24,24 @@
     $order = $order; // force update to trigger rerender in Header
   };
 
-  type SelectedProductVersions = Record<string, string>;
-  let selectedVersionForProduct = <SelectedProductVersions>{};
+  // type SelectedProductVersions = Record<string, string>;
+  // let selectedProductVersions = <SelectedProductVersions>{};
 
-  type BinnedProduct = Record<string, any>;
+  // type SelectedProducts = Record<string, MarketplaceMetadata>{};
+  // let selectedProducts=<SelectedProducts>{}
+
+  type BinnedProduct = Record<string, MarketplaceMetadata[]>;
   $: binnedProducts = filteredProducts.reduce<BinnedProduct>((acc, product) => {
     acc[product.Name] = acc[product.Name] || [];
-    acc[product.Name].push(product.Version);
+    acc[product.Name].push(product);
     return acc;
   }, {});
 
-  function getSelectedVersion(name: string) {
-    filteredProducts.find((p) => p.Name === name && p.Version === selectedVersionForProduct[name]);
-  }
+  // function getSelectedVersion(name: string): MarketplaceMetadata | undefined {
+  //   return filteredProducts.find(
+  //     (p) => p.Name === name && p.Version === selectedProductVersions[name]
+  //   );
+  // }
 </script>
 
 <div>
@@ -47,21 +52,21 @@
         <CategoryList {categories} on:selectCategory={handleSelectCategory} />
       </div>
       <div class="w-3/4 p-2">
-        {#each Object.entries(binnedProducts) as [name, versionList]}
+        {#each Object.entries(binnedProducts) as [name, productList]}
           <div>
             <div class="px-4 sm:px-0" style="display: flex; gap: 10px; align-items: center;">
               <h2 class="font-semibold leading-7 text-gray-900 text-2xl">
                 {name}
               </h2>
-              <select bind:value={selectedVersionForProduct[name]}>
-                {#each versionList as version}
-                  <option value={version}>{version}</option>
+              <select>
+                {#each productList as product}
+                  <option value={product.Version}>{product.Version}</option>
                 {/each}
               </select>
             </div>
-            {#if getSelectedVersion(name)}
-              <ProductItem product={getSelectedVersion(name)} on:addToCart={handelAddToCart} />
-            {/if}
+            <!-- {#if selectedProductVersions[name]}
+              <ProductItem product={selectedProductVersions[name]} on:addToCart={handelAddToCart} />
+            {/if} -->
           </div>
         {/each}
         <!--         {#each filteredProducts as product}
