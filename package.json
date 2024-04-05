@@ -57,7 +57,6 @@
 		"atob": "^2.1.2",
 		"axios": "^1.4.0",
 		"bootstrap": "^5.2.3",
-		"oauth4webapi": "^2.10.4",
 		"postcss-load-config": "^4.0.1",
 		"semver": "^7.6.0",
 		"svelte-resize-observer": "^2.0.0",

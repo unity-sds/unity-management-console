@@ -36,7 +36,7 @@
       acc[product.Name] = acc[product.Name] || [];
       acc[product.Name].push(product);
       acc[product.Name] = acc[product.Name].sort((a, b) =>
-        semver.compare(semver.coerce(a.Version) || '', semver.coerce(b.Version) || '')
+        semver.compare(semver.coerce(b.Version) || '', semver.coerce(a.Version) || '')
       );
       return acc;
     }, {});
