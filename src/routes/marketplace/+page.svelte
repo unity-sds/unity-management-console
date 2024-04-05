@@ -24,7 +24,8 @@
     $order = $order; // force update to trigger rerender in Header
   };
 
-  let selectedVersionForProduct = {};
+  type SelectedProductVersions = Record<string, string>;
+  let selectedVersionForProduct = <SelectedProductVersions>{};
 
   type BinnedProduct = Record<string, any>;
   $: binnedProducts = filteredProducts.reduce<BinnedProduct>((acc, product) => {
