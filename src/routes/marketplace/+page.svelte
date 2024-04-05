@@ -46,24 +46,28 @@
         {#each Object.entries(binnedProducts) as [key, versionList]}
           <div>
             <div class="px-4 sm:px-0" style="display: flex; gap: 10px; align-items: center;">
-              <div>
-                <h2 class="font-semibold leading-7 text-gray-900 text-2xl">
-                  {key}
-                </h2>
-                <select bind:value={selectedVersionForProduct[key]}>
-                  {#each versionList as version}
-                    <option value={version}>{version}</option>
-                  {/each}
-                </select>
-              </div>
+              <h2 class="font-semibold leading-7 text-gray-900 text-2xl">
+                {key}
+              </h2>
+              <select bind:value={selectedVersionForProduct[key]}>
+                {#each versionList as version}
+                  <option value={version}>{version}</option>
+                {/each}
+              </select>
             </div>
+            <ProductItem
+              product={featuredProducts.find(
+                (p) => p.Name === key && p.Version === selectedVersionForProduct[key]
+              )}
+              on:addToCart={handelAddToCart}
+            />
           </div>
         {/each}
-        {#each filteredProducts as product}
+        <!--         {#each filteredProducts as product}
           <div transition:slide|local={{ duration: 500 }}>
             <ProductItem {product} on:addToCart={handelAddToCart} />
           </div>
-        {/each}
+        {/each} -->
       </div>
     </div>
   </div>
