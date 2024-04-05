@@ -24,19 +24,26 @@
     $order = $order; // force update to trigger rerender in Header
   };
 
-  type BinnedProduct = Record<string, MarketplaceMetadata[]>;
-  let binnedProducts = <BinnedProduct>{};
+  type BinnedProducts = Record<string, MarketplaceMetadata[]>;
+  let binnedProducts = <BinnedProducts>{};
 
   type SelectedVersionsForProducts = Record<string, MarketplaceMetadata>;
-  const selectedVersionsForProducts = <SelectedVersionsForProducts>{};
+  let selectedVersionsForProducts = <SelectedVersionsForProducts>{};
 
   $: {
     console.log(filteredProducts);
-    filteredProducts.forEach((product) => {
-      binnedProducts[product.Name] = binnedProducts[product.Name] || [];
-      binnedProducts[product.Name].push(product);
-      selectedVersionsForProducts[product.Name] = binnedProducts[product.Name][0];
-    });
+    binnedProducts = filteredProducts.reduce<BinnedProducts>((acc, product) => {
+      acc[product.Name] = acc[product.Name] || [];
+      acc[product.Name].push(product);
+      return acc;
+    }, {});
+    selectedVersionsForProducts = Object.keys(binnedProducts).reduce<SelectedVersionsForProducts>(
+      (acc, name) => {
+        acc[name] = binnedProducts[name][0];
+        return acc;
+      },
+      {}
+    );
   }
 
   function handleChangeVersion(name: string) {

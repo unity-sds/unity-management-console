@@ -59,6 +59,7 @@
 		"bootstrap": "^5.2.3",
 		"oauth4webapi": "^2.10.4",
 		"postcss-load-config": "^4.0.1",
+		"semver": "^7.6.0",
 		"svelte-resize-observer": "^2.0.0",
 		"ts-proto": "^1.149.0",
 		"vite-plugin-svelte-purgecss": "^0.2.7",
