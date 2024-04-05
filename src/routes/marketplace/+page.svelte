@@ -1,4 +1,5 @@
 <script lang="ts">
+  import semver from 'semver';
   import ProductItem from '../../components/ProductItem.svelte';
   import CategoryList from '../../components/CategoryList.svelte';
   import Header from '../../components/Header.svelte';
@@ -31,10 +32,12 @@
   let selectedVersionsForProducts = <SelectedVersionsForProducts>{};
 
   $: {
-    console.log(filteredProducts);
     binnedProducts = filteredProducts.reduce<BinnedProducts>((acc, product) => {
       acc[product.Name] = acc[product.Name] || [];
       acc[product.Name].push(product);
+      acc[product.Name] = acc[product.Name].sort((a, b) =>
+        semver.compare(semver.coerce(a.Version) || '', semver.coerce(b.Version) || '')
+      );
       return acc;
     }, {});
     selectedVersionsForProducts = Object.keys(binnedProducts).reduce<SelectedVersionsForProducts>(
@@ -87,6 +90,7 @@
               on:addToCart={handelAddToCart}
             />
           </div>
+          <hr />
         {/each}
       </div>
     </div>
