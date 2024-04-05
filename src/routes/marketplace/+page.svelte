@@ -24,6 +24,8 @@
     $order = $order; // force update to trigger rerender in Header
   };
 
+  let selectedVersionForProduct = {};
+
   type BinnedProduct = Record<string, any>;
   $: binnedProducts = filteredProducts.reduce<BinnedProduct>((acc, product) => {
     acc[product.Name] = acc[product.Name] || [];
@@ -47,8 +49,8 @@
                 <h2 class="font-semibold leading-7 text-gray-900 text-2xl">
                   {key}
                 </h2>
-                <select>
-                  {#each versionList.sort(compareVersions) as version}
+                <select bind:value={selectedVersionForProduct[key]}>
+                  {#each versionList as version}
                     <option value={version}>{version}</option>
                   {/each}
                 </select>
