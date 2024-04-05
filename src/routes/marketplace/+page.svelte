@@ -29,7 +29,6 @@
     acc[product.Name].push(product.Version);
     return acc;
   }, {});
-  $: console.log(binnedProducts);
 </script>
 
 <div>
@@ -40,6 +39,15 @@
         <CategoryList {categories} on:selectCategory={handleSelectCategory} />
       </div>
       <div class="w-3/4 p-2">
+        {#each Object.keys(binnedProducts) as key}
+          <div>
+            <div class="px-4 sm:px-0">
+              <h2 class="font-semibold leading-7 text-gray-900 text-2xl">
+                {key}
+              </h2>
+            </div>
+          </div>
+        {/each}
         {#each filteredProducts as product}
           <div transition:slide|local={{ duration: 500 }}>
             <ProductItem {product} on:addToCart={handelAddToCart} />
