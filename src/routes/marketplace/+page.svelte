@@ -24,24 +24,31 @@
     $order = $order; // force update to trigger rerender in Header
   };
 
-  // type SelectedProductVersions = Record<string, string>;
-  // let selectedProductVersions = <SelectedProductVersions>{};
-
-  // type SelectedProducts = Record<string, MarketplaceMetadata>{};
-  // let selectedProducts=<SelectedProducts>{}
-
   type BinnedProduct = Record<string, MarketplaceMetadata[]>;
-  $: binnedProducts = filteredProducts.reduce<BinnedProduct>((acc, product) => {
-    acc[product.Name] = acc[product.Name] || [];
-    acc[product.Name].push(product);
-    return acc;
-  }, {});
+  let binnedProducts = <BinnedProduct>{};
 
-  // function getSelectedVersion(name: string): MarketplaceMetadata | undefined {
-  //   return filteredProducts.find(
-  //     (p) => p.Name === name && p.Version === selectedProductVersions[name]
-  //   );
-  // }
+  type SelectedVersionsForProducts = Record<string, MarketplaceMetadata>;
+  const selectedVersionsForProducts = <SelectedVersionsForProducts>{};
+
+  $: {
+    filteredProducts.forEach((product) => {
+      binnedProducts[product.Name] = binnedProducts[product.Name] || [];
+      binnedProducts[product.Name].push(product);
+      selectedVersionsForProducts[product.Name] = binnedProducts[product.Name][0];
+    });
+  }
+
+  function handleChangeVersion(name: string) {
+    return function handleChange(event: Event) {
+      const target = event.target as HTMLSelectElement;
+      if (!target.value) return;
+
+      const selectedProduct = binnedProducts[name].find((p) => p.Version === target.value);
+      if (selectedProduct) {
+        selectedVersionsForProducts[name] = selectedProduct;
+      }
+    };
+  }
 </script>
 
 <div>
@@ -58,15 +65,19 @@
               <h2 class="font-semibold leading-7 text-gray-900 text-2xl">
                 {name}
               </h2>
-              <select>
+              <select
+                value={selectedVersionsForProducts[name].Version}
+                on:change={handleChangeVersion(name)}
+              >
                 {#each productList as product}
                   <option value={product.Version}>{product.Version}</option>
                 {/each}
               </select>
             </div>
-            <!-- {#if selectedProductVersions[name]}
-              <ProductItem product={selectedProductVersions[name]} on:addToCart={handelAddToCart} />
-            {/if} -->
+            <ProductItem
+              product={selectedVersionsForProducts[name]}
+              on:addToCart={handelAddToCart}
+            />
           </div>
         {/each}
         <!--         {#each filteredProducts as product}
