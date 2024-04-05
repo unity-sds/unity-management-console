@@ -39,7 +39,7 @@
         <CategoryList {categories} on:selectCategory={handleSelectCategory} />
       </div>
       <div class="w-3/4 p-2">
-        {#each Object.entries(binnedProducts) as key, versionList}
+        {#each Object.entries(binnedProducts) as [key, versionList]}
           <div>
             <div class="px-4 sm:px-0">
               <h2 class="font-semibold leading-7 text-gray-900 text-2xl">
