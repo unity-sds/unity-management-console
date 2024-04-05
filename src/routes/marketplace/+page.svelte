@@ -59,8 +59,9 @@
                 {/each}
               </select>
             </div>
-
-            <ProductItem product={getSelectedVersion(name)} on:addToCart={handelAddToCart} />
+            {#if getSelectedVersion(name)}
+              <ProductItem product={getSelectedVersion(name)} on:addToCart={handelAddToCart} />
+            {/if}
           </div>
         {/each}
         <!--         {#each filteredProducts as product}
