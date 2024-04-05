@@ -31,6 +31,7 @@
   const selectedVersionsForProducts = <SelectedVersionsForProducts>{};
 
   $: {
+    console.log('filtering!');
     filteredProducts.forEach((product) => {
       binnedProducts[product.Name] = binnedProducts[product.Name] || [];
       binnedProducts[product.Name].push(product);
@@ -80,11 +81,6 @@
             />
           </div>
         {/each}
-        <!--         {#each filteredProducts as product}
-          <div transition:slide|local={{ duration: 500 }}>
-            <ProductItem {product} on:addToCart={handelAddToCart} />
-          </div>
-        {/each} -->
       </div>
     </div>
   </div>
