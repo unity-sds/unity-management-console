@@ -90,7 +90,7 @@
               on:addToCart={handelAddToCart}
             />
           </div>
-          <hr />
+          <hr style="margin-bottom: 25px;" />
         {/each}
       </div>
     </div>
