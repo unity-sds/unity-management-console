@@ -104,6 +104,8 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 		GithubToken:      conf.GithubToken,
 		MarketplaceOwner: conf.MarketplaceOwner,
 		MarketplaceUser:  conf.MarketplaceRepo,
+		Project:          conf.Project,
+		Venue:            conf.Venue,
 	}
 	auditline := application.Config_Updated
 	audit, err := store.FindLastAuditLineByOperation(auditline)
