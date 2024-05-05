@@ -224,24 +224,14 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 	//	return err
 	//}
 	//log.Infof("Project found: %s", project)
-	prj := appConfig.Project
-	vne := appConfig.Venue
+	project := appConfig.Project
+	venue := appConfig.Venue
 
-	if prj == "" {
+	if project == "" {
 		log.Error("Config value Project not set")
 	}
-	if vne == "" {
+	if venue == "" {
 		log.Error("Config value Venue not set")
-	}
-	vparam := fmt.Sprintf("/unity/deployment/%s/%s/venue-name", prj, vne)
-	venue, err := aws.ReadSSMParameter(vparam)
-	if err != nil {
-		log.WithError(err).Errorf("Problem fetching venue %s", vparam)
-	}
-	pparam := fmt.Sprintf("/unity/deployment/%s/%s/project-name", prj, vne)
-	project, err := aws.ReadSSMParameter(pparam)
-	if err != nil {
-		log.WithError(err).Errorf("Problem fetching project %s", pparam)
 	}
 
 	publicsubnets, err := getSSMParameterValueFromDatabase("publicsubnets", store)
@@ -265,8 +255,8 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 
 	varmap := make(map[string]string)
 
-	varmap["venue"] = *venue.Parameter.Value
-	varmap["project"] = *project.Parameter.Value
+	varmap["venue"] = venue
+	varmap["project"] = project
 	varmap["publicsubnets"] = publicsubnets
 	varmap["privatesubnets"] = privatesubnets
 	vars := marketplace.Install_Variables{
