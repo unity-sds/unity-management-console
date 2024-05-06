@@ -121,6 +121,8 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	auditline = application.Bootstrap_Successful
 	bootstrapsuccess, err := store.FindLastAuditLineByOperation(auditline)
 
+	log.Info("Received App Config2: " + appConfig.Project)
+
 	bsoutput := ""
 	if bootstrapsuccess.Owner != "" {
 		bsoutput = "complete"
@@ -129,6 +131,7 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	}
 
 	log.WithFields(log.Fields{"AppConfig": appConfig}).Info("App Config Generated")
+	
 	genconfig := &marketplace.Config{
 
 		ApplicationConfig: &appConfig,
