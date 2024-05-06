@@ -83,7 +83,6 @@ func fetchParameters(conf *config.AppConfig) ([]byte, error) {
 	return data, nil
 }
 func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, error) {
-	log.Info(conf)
 
 	//coreconf, err := store.FetchCoreParams()
 	//if err != nil {
@@ -105,8 +104,8 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 		GithubToken:      conf.GithubToken,
 		MarketplaceOwner: conf.MarketplaceOwner,
 		MarketplaceUser:  conf.MarketplaceRepo,
-		Project:          conf.Project,
-		Venue:            conf.Venue,
+		Project:          "conf.Project",
+		Venue:            "conf.Venue",
 	}
 	auditline := application.Config_Updated
 	audit, err := store.FindLastAuditLineByOperation(auditline)
