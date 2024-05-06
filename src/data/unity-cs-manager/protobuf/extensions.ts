@@ -1520,6 +1520,7 @@ export const Config_ApplicationConfig = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Config_ApplicationConfig {
+    console.log('DECODING!!!!!');
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseConfig_ApplicationConfig();
