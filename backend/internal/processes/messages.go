@@ -9,6 +9,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
+	"fmt"
 )
 
 func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppConfig, store database.Datastore, wsmgr *websocket.WebSocketManager, userid string) ([]byte, error) {
@@ -121,7 +122,7 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	auditline = application.Bootstrap_Successful
 	bootstrapsuccess, err := store.FindLastAuditLineByOperation(auditline)
 
-	log.Info("Received App Config2: " + appConfig.Project)
+	log.Info("Received App Config2: " + fmt.Sprintf("%T", conf.Venue))
 
 	bsoutput := ""
 	if bootstrapsuccess.Owner != "" {
