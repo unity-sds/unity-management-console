@@ -130,7 +130,7 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 		bsoutput = "failed"
 	}
 
-	testConfig = marketplace.Config_ApplicationConfig{}
+	testConfig := marketplace.Config_ApplicationConfig{}
 	log.WithFields(log.Fields{"AppConfig": testConfig}).Info("App Config Generated")
 	
 	genconfig := &marketplace.Config{
