@@ -1548,6 +1548,9 @@ export const Config_ApplicationConfig = {
           message.MarketplaceUser = reader.string();
           continue;
         case 4:
+          if (tag !== 34) {
+            break;
+          }
           console.log(reader.string());
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1573,6 +1576,8 @@ export const Config_ApplicationConfig = {
     message.GithubToken !== undefined && (obj.GithubToken = message.GithubToken);
     message.MarketplaceOwner !== undefined && (obj.MarketplaceOwner = message.MarketplaceOwner);
     message.MarketplaceUser !== undefined && (obj.MarketplaceUser = message.MarketplaceUser);
+    message.Project !== undefined && (obj.Project = message.Project);
+    message.Venue !== undefined && (obj.Venue = message.Venue);
     return obj;
   },
 
@@ -1589,6 +1594,8 @@ export const Config_ApplicationConfig = {
     message.GithubToken = object.GithubToken ?? '';
     message.MarketplaceOwner = object.MarketplaceOwner ?? '';
     message.MarketplaceUser = object.MarketplaceUser ?? '';
+    message.Project = object.Project ?? '';
+    message.Venue = object.Venue ?? '';
     return message;
   }
 };
