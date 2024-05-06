@@ -1551,7 +1551,7 @@ export const Config_ApplicationConfig = {
           if (tag !== 34) {
             break;
           }
-          console.log(reader.string());
+          console.log('asdfasdf' + reader.string());
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
