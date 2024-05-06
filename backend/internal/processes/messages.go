@@ -127,6 +127,8 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	} else if bootstrapfailed.Owner != "" {
 		bsoutput = "failed"
 	}
+
+	log.WithFields(log.Fields{"AppConfig": appConfig}).Info("App Config Generated")
 	genconfig := &marketplace.Config{
 
 		ApplicationConfig: &appConfig,
