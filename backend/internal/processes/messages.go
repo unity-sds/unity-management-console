@@ -100,6 +100,8 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 		Privatesubnets: priv,
 	}
 
+	log.Info("ASDFASDFASDASD!")
+
 	appConfig := marketplace.Config_ApplicationConfig{
 		GithubToken:      conf.GithubToken,
 		MarketplaceOwner: conf.MarketplaceOwner,
