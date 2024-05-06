@@ -111,7 +111,7 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 		Venue:            conf.Venue,
 	}
 
-	log.Info("Received App Config: " + appConfig)
+	log.Info("Received App Config: " + appConfig.Project)
 	auditline := application.Config_Updated
 	audit, err := store.FindLastAuditLineByOperation(auditline)
 
