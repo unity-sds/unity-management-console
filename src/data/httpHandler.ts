@@ -130,6 +130,7 @@ export class HttpHandler {
 					} else if (message.parameters) {
 						parametersStore.set(message.parameters);
 					} else if (message.config) {
+						console.log(message.config);
 						config.set(message.config);
 					} else if (message.logs) {
 						if (message.logs.line != undefined) {
