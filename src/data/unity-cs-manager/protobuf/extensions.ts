@@ -1520,12 +1520,12 @@ export const Config_ApplicationConfig = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Config_ApplicationConfig {
-    console.log('DECODING!!!!!');
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseConfig_ApplicationConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
+      console.log(tag >>> 3);
       switch (tag >>> 3) {
         case 1:
           if (tag !== 10) {
