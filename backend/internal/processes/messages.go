@@ -108,8 +108,8 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 		GithubToken:      conf.GithubToken,
 		MarketplaceOwner: conf.MarketplaceOwner,
 		MarketplaceUser:  conf.MarketplaceRepo,
-		Project:          "conf.Project",
-		Venue:            "conf.Venue",
+		Project:          conf.Project,
+		Venue:            conf.Venue,
 	}
 
 	log.Info("Received App Config: " + appConfig.Project)
