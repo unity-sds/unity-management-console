@@ -132,10 +132,10 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	}
 
 	testConfig := marketplace.Config_ApplicationConfig{
-		GithubToken: "Some Test Value",
+		GithubToken: conf.GithubToken,
 		Project: "Another Test Value",
 	}
-	log.WithFields(log.Fields{"AppConfig": testConfig}).Info("App Config Generated")
+	log.WithFields(log.Fields{"AppConfig": testConfig}).Info("App Config Received")
 	
 	genconfig := &marketplace.Config{
 
