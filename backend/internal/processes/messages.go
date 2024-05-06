@@ -122,7 +122,7 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	auditline = application.Bootstrap_Successful
 	bootstrapsuccess, err := store.FindLastAuditLineByOperation(auditline)
 
-	log.Info("Received App Config2: " + fmt.Sprintf("%T", conf.Venue))
+	log.Info("Received App Config2: " + fmt.Sprintf("%T", conf.GithubToken))
 
 	bsoutput := ""
 	if bootstrapsuccess.Owner != "" {
