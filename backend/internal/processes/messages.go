@@ -138,7 +138,8 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 		Project:          conf.Project,
 		Venue:            conf.Venue,
 	}
-	log.WithFields(log.Fields{"AppConfig": testConfig}).Info("App Config Received")
+	log.WithFields(log.Fields{"TestConfig": testConfig}).Info("App Config Received")
+	log.WithFields(log.Fields{"AppConfig": appConfig}).Info("App Config Received")
 	
 	genconfig := &marketplace.Config{
 
