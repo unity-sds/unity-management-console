@@ -73,7 +73,7 @@
   }
 
   parametersStore.subscribe((value) => {
-    console.log('Value: ' + value);
+    console.log(value);
     parameters = value; // Update parameters whenever the store changes
 
     const venuekey = '/unity/core/venue';
