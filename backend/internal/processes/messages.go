@@ -72,6 +72,7 @@ func fetchParameters(conf *config.AppConfig) ([]byte, error) {
 	params, err := db.FetchSSMParams()
 
 	ssm, err := aws.ReadSSMParameters(params)
+	log.WithFields(log.Fields{"Params": &ssm}).Info("Params")
 
 	paramwrap := marketplace.UnityWebsocketMessage_Parameters{Parameters: ssm}
 	msg := &marketplace.UnityWebsocketMessage{Content: &paramwrap}
