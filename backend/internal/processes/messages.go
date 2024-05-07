@@ -132,7 +132,7 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	}
 
 	testConfig := marketplace.Config_ApplicationConfig{
-		GithubToken:      conf.GithubToken,
+		GithubToken:      "conf.GithubToken",
 		MarketplaceOwner: conf.MarketplaceOwner,
 		MarketplaceUser:  conf.MarketplaceRepo,
 		Project:          conf.Project,
@@ -143,7 +143,7 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	
 	genconfig := &marketplace.Config{
 
-		ApplicationConfig: &appConfig,
+		ApplicationConfig: &testConfig,
 		NetworkConfig:     &netconfig,
 		Lastupdated:       audit.CreatedAt.Format("2006-01-02T15:04:05.000"),
 		Updatedby:         audit.Owner,
