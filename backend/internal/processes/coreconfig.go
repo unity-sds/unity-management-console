@@ -65,7 +65,6 @@ func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore, websoc
 }
 
 func generateFileStructure(appConfig *config.AppConfig, venue, project, publicsubnets, privatesubnets string, ssmParameters []cty.Value) *hclwrite.File {
-	log.Info("Got Venue: "+ cty.StringVal(venue))
 	hclFile := hclwrite.NewEmptyFile()
 	// initialize the body of the new file object
 	rootBody := hclFile.Body()
