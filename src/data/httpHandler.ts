@@ -128,6 +128,8 @@ export class HttpHandler {
 							websocketStore.send(UnityWebsocketMessage.encode(wsm2).finish());
 						}
 					} else if (message.parameters) {
+						console.log('PARAMETERS:');
+						console.log(message.parameters);
 						parametersStore.set(message.parameters);
 					} else if (message.config) {
 						console.log('CONFIG MESSAGE: ');
