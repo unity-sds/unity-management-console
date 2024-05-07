@@ -27,7 +27,7 @@ func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore, websoc
 	}
 	defer tfFile.Close()
 
-	venue = "Some test value"
+	venue := "Some test value"
 	// venue, err := getSSMParameterValueFromDatabase("venue", db)
 	// if err != nil {
 	// 	log.WithError(err).Error("Problem fetching venue")
