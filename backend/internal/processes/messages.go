@@ -156,7 +156,7 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 
 	log.WithFields(log.Fields{
 		"Config": genconfig,
-	}).Info("Config Generated")
+	}).Info("Config Received")
 
 	data, err := proto.Marshal(msg)
 	if err != nil {
