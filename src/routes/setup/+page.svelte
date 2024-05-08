@@ -164,7 +164,7 @@
           <InputField
             label="Venue Name"
             id="venue"
-            isValid={$venueAndProjectStore.venueIsValid}
+            placeholder="Loading"
             on:input={handleInputChange}
             subtext="The venue this Unity environment is deployed into."
             value={$venueStore}

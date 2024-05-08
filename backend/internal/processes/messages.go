@@ -102,9 +102,6 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 		Privatesubnets: priv,
 	}
 
-	log.Info("Received Project: " + conf.Project)
-	log.Info("Received Venue: " + conf.Venue)
-
 	appConfig := marketplace.Config_ApplicationConfig{
 		GithubToken:      conf.GithubToken,
 		MarketplaceOwner: conf.MarketplaceOwner,
@@ -113,7 +110,6 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 		Venue:            conf.Venue,
 	}
 
-	log.Info("Received App Config: " + appConfig.Project)
 	auditline := application.Config_Updated
 	audit, err := store.FindLastAuditLineByOperation(auditline)
 
@@ -122,8 +118,6 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 
 	auditline = application.Bootstrap_Successful
 	bootstrapsuccess, err := store.FindLastAuditLineByOperation(auditline)
-
-	log.Info("Received App Config2: " + fmt.Sprintf("%T", conf.GithubToken))
 
 	bsoutput := ""
 	if bootstrapsuccess.Owner != "" {
@@ -139,8 +133,6 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 		Project:          conf.Project,
 		Venue:            conf.Venue,
 	}
-	log.WithFields(log.Fields{"TestConfig": &testConfig}).Info("App Config Received")
-	log.WithFields(log.Fields{"AppConfig": &appConfig}).Info("App Config Received")
 	
 	genconfig := &marketplace.Config{
 
