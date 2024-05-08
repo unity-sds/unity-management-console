@@ -23,8 +23,8 @@
   let value = '';
   let list: { key: string; value: string }[] = [];
 
-  $: console.log(config);
-  $: console.log($config);
+  console.log('Config!');
+  console.log(config);
 
   const venueAndProjectStore = derived(
     [venueStore, projectStore],
@@ -66,14 +66,12 @@
       });
       installRunning.set(true);
       installError.set(false);
-      console.log(items.parameterlist);
       httpHandler.updateParameters(items.parameterlist);
     });
     unsubscribe();
   }
 
   parametersStore.subscribe((value) => {
-    console.log(value);
     parameters = value; // Update parameters whenever the store changes
 
     const venuekey = '/unity/core/venue';
