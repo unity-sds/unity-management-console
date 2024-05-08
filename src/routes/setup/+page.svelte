@@ -24,7 +24,7 @@
   let list: { key: string; value: string }[] = [];
 
   console.log('Config!');
-  console.log(config);
+  $: console.log($config);
 
   const venueAndProjectStore = derived(
     [venueStore, projectStore],
