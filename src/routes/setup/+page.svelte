@@ -153,12 +153,12 @@
       {#if $installRunning === false}
         <form class="space-y-4">
           <InputField
-            label="Project Name"
+            label={`Project Name ${!#projectStore && "(loading...)"}`}
             id="project"
             on:input={handleInputChange}
             isValid={true}
             subtext="The project managing this Unity environment."
-            value={$projectStore || 'Loading'}
+            value={$projectStore}
             disabled={true}
           />
           <InputField
