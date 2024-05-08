@@ -156,6 +156,7 @@
             label="Project Name"
             id="project"
             on:input={handleInputChange}
+            isValid={true}
             subtext="The project managing this Unity environment."
             value={$projectStore || 'Loading'}
             disabled={true}
@@ -164,6 +165,7 @@
             label="Venue Name"
             id="venue"
             on:input={handleInputChange}
+            isValid={true}
             subtext="The venue this Unity environment is deployed into."
             value={$venueStore}
             disabled={true}
