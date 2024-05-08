@@ -1,8 +1,8 @@
 /* eslint-disable */
-import * as _m0 from 'protobufjs/minimal';
-import { Struct } from '../../google/protobuf/struct';
+import * as _m0 from "protobufjs/minimal";
+import { Struct } from "../../google/protobuf/struct";
 
-export const protobufPackage = '';
+export const protobufPackage = "";
 
 export interface UnityWebsocketMessage {
   install?: Install | undefined;
@@ -136,7 +136,7 @@ function createBaseUnityWebsocketMessage(): UnityWebsocketMessage {
     parameters: undefined,
     logs: undefined,
     deployments: undefined,
-    uninstall: undefined
+    uninstall: undefined,
   };
 }
 
@@ -244,38 +244,27 @@ export const UnityWebsocketMessage = {
   fromJSON(object: any): UnityWebsocketMessage {
     return {
       install: isSet(object.install) ? Install.fromJSON(object.install) : undefined,
-      simplemessage: isSet(object.simplemessage)
-        ? SimpleMessage.fromJSON(object.simplemessage)
-        : undefined,
-      connectionsetup: isSet(object.connectionsetup)
-        ? ConnectionSetup.fromJSON(object.connectionsetup)
-        : undefined,
+      simplemessage: isSet(object.simplemessage) ? SimpleMessage.fromJSON(object.simplemessage) : undefined,
+      connectionsetup: isSet(object.connectionsetup) ? ConnectionSetup.fromJSON(object.connectionsetup) : undefined,
       config: isSet(object.config) ? Config.fromJSON(object.config) : undefined,
       parameters: isSet(object.parameters) ? Parameters.fromJSON(object.parameters) : undefined,
       logs: isSet(object.logs) ? LogLine.fromJSON(object.logs) : undefined,
       deployments: isSet(object.deployments) ? Deployments.fromJSON(object.deployments) : undefined,
-      uninstall: isSet(object.uninstall) ? Uninstall.fromJSON(object.uninstall) : undefined
+      uninstall: isSet(object.uninstall) ? Uninstall.fromJSON(object.uninstall) : undefined,
     };
   },
 
   toJSON(message: UnityWebsocketMessage): unknown {
     const obj: any = {};
-    message.install !== undefined &&
-      (obj.install = message.install ? Install.toJSON(message.install) : undefined);
+    message.install !== undefined && (obj.install = message.install ? Install.toJSON(message.install) : undefined);
     message.simplemessage !== undefined &&
-      (obj.simplemessage = message.simplemessage
-        ? SimpleMessage.toJSON(message.simplemessage)
-        : undefined);
+      (obj.simplemessage = message.simplemessage ? SimpleMessage.toJSON(message.simplemessage) : undefined);
     message.connectionsetup !== undefined &&
-      (obj.connectionsetup = message.connectionsetup
-        ? ConnectionSetup.toJSON(message.connectionsetup)
-        : undefined);
-    message.config !== undefined &&
-      (obj.config = message.config ? Config.toJSON(message.config) : undefined);
+      (obj.connectionsetup = message.connectionsetup ? ConnectionSetup.toJSON(message.connectionsetup) : undefined);
+    message.config !== undefined && (obj.config = message.config ? Config.toJSON(message.config) : undefined);
     message.parameters !== undefined &&
       (obj.parameters = message.parameters ? Parameters.toJSON(message.parameters) : undefined);
-    message.logs !== undefined &&
-      (obj.logs = message.logs ? LogLine.toJSON(message.logs) : undefined);
+    message.logs !== undefined && (obj.logs = message.logs ? LogLine.toJSON(message.logs) : undefined);
     message.deployments !== undefined &&
       (obj.deployments = message.deployments ? Deployments.toJSON(message.deployments) : undefined);
     message.uninstall !== undefined &&
@@ -287,75 +276,56 @@ export const UnityWebsocketMessage = {
     return UnityWebsocketMessage.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<UnityWebsocketMessage>, I>>(
-    object: I
-  ): UnityWebsocketMessage {
+  fromPartial<I extends Exact<DeepPartial<UnityWebsocketMessage>, I>>(object: I): UnityWebsocketMessage {
     const message = createBaseUnityWebsocketMessage();
-    message.install =
-      object.install !== undefined && object.install !== null
-        ? Install.fromPartial(object.install)
-        : undefined;
-    message.simplemessage =
-      object.simplemessage !== undefined && object.simplemessage !== null
-        ? SimpleMessage.fromPartial(object.simplemessage)
-        : undefined;
-    message.connectionsetup =
-      object.connectionsetup !== undefined && object.connectionsetup !== null
-        ? ConnectionSetup.fromPartial(object.connectionsetup)
-        : undefined;
-    message.config =
-      object.config !== undefined && object.config !== null
-        ? Config.fromPartial(object.config)
-        : undefined;
-    message.parameters =
-      object.parameters !== undefined && object.parameters !== null
-        ? Parameters.fromPartial(object.parameters)
-        : undefined;
-    message.logs =
-      object.logs !== undefined && object.logs !== null
-        ? LogLine.fromPartial(object.logs)
-        : undefined;
-    message.deployments =
-      object.deployments !== undefined && object.deployments !== null
-        ? Deployments.fromPartial(object.deployments)
-        : undefined;
-    message.uninstall =
-      object.uninstall !== undefined && object.uninstall !== null
-        ? Uninstall.fromPartial(object.uninstall)
-        : undefined;
+    message.install = (object.install !== undefined && object.install !== null)
+      ? Install.fromPartial(object.install)
+      : undefined;
+    message.simplemessage = (object.simplemessage !== undefined && object.simplemessage !== null)
+      ? SimpleMessage.fromPartial(object.simplemessage)
+      : undefined;
+    message.connectionsetup = (object.connectionsetup !== undefined && object.connectionsetup !== null)
+      ? ConnectionSetup.fromPartial(object.connectionsetup)
+      : undefined;
+    message.config = (object.config !== undefined && object.config !== null)
+      ? Config.fromPartial(object.config)
+      : undefined;
+    message.parameters = (object.parameters !== undefined && object.parameters !== null)
+      ? Parameters.fromPartial(object.parameters)
+      : undefined;
+    message.logs = (object.logs !== undefined && object.logs !== null) ? LogLine.fromPartial(object.logs) : undefined;
+    message.deployments = (object.deployments !== undefined && object.deployments !== null)
+      ? Deployments.fromPartial(object.deployments)
+      : undefined;
+    message.uninstall = (object.uninstall !== undefined && object.uninstall !== null)
+      ? Uninstall.fromPartial(object.uninstall)
+      : undefined;
     return message;
-  }
+  },
 };
 
 function createBaseApplication(): Application {
-  return {
-    packageName: '',
-    version: '',
-    source: '',
-    status: '',
-    applicationName: '',
-    displayName: ''
-  };
+  return { packageName: "", version: "", source: "", status: "", applicationName: "", displayName: "" };
 }
 
 export const Application = {
   encode(message: Application, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.packageName !== '') {
+    if (message.packageName !== "") {
       writer.uint32(10).string(message.packageName);
     }
-    if (message.version !== '') {
+    if (message.version !== "") {
       writer.uint32(18).string(message.version);
     }
-    if (message.source !== '') {
+    if (message.source !== "") {
       writer.uint32(26).string(message.source);
     }
-    if (message.status !== '') {
+    if (message.status !== "") {
       writer.uint32(34).string(message.status);
     }
-    if (message.applicationName !== '') {
+    if (message.applicationName !== "") {
       writer.uint32(42).string(message.applicationName);
     }
-    if (message.displayName !== '') {
+    if (message.displayName !== "") {
       writer.uint32(50).string(message.displayName);
     }
     return writer;
@@ -421,12 +391,12 @@ export const Application = {
 
   fromJSON(object: any): Application {
     return {
-      packageName: isSet(object.packageName) ? String(object.packageName) : '',
-      version: isSet(object.version) ? String(object.version) : '',
-      source: isSet(object.source) ? String(object.source) : '',
-      status: isSet(object.status) ? String(object.status) : '',
-      applicationName: isSet(object.applicationName) ? String(object.applicationName) : '',
-      displayName: isSet(object.displayName) ? String(object.displayName) : ''
+      packageName: isSet(object.packageName) ? String(object.packageName) : "",
+      version: isSet(object.version) ? String(object.version) : "",
+      source: isSet(object.source) ? String(object.source) : "",
+      status: isSet(object.status) ? String(object.status) : "",
+      applicationName: isSet(object.applicationName) ? String(object.applicationName) : "",
+      displayName: isSet(object.displayName) ? String(object.displayName) : "",
     };
   },
 
@@ -447,29 +417,29 @@ export const Application = {
 
   fromPartial<I extends Exact<DeepPartial<Application>, I>>(object: I): Application {
     const message = createBaseApplication();
-    message.packageName = object.packageName ?? '';
-    message.version = object.version ?? '';
-    message.source = object.source ?? '';
-    message.status = object.status ?? '';
-    message.applicationName = object.applicationName ?? '';
-    message.displayName = object.displayName ?? '';
+    message.packageName = object.packageName ?? "";
+    message.version = object.version ?? "";
+    message.source = object.source ?? "";
+    message.status = object.status ?? "";
+    message.applicationName = object.applicationName ?? "";
+    message.displayName = object.displayName ?? "";
     return message;
-  }
+  },
 };
 
 function createBaseDeployment(): Deployment {
-  return { name: '', creator: '', creationdate: '', application: [] };
+  return { name: "", creator: "", creationdate: "", application: [] };
 }
 
 export const Deployment = {
   encode(message: Deployment, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== '') {
+    if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    if (message.creator !== '') {
+    if (message.creator !== "") {
       writer.uint32(18).string(message.creator);
     }
-    if (message.creationdate !== '') {
+    if (message.creationdate !== "") {
       writer.uint32(26).string(message.creationdate);
     }
     for (const v of message.application) {
@@ -524,12 +494,12 @@ export const Deployment = {
 
   fromJSON(object: any): Deployment {
     return {
-      name: isSet(object.name) ? String(object.name) : '',
-      creator: isSet(object.creator) ? String(object.creator) : '',
-      creationdate: isSet(object.creationdate) ? String(object.creationdate) : '',
+      name: isSet(object.name) ? String(object.name) : "",
+      creator: isSet(object.creator) ? String(object.creator) : "",
+      creationdate: isSet(object.creationdate) ? String(object.creationdate) : "",
       application: Array.isArray(object?.application)
         ? object.application.map((e: any) => Application.fromJSON(e))
-        : []
+        : [],
     };
   },
 
@@ -539,7 +509,7 @@ export const Deployment = {
     message.creator !== undefined && (obj.creator = message.creator);
     message.creationdate !== undefined && (obj.creationdate = message.creationdate);
     if (message.application) {
-      obj.application = message.application.map((e) => (e ? Application.toJSON(e) : undefined));
+      obj.application = message.application.map((e) => e ? Application.toJSON(e) : undefined);
     } else {
       obj.application = [];
     }
@@ -552,12 +522,12 @@ export const Deployment = {
 
   fromPartial<I extends Exact<DeepPartial<Deployment>, I>>(object: I): Deployment {
     const message = createBaseDeployment();
-    message.name = object.name ?? '';
-    message.creator = object.creator ?? '';
-    message.creationdate = object.creationdate ?? '';
+    message.name = object.name ?? "";
+    message.creator = object.creator ?? "";
+    message.creationdate = object.creationdate ?? "";
     message.application = object.application?.map((e) => Application.fromPartial(e)) || [];
     return message;
-  }
+  },
 };
 
 function createBaseDeployments(): Deployments {
@@ -597,16 +567,14 @@ export const Deployments = {
 
   fromJSON(object: any): Deployments {
     return {
-      deployment: Array.isArray(object?.deployment)
-        ? object.deployment.map((e: any) => Deployment.fromJSON(e))
-        : []
+      deployment: Array.isArray(object?.deployment) ? object.deployment.map((e: any) => Deployment.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: Deployments): unknown {
     const obj: any = {};
     if (message.deployment) {
-      obj.deployment = message.deployment.map((e) => (e ? Deployment.toJSON(e) : undefined));
+      obj.deployment = message.deployment.map((e) => e ? Deployment.toJSON(e) : undefined);
     } else {
       obj.deployment = [];
     }
@@ -621,19 +589,19 @@ export const Deployments = {
     const message = createBaseDeployments();
     message.deployment = object.deployment?.map((e) => Deployment.fromPartial(e)) || [];
     return message;
-  }
+  },
 };
 
 function createBaseConnectionSetup(): ConnectionSetup {
-  return { type: '', userID: '' };
+  return { type: "", userID: "" };
 }
 
 export const ConnectionSetup = {
   encode(message: ConnectionSetup, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.type !== '') {
+    if (message.type !== "") {
       writer.uint32(10).string(message.type);
     }
-    if (message.userID !== '') {
+    if (message.userID !== "") {
       writer.uint32(18).string(message.userID);
     }
     return writer;
@@ -671,8 +639,8 @@ export const ConnectionSetup = {
 
   fromJSON(object: any): ConnectionSetup {
     return {
-      type: isSet(object.type) ? String(object.type) : '',
-      userID: isSet(object.userID) ? String(object.userID) : ''
+      type: isSet(object.type) ? String(object.type) : "",
+      userID: isSet(object.userID) ? String(object.userID) : "",
     };
   },
 
@@ -689,14 +657,14 @@ export const ConnectionSetup = {
 
   fromPartial<I extends Exact<DeepPartial<ConnectionSetup>, I>>(object: I): ConnectionSetup {
     const message = createBaseConnectionSetup();
-    message.type = object.type ?? '';
-    message.userID = object.userID ?? '';
+    message.type = object.type ?? "";
+    message.userID = object.userID ?? "";
     return message;
-  }
+  },
 };
 
 function createBaseInstall(): Install {
-  return { applications: undefined, DeploymentName: '' };
+  return { applications: undefined, DeploymentName: "" };
 }
 
 export const Install = {
@@ -704,7 +672,7 @@ export const Install = {
     if (message.applications !== undefined) {
       Install_Applications.encode(message.applications, writer.uint32(10).fork()).ldelim();
     }
-    if (message.DeploymentName !== '') {
+    if (message.DeploymentName !== "") {
       writer.uint32(26).string(message.DeploymentName);
     }
     return writer;
@@ -742,19 +710,15 @@ export const Install = {
 
   fromJSON(object: any): Install {
     return {
-      applications: isSet(object.applications)
-        ? Install_Applications.fromJSON(object.applications)
-        : undefined,
-      DeploymentName: isSet(object.DeploymentName) ? String(object.DeploymentName) : ''
+      applications: isSet(object.applications) ? Install_Applications.fromJSON(object.applications) : undefined,
+      DeploymentName: isSet(object.DeploymentName) ? String(object.DeploymentName) : "",
     };
   },
 
   toJSON(message: Install): unknown {
     const obj: any = {};
     message.applications !== undefined &&
-      (obj.applications = message.applications
-        ? Install_Applications.toJSON(message.applications)
-        : undefined);
+      (obj.applications = message.applications ? Install_Applications.toJSON(message.applications) : undefined);
     message.DeploymentName !== undefined && (obj.DeploymentName = message.DeploymentName);
     return obj;
   },
@@ -765,13 +729,12 @@ export const Install = {
 
   fromPartial<I extends Exact<DeepPartial<Install>, I>>(object: I): Install {
     const message = createBaseInstall();
-    message.applications =
-      object.applications !== undefined && object.applications !== null
-        ? Install_Applications.fromPartial(object.applications)
-        : undefined;
-    message.DeploymentName = object.DeploymentName ?? '';
+    message.applications = (object.applications !== undefined && object.applications !== null)
+      ? Install_Applications.fromPartial(object.applications)
+      : undefined;
+    message.DeploymentName = object.DeploymentName ?? "";
     return message;
-  }
+  },
 };
 
 function createBaseInstall_Variables(): Install_Variables {
@@ -781,10 +744,7 @@ function createBaseInstall_Variables(): Install_Variables {
 export const Install_Variables = {
   encode(message: Install_Variables, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     Object.entries(message.Values).forEach(([key, value]) => {
-      Install_Variables_ValuesEntry.encode(
-        { key: key as any, value },
-        writer.uint32(10).fork()
-      ).ldelim();
+      Install_Variables_ValuesEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
     });
     if (message.AdvancedValues !== undefined) {
       Struct.encode(Struct.wrap(message.AdvancedValues), writer.uint32(26).fork()).ldelim();
@@ -829,11 +789,11 @@ export const Install_Variables = {
     return {
       Values: isObject(object.Values)
         ? Object.entries(object.Values).reduce<{ [key: string]: string }>((acc, [key, value]) => {
-            acc[key] = String(value);
-            return acc;
-          }, {})
+          acc[key] = String(value);
+          return acc;
+        }, {})
         : {},
-      AdvancedValues: isObject(object.AdvancedValues) ? object.AdvancedValues : undefined
+      AdvancedValues: isObject(object.AdvancedValues) ? object.AdvancedValues : undefined,
     };
   },
 
@@ -855,33 +815,27 @@ export const Install_Variables = {
 
   fromPartial<I extends Exact<DeepPartial<Install_Variables>, I>>(object: I): Install_Variables {
     const message = createBaseInstall_Variables();
-    message.Values = Object.entries(object.Values ?? {}).reduce<{ [key: string]: string }>(
-      (acc, [key, value]) => {
-        if (value !== undefined) {
-          acc[key] = String(value);
-        }
-        return acc;
-      },
-      {}
-    );
+    message.Values = Object.entries(object.Values ?? {}).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+      if (value !== undefined) {
+        acc[key] = String(value);
+      }
+      return acc;
+    }, {});
     message.AdvancedValues = object.AdvancedValues ?? undefined;
     return message;
-  }
+  },
 };
 
 function createBaseInstall_Variables_ValuesEntry(): Install_Variables_ValuesEntry {
-  return { key: '', value: '' };
+  return { key: "", value: "" };
 }
 
 export const Install_Variables_ValuesEntry = {
-  encode(
-    message: Install_Variables_ValuesEntry,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.key !== '') {
+  encode(message: Install_Variables_ValuesEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
-    if (message.value !== '') {
+    if (message.value !== "") {
       writer.uint32(18).string(message.value);
     }
     return writer;
@@ -918,10 +872,7 @@ export const Install_Variables_ValuesEntry = {
   },
 
   fromJSON(object: any): Install_Variables_ValuesEntry {
-    return {
-      key: isSet(object.key) ? String(object.key) : '',
-      value: isSet(object.value) ? String(object.value) : ''
-    };
+    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object.value) ? String(object.value) : "" };
   },
 
   toJSON(message: Install_Variables_ValuesEntry): unknown {
@@ -931,59 +882,54 @@ export const Install_Variables_ValuesEntry = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Install_Variables_ValuesEntry>, I>>(
-    base?: I
-  ): Install_Variables_ValuesEntry {
+  create<I extends Exact<DeepPartial<Install_Variables_ValuesEntry>, I>>(base?: I): Install_Variables_ValuesEntry {
     return Install_Variables_ValuesEntry.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<Install_Variables_ValuesEntry>, I>>(
-    object: I
+    object: I,
   ): Install_Variables_ValuesEntry {
     const message = createBaseInstall_Variables_ValuesEntry();
-    message.key = object.key ?? '';
-    message.value = object.value ?? '';
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
     return message;
-  }
+  },
 };
 
 function createBaseInstall_Applications(): Install_Applications {
   return {
-    name: '',
-    version: '',
+    name: "",
+    version: "",
     variables: undefined,
-    postinstall: '',
-    preinstall: '',
-    displayname: '',
-    dependencies: {}
+    postinstall: "",
+    preinstall: "",
+    displayname: "",
+    dependencies: {},
   };
 }
 
 export const Install_Applications = {
   encode(message: Install_Applications, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== '') {
+    if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    if (message.version !== '') {
+    if (message.version !== "") {
       writer.uint32(18).string(message.version);
     }
     if (message.variables !== undefined) {
       Install_Variables.encode(message.variables, writer.uint32(26).fork()).ldelim();
     }
-    if (message.postinstall !== '') {
+    if (message.postinstall !== "") {
       writer.uint32(34).string(message.postinstall);
     }
-    if (message.preinstall !== '') {
+    if (message.preinstall !== "") {
       writer.uint32(42).string(message.preinstall);
     }
-    if (message.displayname !== '') {
+    if (message.displayname !== "") {
       writer.uint32(50).string(message.displayname);
     }
     Object.entries(message.dependencies).forEach(([key, value]) => {
-      Install_Applications_DependenciesEntry.encode(
-        { key: key as any, value },
-        writer.uint32(58).fork()
-      ).ldelim();
+      Install_Applications_DependenciesEntry.encode({ key: key as any, value }, writer.uint32(58).fork()).ldelim();
     });
     return writer;
   },
@@ -1058,21 +1004,18 @@ export const Install_Applications = {
 
   fromJSON(object: any): Install_Applications {
     return {
-      name: isSet(object.name) ? String(object.name) : '',
-      version: isSet(object.version) ? String(object.version) : '',
+      name: isSet(object.name) ? String(object.name) : "",
+      version: isSet(object.version) ? String(object.version) : "",
       variables: isSet(object.variables) ? Install_Variables.fromJSON(object.variables) : undefined,
-      postinstall: isSet(object.postinstall) ? String(object.postinstall) : '',
-      preinstall: isSet(object.preinstall) ? String(object.preinstall) : '',
-      displayname: isSet(object.displayname) ? String(object.displayname) : '',
+      postinstall: isSet(object.postinstall) ? String(object.postinstall) : "",
+      preinstall: isSet(object.preinstall) ? String(object.preinstall) : "",
+      displayname: isSet(object.displayname) ? String(object.displayname) : "",
       dependencies: isObject(object.dependencies)
-        ? Object.entries(object.dependencies).reduce<{ [key: string]: string }>(
-            (acc, [key, value]) => {
-              acc[key] = String(value);
-              return acc;
-            },
-            {}
-          )
-        : {}
+        ? Object.entries(object.dependencies).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
     };
   },
 
@@ -1098,44 +1041,39 @@ export const Install_Applications = {
     return Install_Applications.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Install_Applications>, I>>(
-    object: I
-  ): Install_Applications {
+  fromPartial<I extends Exact<DeepPartial<Install_Applications>, I>>(object: I): Install_Applications {
     const message = createBaseInstall_Applications();
-    message.name = object.name ?? '';
-    message.version = object.version ?? '';
-    message.variables =
-      object.variables !== undefined && object.variables !== null
-        ? Install_Variables.fromPartial(object.variables)
-        : undefined;
-    message.postinstall = object.postinstall ?? '';
-    message.preinstall = object.preinstall ?? '';
-    message.displayname = object.displayname ?? '';
-    message.dependencies = Object.entries(object.dependencies ?? {}).reduce<{
-      [key: string]: string;
-    }>((acc, [key, value]) => {
-      if (value !== undefined) {
-        acc[key] = String(value);
-      }
-      return acc;
-    }, {});
+    message.name = object.name ?? "";
+    message.version = object.version ?? "";
+    message.variables = (object.variables !== undefined && object.variables !== null)
+      ? Install_Variables.fromPartial(object.variables)
+      : undefined;
+    message.postinstall = object.postinstall ?? "";
+    message.preinstall = object.preinstall ?? "";
+    message.displayname = object.displayname ?? "";
+    message.dependencies = Object.entries(object.dependencies ?? {}).reduce<{ [key: string]: string }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = String(value);
+        }
+        return acc;
+      },
+      {},
+    );
     return message;
-  }
+  },
 };
 
 function createBaseInstall_Applications_DependenciesEntry(): Install_Applications_DependenciesEntry {
-  return { key: '', value: '' };
+  return { key: "", value: "" };
 }
 
 export const Install_Applications_DependenciesEntry = {
-  encode(
-    message: Install_Applications_DependenciesEntry,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.key !== '') {
+  encode(message: Install_Applications_DependenciesEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
-    if (message.value !== '') {
+    if (message.value !== "") {
       writer.uint32(18).string(message.value);
     }
     return writer;
@@ -1172,10 +1110,7 @@ export const Install_Applications_DependenciesEntry = {
   },
 
   fromJSON(object: any): Install_Applications_DependenciesEntry {
-    return {
-      key: isSet(object.key) ? String(object.key) : '',
-      value: isSet(object.value) ? String(object.value) : ''
-    };
+    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object.value) ? String(object.value) : "" };
   },
 
   toJSON(message: Install_Applications_DependenciesEntry): unknown {
@@ -1186,34 +1121,34 @@ export const Install_Applications_DependenciesEntry = {
   },
 
   create<I extends Exact<DeepPartial<Install_Applications_DependenciesEntry>, I>>(
-    base?: I
+    base?: I,
   ): Install_Applications_DependenciesEntry {
     return Install_Applications_DependenciesEntry.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<Install_Applications_DependenciesEntry>, I>>(
-    object: I
+    object: I,
   ): Install_Applications_DependenciesEntry {
     const message = createBaseInstall_Applications_DependenciesEntry();
-    message.key = object.key ?? '';
-    message.value = object.value ?? '';
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
     return message;
-  }
+  },
 };
 
 function createBaseUninstall(): Uninstall {
-  return { DeploymentName: '', Application: '', DisplayName: '', All: false };
+  return { DeploymentName: "", Application: "", DisplayName: "", All: false };
 }
 
 export const Uninstall = {
   encode(message: Uninstall, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.DeploymentName !== '') {
+    if (message.DeploymentName !== "") {
       writer.uint32(10).string(message.DeploymentName);
     }
-    if (message.Application !== '') {
+    if (message.Application !== "") {
       writer.uint32(18).string(message.Application);
     }
-    if (message.DisplayName !== '') {
+    if (message.DisplayName !== "") {
       writer.uint32(34).string(message.DisplayName);
     }
     if (message.All === true) {
@@ -1268,10 +1203,10 @@ export const Uninstall = {
 
   fromJSON(object: any): Uninstall {
     return {
-      DeploymentName: isSet(object.DeploymentName) ? String(object.DeploymentName) : '',
-      Application: isSet(object.Application) ? String(object.Application) : '',
-      DisplayName: isSet(object.DisplayName) ? String(object.DisplayName) : '',
-      All: isSet(object.All) ? Boolean(object.All) : false
+      DeploymentName: isSet(object.DeploymentName) ? String(object.DeploymentName) : "",
+      Application: isSet(object.Application) ? String(object.Application) : "",
+      DisplayName: isSet(object.DisplayName) ? String(object.DisplayName) : "",
+      All: isSet(object.All) ? Boolean(object.All) : false,
     };
   },
 
@@ -1290,24 +1225,24 @@ export const Uninstall = {
 
   fromPartial<I extends Exact<DeepPartial<Uninstall>, I>>(object: I): Uninstall {
     const message = createBaseUninstall();
-    message.DeploymentName = object.DeploymentName ?? '';
-    message.Application = object.Application ?? '';
-    message.DisplayName = object.DisplayName ?? '';
+    message.DeploymentName = object.DeploymentName ?? "";
+    message.Application = object.Application ?? "";
+    message.DisplayName = object.DisplayName ?? "";
     message.All = object.All ?? false;
     return message;
-  }
+  },
 };
 
 function createBaseSimpleMessage(): SimpleMessage {
-  return { operation: '', payload: '' };
+  return { operation: "", payload: "" };
 }
 
 export const SimpleMessage = {
   encode(message: SimpleMessage, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.operation !== '') {
+    if (message.operation !== "") {
       writer.uint32(10).string(message.operation);
     }
-    if (message.payload !== '') {
+    if (message.payload !== "") {
       writer.uint32(18).string(message.payload);
     }
     return writer;
@@ -1345,8 +1280,8 @@ export const SimpleMessage = {
 
   fromJSON(object: any): SimpleMessage {
     return {
-      operation: isSet(object.operation) ? String(object.operation) : '',
-      payload: isSet(object.payload) ? String(object.payload) : ''
+      operation: isSet(object.operation) ? String(object.operation) : "",
+      payload: isSet(object.payload) ? String(object.payload) : "",
     };
   },
 
@@ -1363,20 +1298,14 @@ export const SimpleMessage = {
 
   fromPartial<I extends Exact<DeepPartial<SimpleMessage>, I>>(object: I): SimpleMessage {
     const message = createBaseSimpleMessage();
-    message.operation = object.operation ?? '';
-    message.payload = object.payload ?? '';
+    message.operation = object.operation ?? "";
+    message.payload = object.payload ?? "";
     return message;
-  }
+  },
 };
 
 function createBaseConfig(): Config {
-  return {
-    applicationConfig: undefined,
-    networkConfig: undefined,
-    lastupdated: '',
-    updatedby: '',
-    bootstrap: ''
-  };
+  return { applicationConfig: undefined, networkConfig: undefined, lastupdated: "", updatedby: "", bootstrap: "" };
 }
 
 export const Config = {
@@ -1387,13 +1316,13 @@ export const Config = {
     if (message.networkConfig !== undefined) {
       Config_NetworkConfig.encode(message.networkConfig, writer.uint32(18).fork()).ldelim();
     }
-    if (message.lastupdated !== '') {
+    if (message.lastupdated !== "") {
       writer.uint32(26).string(message.lastupdated);
     }
-    if (message.updatedby !== '') {
+    if (message.updatedby !== "") {
       writer.uint32(34).string(message.updatedby);
     }
-    if (message.bootstrap !== '') {
+    if (message.bootstrap !== "") {
       writer.uint32(42).string(message.bootstrap);
     }
     return writer;
@@ -1455,25 +1384,20 @@ export const Config = {
       applicationConfig: isSet(object.applicationConfig)
         ? Config_ApplicationConfig.fromJSON(object.applicationConfig)
         : undefined,
-      networkConfig: isSet(object.networkConfig)
-        ? Config_NetworkConfig.fromJSON(object.networkConfig)
-        : undefined,
-      lastupdated: isSet(object.lastupdated) ? String(object.lastupdated) : '',
-      updatedby: isSet(object.updatedby) ? String(object.updatedby) : '',
-      bootstrap: isSet(object.bootstrap) ? String(object.bootstrap) : ''
+      networkConfig: isSet(object.networkConfig) ? Config_NetworkConfig.fromJSON(object.networkConfig) : undefined,
+      lastupdated: isSet(object.lastupdated) ? String(object.lastupdated) : "",
+      updatedby: isSet(object.updatedby) ? String(object.updatedby) : "",
+      bootstrap: isSet(object.bootstrap) ? String(object.bootstrap) : "",
     };
   },
 
   toJSON(message: Config): unknown {
     const obj: any = {};
-    message.applicationConfig !== undefined &&
-      (obj.applicationConfig = message.applicationConfig
-        ? Config_ApplicationConfig.toJSON(message.applicationConfig)
-        : undefined);
+    message.applicationConfig !== undefined && (obj.applicationConfig = message.applicationConfig
+      ? Config_ApplicationConfig.toJSON(message.applicationConfig)
+      : undefined);
     message.networkConfig !== undefined &&
-      (obj.networkConfig = message.networkConfig
-        ? Config_NetworkConfig.toJSON(message.networkConfig)
-        : undefined);
+      (obj.networkConfig = message.networkConfig ? Config_NetworkConfig.toJSON(message.networkConfig) : undefined);
     message.lastupdated !== undefined && (obj.lastupdated = message.lastupdated);
     message.updatedby !== undefined && (obj.updatedby = message.updatedby);
     message.bootstrap !== undefined && (obj.bootstrap = message.bootstrap);
@@ -1486,35 +1410,39 @@ export const Config = {
 
   fromPartial<I extends Exact<DeepPartial<Config>, I>>(object: I): Config {
     const message = createBaseConfig();
-    message.applicationConfig =
-      object.applicationConfig !== undefined && object.applicationConfig !== null
-        ? Config_ApplicationConfig.fromPartial(object.applicationConfig)
-        : undefined;
-    message.networkConfig =
-      object.networkConfig !== undefined && object.networkConfig !== null
-        ? Config_NetworkConfig.fromPartial(object.networkConfig)
-        : undefined;
-    message.lastupdated = object.lastupdated ?? '';
-    message.updatedby = object.updatedby ?? '';
-    message.bootstrap = object.bootstrap ?? '';
+    message.applicationConfig = (object.applicationConfig !== undefined && object.applicationConfig !== null)
+      ? Config_ApplicationConfig.fromPartial(object.applicationConfig)
+      : undefined;
+    message.networkConfig = (object.networkConfig !== undefined && object.networkConfig !== null)
+      ? Config_NetworkConfig.fromPartial(object.networkConfig)
+      : undefined;
+    message.lastupdated = object.lastupdated ?? "";
+    message.updatedby = object.updatedby ?? "";
+    message.bootstrap = object.bootstrap ?? "";
     return message;
-  }
+  },
 };
 
 function createBaseConfig_ApplicationConfig(): Config_ApplicationConfig {
-  return { GithubToken: '', MarketplaceOwner: '', MarketplaceUser: '', Project: '', Venue: '' };
+  return { GithubToken: "", MarketplaceOwner: "", MarketplaceUser: "", Project: "", Venue: "" };
 }
 
 export const Config_ApplicationConfig = {
   encode(message: Config_ApplicationConfig, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.GithubToken !== '') {
+    if (message.GithubToken !== "") {
       writer.uint32(10).string(message.GithubToken);
     }
-    if (message.MarketplaceOwner !== '') {
+    if (message.MarketplaceOwner !== "") {
       writer.uint32(18).string(message.MarketplaceOwner);
     }
-    if (message.MarketplaceUser !== '') {
+    if (message.MarketplaceUser !== "") {
       writer.uint32(26).string(message.MarketplaceUser);
+    }
+    if (message.Project !== "") {
+      writer.uint32(34).string(message.Project);
+    }
+    if (message.Venue !== "") {
+      writer.uint32(42).string(message.Venue);
     }
     return writer;
   },
@@ -1525,7 +1453,6 @@ export const Config_ApplicationConfig = {
     const message = createBaseConfig_ApplicationConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
-      console.log(tag >>> 3);
       switch (tag >>> 3) {
         case 1:
           if (tag !== 10) {
@@ -1552,7 +1479,16 @@ export const Config_ApplicationConfig = {
           if (tag !== 34) {
             break;
           }
-          console.log('asdfasdf' + reader.string());
+
+          message.Project = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.Venue = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1564,11 +1500,11 @@ export const Config_ApplicationConfig = {
 
   fromJSON(object: any): Config_ApplicationConfig {
     return {
-      GithubToken: isSet(object.GithubToken) ? String(object.GithubToken) : '',
-      MarketplaceOwner: isSet(object.MarketplaceOwner) ? String(object.MarketplaceOwner) : '',
-      MarketplaceUser: isSet(object.MarketplaceUser) ? String(object.MarketplaceUser) : '',
-      Project: isSet(object.Project) ? String(object.Project) : '',
-      Venue: isSet(object.Venue) ? String(object.Venue) : ''
+      GithubToken: isSet(object.GithubToken) ? String(object.GithubToken) : "",
+      MarketplaceOwner: isSet(object.MarketplaceOwner) ? String(object.MarketplaceOwner) : "",
+      MarketplaceUser: isSet(object.MarketplaceUser) ? String(object.MarketplaceUser) : "",
+      Project: isSet(object.Project) ? String(object.Project) : "",
+      Venue: isSet(object.Venue) ? String(object.Venue) : "",
     };
   },
 
@@ -1582,23 +1518,19 @@ export const Config_ApplicationConfig = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Config_ApplicationConfig>, I>>(
-    base?: I
-  ): Config_ApplicationConfig {
+  create<I extends Exact<DeepPartial<Config_ApplicationConfig>, I>>(base?: I): Config_ApplicationConfig {
     return Config_ApplicationConfig.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Config_ApplicationConfig>, I>>(
-    object: I
-  ): Config_ApplicationConfig {
+  fromPartial<I extends Exact<DeepPartial<Config_ApplicationConfig>, I>>(object: I): Config_ApplicationConfig {
     const message = createBaseConfig_ApplicationConfig();
-    message.GithubToken = object.GithubToken ?? '';
-    message.MarketplaceOwner = object.MarketplaceOwner ?? '';
-    message.MarketplaceUser = object.MarketplaceUser ?? '';
-    message.Project = object.Project ?? '';
-    message.Venue = object.Venue ?? '';
+    message.GithubToken = object.GithubToken ?? "";
+    message.MarketplaceOwner = object.MarketplaceOwner ?? "";
+    message.MarketplaceUser = object.MarketplaceUser ?? "";
+    message.Project = object.Project ?? "";
+    message.Venue = object.Venue ?? "";
     return message;
-  }
+  },
 };
 
 function createBaseConfig_NetworkConfig(): Config_NetworkConfig {
@@ -1648,12 +1580,8 @@ export const Config_NetworkConfig = {
 
   fromJSON(object: any): Config_NetworkConfig {
     return {
-      publicsubnets: Array.isArray(object?.publicsubnets)
-        ? object.publicsubnets.map((e: any) => String(e))
-        : [],
-      privatesubnets: Array.isArray(object?.privatesubnets)
-        ? object.privatesubnets.map((e: any) => String(e))
-        : []
+      publicsubnets: Array.isArray(object?.publicsubnets) ? object.publicsubnets.map((e: any) => String(e)) : [],
+      privatesubnets: Array.isArray(object?.privatesubnets) ? object.privatesubnets.map((e: any) => String(e)) : [],
     };
   },
 
@@ -1676,14 +1604,12 @@ export const Config_NetworkConfig = {
     return Config_NetworkConfig.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Config_NetworkConfig>, I>>(
-    object: I
-  ): Config_NetworkConfig {
+  fromPartial<I extends Exact<DeepPartial<Config_NetworkConfig>, I>>(object: I): Config_NetworkConfig {
     const message = createBaseConfig_NetworkConfig();
     message.publicsubnets = object.publicsubnets?.map((e) => e) || [];
     message.privatesubnets = object.privatesubnets?.map((e) => e) || [];
     return message;
-  }
+  },
 };
 
 function createBaseParameters(): Parameters {
@@ -1693,10 +1619,7 @@ function createBaseParameters(): Parameters {
 export const Parameters = {
   encode(message: Parameters, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     Object.entries(message.parameterlist).forEach(([key, value]) => {
-      Parameters_ParameterlistEntry.encode(
-        { key: key as any, value },
-        writer.uint32(10).fork()
-      ).ldelim();
+      Parameters_ParameterlistEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
     });
     return writer;
   },
@@ -1730,14 +1653,11 @@ export const Parameters = {
   fromJSON(object: any): Parameters {
     return {
       parameterlist: isObject(object.parameterlist)
-        ? Object.entries(object.parameterlist).reduce<{ [key: string]: Parameters_Parameter }>(
-            (acc, [key, value]) => {
-              acc[key] = Parameters_Parameter.fromJSON(value);
-              return acc;
-            },
-            {}
-          )
-        : {}
+        ? Object.entries(object.parameterlist).reduce<{ [key: string]: Parameters_Parameter }>((acc, [key, value]) => {
+          acc[key] = Parameters_Parameter.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
     };
   },
 
@@ -1758,31 +1678,32 @@ export const Parameters = {
 
   fromPartial<I extends Exact<DeepPartial<Parameters>, I>>(object: I): Parameters {
     const message = createBaseParameters();
-    message.parameterlist = Object.entries(object.parameterlist ?? {}).reduce<{
-      [key: string]: Parameters_Parameter;
-    }>((acc, [key, value]) => {
-      if (value !== undefined) {
-        acc[key] = Parameters_Parameter.fromPartial(value);
-      }
-      return acc;
-    }, {});
+    message.parameterlist = Object.entries(object.parameterlist ?? {}).reduce<{ [key: string]: Parameters_Parameter }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = Parameters_Parameter.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
     return message;
-  }
+  },
 };
 
 function createBaseParameters_Parameter(): Parameters_Parameter {
-  return { name: '', value: '', type: '', tracked: false, insync: false };
+  return { name: "", value: "", type: "", tracked: false, insync: false };
 }
 
 export const Parameters_Parameter = {
   encode(message: Parameters_Parameter, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== '') {
+    if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    if (message.value !== '') {
+    if (message.value !== "") {
       writer.uint32(18).string(message.value);
     }
-    if (message.type !== '') {
+    if (message.type !== "") {
       writer.uint32(26).string(message.type);
     }
     if (message.tracked === true) {
@@ -1847,11 +1768,11 @@ export const Parameters_Parameter = {
 
   fromJSON(object: any): Parameters_Parameter {
     return {
-      name: isSet(object.name) ? String(object.name) : '',
-      value: isSet(object.value) ? String(object.value) : '',
-      type: isSet(object.type) ? String(object.type) : '',
+      name: isSet(object.name) ? String(object.name) : "",
+      value: isSet(object.value) ? String(object.value) : "",
+      type: isSet(object.type) ? String(object.type) : "",
       tracked: isSet(object.tracked) ? Boolean(object.tracked) : false,
-      insync: isSet(object.insync) ? Boolean(object.insync) : false
+      insync: isSet(object.insync) ? Boolean(object.insync) : false,
     };
   },
 
@@ -1869,29 +1790,24 @@ export const Parameters_Parameter = {
     return Parameters_Parameter.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<Parameters_Parameter>, I>>(
-    object: I
-  ): Parameters_Parameter {
+  fromPartial<I extends Exact<DeepPartial<Parameters_Parameter>, I>>(object: I): Parameters_Parameter {
     const message = createBaseParameters_Parameter();
-    message.name = object.name ?? '';
-    message.value = object.value ?? '';
-    message.type = object.type ?? '';
+    message.name = object.name ?? "";
+    message.value = object.value ?? "";
+    message.type = object.type ?? "";
     message.tracked = object.tracked ?? false;
     message.insync = object.insync ?? false;
     return message;
-  }
+  },
 };
 
 function createBaseParameters_ParameterlistEntry(): Parameters_ParameterlistEntry {
-  return { key: '', value: undefined };
+  return { key: "", value: undefined };
 }
 
 export const Parameters_ParameterlistEntry = {
-  encode(
-    message: Parameters_ParameterlistEntry,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.key !== '') {
+  encode(message: Parameters_ParameterlistEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
     if (message.value !== undefined) {
@@ -1932,54 +1848,50 @@ export const Parameters_ParameterlistEntry = {
 
   fromJSON(object: any): Parameters_ParameterlistEntry {
     return {
-      key: isSet(object.key) ? String(object.key) : '',
-      value: isSet(object.value) ? Parameters_Parameter.fromJSON(object.value) : undefined
+      key: isSet(object.key) ? String(object.key) : "",
+      value: isSet(object.value) ? Parameters_Parameter.fromJSON(object.value) : undefined,
     };
   },
 
   toJSON(message: Parameters_ParameterlistEntry): unknown {
     const obj: any = {};
     message.key !== undefined && (obj.key = message.key);
-    message.value !== undefined &&
-      (obj.value = message.value ? Parameters_Parameter.toJSON(message.value) : undefined);
+    message.value !== undefined && (obj.value = message.value ? Parameters_Parameter.toJSON(message.value) : undefined);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Parameters_ParameterlistEntry>, I>>(
-    base?: I
-  ): Parameters_ParameterlistEntry {
+  create<I extends Exact<DeepPartial<Parameters_ParameterlistEntry>, I>>(base?: I): Parameters_ParameterlistEntry {
     return Parameters_ParameterlistEntry.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<Parameters_ParameterlistEntry>, I>>(
-    object: I
+    object: I,
   ): Parameters_ParameterlistEntry {
     const message = createBaseParameters_ParameterlistEntry();
-    message.key = object.key ?? '';
-    message.value =
-      object.value !== undefined && object.value !== null
-        ? Parameters_Parameter.fromPartial(object.value)
-        : undefined;
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? Parameters_Parameter.fromPartial(object.value)
+      : undefined;
     return message;
-  }
+  },
 };
 
 function createBaseLogLine(): LogLine {
-  return { line: '', level: '', timestamp: '', type: '' };
+  return { line: "", level: "", timestamp: "", type: "" };
 }
 
 export const LogLine = {
   encode(message: LogLine, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.line !== '') {
+    if (message.line !== "") {
       writer.uint32(10).string(message.line);
     }
-    if (message.level !== '') {
+    if (message.level !== "") {
       writer.uint32(18).string(message.level);
     }
-    if (message.timestamp !== '') {
+    if (message.timestamp !== "") {
       writer.uint32(26).string(message.timestamp);
     }
-    if (message.type !== '') {
+    if (message.type !== "") {
       writer.uint32(34).string(message.type);
     }
     return writer;
@@ -2031,10 +1943,10 @@ export const LogLine = {
 
   fromJSON(object: any): LogLine {
     return {
-      line: isSet(object.line) ? String(object.line) : '',
-      level: isSet(object.level) ? String(object.level) : '',
-      timestamp: isSet(object.timestamp) ? String(object.timestamp) : '',
-      type: isSet(object.type) ? String(object.type) : ''
+      line: isSet(object.line) ? String(object.line) : "",
+      level: isSet(object.level) ? String(object.level) : "",
+      timestamp: isSet(object.timestamp) ? String(object.timestamp) : "",
+      type: isSet(object.type) ? String(object.type) : "",
     };
   },
 
@@ -2053,33 +1965,27 @@ export const LogLine = {
 
   fromPartial<I extends Exact<DeepPartial<LogLine>, I>>(object: I): LogLine {
     const message = createBaseLogLine();
-    message.line = object.line ?? '';
-    message.level = object.level ?? '';
-    message.timestamp = object.timestamp ?? '';
-    message.type = object.type ?? '';
+    message.line = object.line ?? "";
+    message.level = object.level ?? "";
+    message.timestamp = object.timestamp ?? "";
+    message.type = object.type ?? "";
     return message;
-  }
+  },
 };
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
+export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isObject(value: any): boolean {
-  return typeof value === 'object' && value !== null;
+  return typeof value === "object" && value !== null;
 }
 
 function isSet(value: any): boolean {
