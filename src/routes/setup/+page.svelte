@@ -78,12 +78,8 @@
     const projectkey = '/unity/core/project';
 
     // Check if the value is not null and has the key
-    if (
-      parameters &&
-      parameters.parameterlist &&
-      Object.prototype.hasOwnProperty.call(parameters?.parameterlist, projectkey)
-    ) {
-      projectStore.set(parameters.parameterlist[projectkey].value);
+    if ($config?.applicationConfig?.Project) {
+      projectStore.set($config?.applicationConfig?.Project);
     } else {
       console.log('Key does not exist or parameters is null/undefined.');
     }
