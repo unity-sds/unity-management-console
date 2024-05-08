@@ -43,8 +43,6 @@
   }
 
   function handleSubmit() {
-    console.log('project: ' + get(projectStore));
-    console.log('venue: ' + get(venueStore));
     const unsubscribe = parametersStore.subscribe((items) => {
       let l = items.parameterlist;
       l['project'] = createBaseParameters_Parameter({
@@ -153,7 +151,7 @@
       {#if $installRunning === false}
         <form class="space-y-4">
           <InputField
-            label={`Project Name ${!$projectStore && '(loading...)'}`}
+            label={`Project Name ${!$projectStore ? '(loading...)' : ''}`}
             id="project"
             on:input={handleInputChange}
             isValid={true}
@@ -162,7 +160,7 @@
             disabled={true}
           />
           <InputField
-            label="Venue Name"
+            label={`Venue Name ${!$venueStore ? '(loading...)' : ''}`}
             id="venue"
             on:input={handleInputChange}
             isValid={true}
