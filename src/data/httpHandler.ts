@@ -27,7 +27,6 @@ let marketplaceowner = 'unity-sds';
 let marketplacerepo = 'unity-marketplace';
 
 const unsubscribe = config.subscribe((configValue) => {
-	console.log(configValue);
 	if (configValue && configValue.applicationConfig && configValue.applicationConfig.GithubToken) {
 		headers = {
 			Authorization: `token ${configValue.applicationConfig.GithubToken}`
