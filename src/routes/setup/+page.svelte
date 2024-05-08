@@ -23,9 +23,6 @@
   let value = '';
   let list: { key: string; value: string }[] = [];
 
-  console.log('Config!');
-  $: console.log($config);
-
   const venueAndProjectStore = derived(
     [venueStore, projectStore],
     ([$venueStore, $projectStore]) => {
@@ -85,12 +82,8 @@
     }
 
     // Check if the value is not null and has the key
-    if (
-      parameters &&
-      parameters.parameterlist &&
-      Object.prototype.hasOwnProperty.call(parameters?.parameterlist, venuekey)
-    ) {
-      venueStore.set(parameters.parameterlist[venuekey].value);
+    if ($config?.applicationConfig?.Venue) {
+      venueStore.set($config?.applicationConfig?.Venue);
     } else {
       console.log('Key does not exist or parameters is null/undefined.');
     }
