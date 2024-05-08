@@ -155,16 +155,14 @@
           <InputField
             label="Project Name"
             id="project"
-            isValid={$venueAndProjectStore.projectIsValid}
             on:input={handleInputChange}
             subtext="The project managing this Unity environment."
-            value={$projectStore}
+            value={$projectStore || 'Loading'}
             disabled={true}
           />
           <InputField
             label="Venue Name"
             id="venue"
-            placeholder="Loading"
             on:input={handleInputChange}
             subtext="The venue this Unity environment is deployed into."
             value={$venueStore}
