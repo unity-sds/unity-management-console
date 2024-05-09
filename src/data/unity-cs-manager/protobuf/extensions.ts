@@ -94,6 +94,8 @@ export interface Config_ApplicationConfig {
   GithubToken: string;
   MarketplaceOwner: string;
   MarketplaceUser: string;
+  Project: string;
+  Venue: string;
 }
 
 export interface Config_NetworkConfig {
@@ -1422,7 +1424,7 @@ export const Config = {
 };
 
 function createBaseConfig_ApplicationConfig(): Config_ApplicationConfig {
-  return { GithubToken: "", MarketplaceOwner: "", MarketplaceUser: "" };
+  return { GithubToken: "", MarketplaceOwner: "", MarketplaceUser: "", Project: "", Venue: "" };
 }
 
 export const Config_ApplicationConfig = {
@@ -1435,6 +1437,12 @@ export const Config_ApplicationConfig = {
     }
     if (message.MarketplaceUser !== "") {
       writer.uint32(26).string(message.MarketplaceUser);
+    }
+    if (message.Project !== "") {
+      writer.uint32(34).string(message.Project);
+    }
+    if (message.Venue !== "") {
+      writer.uint32(42).string(message.Venue);
     }
     return writer;
   },
@@ -1467,6 +1475,20 @@ export const Config_ApplicationConfig = {
 
           message.MarketplaceUser = reader.string();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.Project = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.Venue = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1481,6 +1503,8 @@ export const Config_ApplicationConfig = {
       GithubToken: isSet(object.GithubToken) ? String(object.GithubToken) : "",
       MarketplaceOwner: isSet(object.MarketplaceOwner) ? String(object.MarketplaceOwner) : "",
       MarketplaceUser: isSet(object.MarketplaceUser) ? String(object.MarketplaceUser) : "",
+      Project: isSet(object.Project) ? String(object.Project) : "",
+      Venue: isSet(object.Venue) ? String(object.Venue) : "",
     };
   },
 
@@ -1489,6 +1513,8 @@ export const Config_ApplicationConfig = {
     message.GithubToken !== undefined && (obj.GithubToken = message.GithubToken);
     message.MarketplaceOwner !== undefined && (obj.MarketplaceOwner = message.MarketplaceOwner);
     message.MarketplaceUser !== undefined && (obj.MarketplaceUser = message.MarketplaceUser);
+    message.Project !== undefined && (obj.Project = message.Project);
+    message.Venue !== undefined && (obj.Venue = message.Venue);
     return obj;
   },
 
@@ -1501,6 +1527,8 @@ export const Config_ApplicationConfig = {
     message.GithubToken = object.GithubToken ?? "";
     message.MarketplaceOwner = object.MarketplaceOwner ?? "";
     message.MarketplaceUser = object.MarketplaceUser ?? "";
+    message.Project = object.Project ?? "";
+    message.Venue = object.Venue ?? "";
     return message;
   },
 };
