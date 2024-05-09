@@ -27,16 +27,9 @@ func UpdateCoreConfig(appConfig *config.AppConfig, db database.Datastore, websoc
 	}
 	defer tfFile.Close()
 
-	venue, err := getSSMParameterValueFromDatabase("venue", db)
-	if err != nil {
-		log.WithError(err).Error("Problem fetching venue")
-		return err
-	}
-	project, err := getSSMParameterValueFromDatabase("project", db)
-	if err != nil {
-		log.WithError(err).Error("Problem fetching project")
-		return err
-	}
+	venue := appConfig.Venue
+	project := appConfig.Project
+
 	publicsubnets, err := getSSMParameterValueFromDatabase("publicsubnets", db)
 	if err != nil {
 		log.WithError(err).Error("Problem fetching public subnets")
