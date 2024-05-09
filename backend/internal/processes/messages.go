@@ -9,7 +9,6 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
-	"fmt"
 )
 
 func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppConfig, store database.Datastore, wsmgr *websocket.WebSocketManager, userid string) ([]byte, error) {
@@ -125,18 +124,10 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	} else if bootstrapfailed.Owner != "" {
 		bsoutput = "failed"
 	}
-
-	testConfig := marketplace.Config_ApplicationConfig{
-		GithubToken:      "conf.GithubToken",
-		MarketplaceOwner: conf.MarketplaceOwner,
-		MarketplaceUser:  conf.MarketplaceRepo,
-		Project:          conf.Project,
-		Venue:            conf.Venue,
-	}
 	
 	genconfig := &marketplace.Config{
 
-		ApplicationConfig: &testConfig,
+		ApplicationConfig: &appConfig,
 		NetworkConfig:     &netconfig,
 		Lastupdated:       audit.CreatedAt.Format("2006-01-02T15:04:05.000"),
 		Updatedby:         audit.Owner,
