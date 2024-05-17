@@ -4,7 +4,7 @@ import (
 	"context"
 	"math/rand"
 	"time"
-
+	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -22,6 +22,7 @@ var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 type S3BucketAPI interface {
 	CreateBucket(ctx context.Context, params *s3.CreateBucketInput, optFns ...func(*s3.Options)) (*s3.CreateBucketOutput, error)
 	HeadBucket(ctx context.Context, params *s3.HeadBucketInput) (*s3.HeadBucketOutput, error)
+	GetObject(ctx context.Context, params *s3.GetObjectInput) (*s3.GetObjectOutput, error)
 }
 
 type AWSS3Client struct {
@@ -42,6 +43,10 @@ func (a *AWSS3Client) HeadBucket(ctx context.Context, params *s3.HeadBucketInput
 	return a.Client.HeadBucket(ctx, params)
 }
 
+func (a *AWSS3Client) GetObject(ctx context.Context, params *s3.GetObjectInput) (*s3.GetObjectOutput, error) {
+	return a.Client.GetObject(ctx, params)
+}
+
 func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (string, error) {
 	resp, berr := api.CreateBucket(ctx, params)
 
@@ -54,12 +59,33 @@ func HeadBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.HeadBucke
 	return err
 }
 
+func GetObjectFromS3(ctx context.Context, api S3BucketAPI, params *s3.GetObjectInput) (*s3.GetObjectOutput, error) {
+	return api.GetObject(ctx, params)
+}
+
 func InitS3Client(conf *appconfig.AppConfig) S3BucketAPI {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(conf.AWSRegion))
 	if err != nil {
 		log.Fatalf("failed to load AWS configuration: %v", err)
 	}
 	return NewAWSS3Client(cfg)
+}
+
+func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, objectKey string) {
+	if s3client == nil {
+		s3client = InitS3Client(conf)
+	}
+
+	objectinput := &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key: aws.String(objectKey),
+	}
+
+	_, err := GetObjectFromS3(context.TODO(), s3client, objectinput)
+
+	if err != nil {
+		log.WithError(err).Error(fmt.Sprintf("Couldn't get object at bucket: %s, object key: %s", bucketName, objectKey))
+	}
 }
 
 func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
