@@ -26,7 +26,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		}
 		// fmt.Printf("%v", bucketName)
 
-		// fileOut := aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, "bojec")
+		aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, "")
 
 		outStr := fmt.Sprintf(`{"msg":"%s"}`, *bucketNameParam.Parameter.Value)
 		jsonData := []byte(outStr)
