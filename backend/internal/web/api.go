@@ -6,32 +6,29 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
+	// "github.com/unity-sds/unity-management-console/backend/internal/database"
 	"net/http"
-	"github.com/unity-sds/unity-management-console/backend/internal/database"
 )
 
 func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		healthCheckParamPath := fmt.Sprintf("/unity/%s/%s/cs/monitoring/s3/bucketName", appConfig.Project, appConfig.Venue)
-		// param, err := aws.ReadSSMParameter(healthCheckParamPath)
+		bucketNameParam, err := aws.ReadSSMParameter(healthCheckParamPath)
 
-	db, err := database.NewGormDatastore()
+		// db, err := database.NewGormDatastore()
 
-	params, err := db.FetchSSMParams()
+		// params, err := db.FetchSSMParams()
 
-	p, err := aws.ReadSSMParameters(params)
+		// p, err := aws.ReadSSMParameters(params)
 
 		if err != nil {
 			log.WithError(err).Error("Failed to get SSM params for " + healthCheckParamPath)
-			c.JSON(http.StatusInternalServerError, "")
 		}
-		fmt.Printf("%v", p)
+		// fmt.Printf("%v", bucketName)
 
+		fileOut := aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, "bojec")
 
-
-		c.JSON(http.StatusOK, gin.H{
-			"health_checks": "not done",
-		})
+		c.Data(http.StatusOK, "application/json", fileOut)
 
 	}
 	return gin.HandlerFunc(fn)

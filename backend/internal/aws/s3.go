@@ -2,9 +2,6 @@ package aws
 
 import (
 	"context"
-	"math/rand"
-	"time"
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -13,6 +10,9 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	appconfig "github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"math/rand"
+	"time"
+	"io"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -71,21 +71,30 @@ func InitS3Client(conf *appconfig.AppConfig) S3BucketAPI {
 	return NewAWSS3Client(cfg)
 }
 
-func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, objectKey string) {
+func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, objectKey string) []byte {
 	if s3client == nil {
 		s3client = InitS3Client(conf)
 	}
 
 	objectinput := &s3.GetObjectInput{
 		Bucket: aws.String(bucketName),
-		Key: aws.String(objectKey),
+		Key:    aws.String(objectKey),
 	}
 
-	_, err := GetObjectFromS3(context.TODO(), s3client, objectinput)
+	result, err := GetObjectFromS3(context.TODO(), s3client, objectinput)
+
+	defer result.Body.Close()
 
 	if err != nil {
-		log.WithError(err).Error(fmt.Sprintf("Couldn't get object at bucket: %s, object key: %s", bucketName, objectKey))
+		log.WithError(err).Error("Couldn't get object %v:%v. Here's why: %v\n", bucketName, objectKey, err)
 	}
+
+	bytesRead, err := io.ReadAll(result.Body)
+	if err != nil {
+		log.WithError(err).Error("Unable to read object")
+	}
+
+	return bytesRead
 }
 
 func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
