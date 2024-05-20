@@ -12,7 +12,7 @@ import (
 
 func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
-		healthCheckParamPath := fmt.Sprintf("/unity/%s/%s/cs/monitoring/s3/bucketName", appConfig.Project, appConfig.Venue)
+		healthCheckParamPath := fmt.Sprintf("/unity/deployment/%s/%s/cs/monitoring/s3/bucketName", appConfig.Project, appConfig.Venue)
 		bucketNameParam, err := aws.ReadSSMParameter(healthCheckParamPath)
 
 		// db, err := database.NewGormDatastore()
