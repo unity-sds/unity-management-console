@@ -72,12 +72,6 @@ func InitS3Client(conf *appconfig.AppConfig) S3BucketAPI {
 }
 
 func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, objectKey string) []byte {
-		
-			log.Printf("Failed to get SSM params for " + bucketName)
-		
-		
-		return nil
-
 	if s3client == nil {
 		s3client = InitS3Client(conf)
 	}
@@ -86,6 +80,8 @@ func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName strin
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(objectKey),
 	}
+
+	return nil
 
 	result, err := GetObjectFromS3(context.TODO(), s3client, objectinput)
 
