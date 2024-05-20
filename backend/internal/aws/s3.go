@@ -85,9 +85,6 @@ func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName strin
 
 	// defer result.Body.Close()
 
-	return nil
-
-
 	if err != nil {
 		log.WithError(err).Error("Couldn't get object %v:%v. Here's why: %v\n", bucketName, objectKey, err)
 	}
