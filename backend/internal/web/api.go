@@ -28,7 +28,8 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 
 		// fileOut := aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, "bojec")
 
-		c.Data(http.StatusOK, "application/json", "fileOut")
+		jsonData := []byte(`{"msg":"this worked"}`)
+		c.Data(http.StatusOK, "application/json", jsonData)
 
 	}
 	return gin.HandlerFunc(fn)
