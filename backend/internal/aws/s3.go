@@ -13,6 +13,7 @@ import (
 	"math/rand"
 	"time"
 	"io"
+	"fmt"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -109,10 +110,19 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 	if conf.BucketName != "" {
 		bucket = conf.BucketName
 	} else {
-		bucket = generateBucketName()
+		// We get the name of this deployment's bucket from an SSM param (previously was a randomized string prefix)
+		bucketNameParamPath := fmt.Sprintf("/unity/deployment/%s/%s/cs/monitoring/s3/bucketName", conf.Project, conf.Venue)
+		bucketNameParam, err := ReadSSMParameter(bucketNameParamPath)
+
+		if err != nil {
+			log.WithError(err).Error("Could not find SSM parameter for bucket name at: %s", bucketNameParamPath)
+		}
+
+		bucket := *bucketNameParam.Parameter.Value
+
 		conf.BucketName = bucket
 		viper.Set("bucketname", bucket)
-		err := viper.WriteConfigAs(viper.ConfigFileUsed())
+		err = viper.WriteConfigAs(viper.ConfigFileUsed())
 		if err != nil {
 			log.WithError(err).Error("Could not write config file")
 		}
