@@ -83,7 +83,7 @@ func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName strin
 
 	result, err := GetObjectFromS3(context.TODO(), s3client, objectinput)
 
-	defer result.Body.Close()
+	// defer result.Body.Close()
 
 	return nil
 
