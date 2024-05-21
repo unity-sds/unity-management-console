@@ -21,7 +21,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value, "health_check")
 		for _, object := range result {
 			matched, err := regexp.MatchString(`health_check_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).json`, *object.Key)
-			if err != nil {
+			if err != nil || !matched {
 				continue
 			}
 			log.Warnf("%v", matched)	
