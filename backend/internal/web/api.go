@@ -39,7 +39,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 			}
 
 
-			log.Warnf("File: %v+", t)
+			log.Warnf("File: %s", *object.Key)
 
 			if latestHealthCheckObject == nil || t.After(*latestHealthCheckDatetime) {
 				latestHealthCheckObject = &object
@@ -48,11 +48,9 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		}
 
 		if latestHealthCheckObject == nil {
-			jsonData := []byte(`{"error": "Can't find any health heck files"}`)
+			jsonData := []byte(`{"error": "Can't find any health check files"}`)
 			c.Data(http.StatusOK, "application/json", jsonData)
 		}
-
-
 
 		// Read the object and pass the data on to the requester
 		log.Warnf("%v", *latestHealthCheckObject.Key)
