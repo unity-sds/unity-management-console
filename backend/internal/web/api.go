@@ -20,7 +20,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value, "health_check")
 
 		for _, object := range result {
-			log.Warnf("%v", *result[i].Key)	
+			log.Warnf("%v", *object.Key)	
 		}
 		
 		return
