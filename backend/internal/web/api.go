@@ -18,7 +18,11 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 
 		// Get a listing of all the files in the bucket and pick the one with the latest timestamp
 		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value)
-		log.Warnf("%v", result)
+
+		for i := 0; i < len(result); i++ {
+			log.Warnf("%v", result[i].Key)	
+		}
+		
 		return
 
 
