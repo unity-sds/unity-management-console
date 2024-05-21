@@ -51,7 +51,8 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 
 
 
-		log.Warnf("%v", *latestHealthCheckObject.Key)
+		// Read the object and pass the data on to the requester
+		aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, *latestHealthCheckObject.Key)
 		
 		return
 
