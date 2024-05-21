@@ -39,8 +39,8 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 				}
 
 				if latestHealthCheckObject == nil || t.After(latestHealthCheckDatetime) {
-					latestHealthCheckObject = object
-					latestHealthCheckDatetime = t
+					latestHealthCheckObject = *object
+					latestHealthCheckDatetime = *t
 				}
 				
 			
