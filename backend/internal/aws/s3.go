@@ -110,8 +110,23 @@ func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName strin
 	return bytesRead
 }
 
-func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig) ([]types.Object, error) {
-	return nil
+func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string) ([]types.Object, error) {
+	if s3client == nil {
+		s3client = InitS3Client(conf)
+	}
+
+	listobjectsinput := &s3.ListObjectsV2Input{
+		Bucket: aws.String(bucketName)
+	}
+
+	result, err := ListObjectsFromS3(context.TODO(), s3client, listobjectsinput)
+
+	if err != nil {
+		log.WithError(err).Error("Couldn't lsit objects in bucket: %s. Here's why: %v\n", bucketName, err)
+	}
+
+	return result
+
 }
 
 func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
