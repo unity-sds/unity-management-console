@@ -71,7 +71,7 @@ func GetObjectFromS3(ctx context.Context, api S3BucketAPI, params *s3.GetObjectI
 }
 
 func ListObjectsFromS3(ctx context.Context, api S3BucketAPI, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error ){
-	resp, err := api.ListObjectsV2(ctx, params)
+	return api.ListObjectsV2(ctx, params)
 }
 
 func InitS3Client(conf *appconfig.AppConfig) S3BucketAPI {
