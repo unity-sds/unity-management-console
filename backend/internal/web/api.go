@@ -23,7 +23,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value, "health_check")
 
 		// re := regexp.MustCompile(`health_check_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).json`)
-		layout, err := strftime.Layout("health_check_%Y-%m-%d_%H-%M-%S")
+		layout, err := strftime.Layout("health_check_%Y-%m-%d_%H-%M-%S.json")
 		if err != nil {
 			log.Warnf("%s", "Error parsing date layout")					
 		}
