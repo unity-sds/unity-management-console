@@ -110,7 +110,7 @@ func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName strin
 	return bytesRead
 }
 
-func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string) ([]types.Object, error) {
+func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string) ([]types.Object) {
 	if s3client == nil {
 		s3client = InitS3Client(conf)
 	}
