@@ -42,12 +42,11 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 					latestHealthCheckObject = object
 					latestHealthCheckDatetime = t
 				}
-
-
-
-				log.Warnf("%v", t)		
+				
 			
 		}
+
+		log.Warnf("%v", latestHealthCheckObject)
 		
 		return
 
