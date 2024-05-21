@@ -34,7 +34,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 				t, err := time.Parse(layout, *object.Key)
 				
 				if err != nil  {
-					log.Warnf("File Doesn't Match: %s", *object.Key)
+					// log.Warnf("File Doesn't Match: %s", *object.Key)
 					continue
 				}
 
@@ -52,7 +52,8 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 
 
 		// Read the object and pass the data on to the requester
-		aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, *latestHealthCheckObject.Key)
+		object := aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, *latestHealthCheckObject.Key)
+		log.Warnf("%v", object)
 		
 		return
 
