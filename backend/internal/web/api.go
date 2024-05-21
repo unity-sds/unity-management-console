@@ -54,6 +54,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		// Read the object and pass the data on to the requester
 		log.Warnf("%v", *latestHealthCheckObject.Key)
 		object := aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, *latestHealthCheckObject.Key)
+		log.Warnf("%d", len(object))
 		c.Data(http.StatusOK, "application/json", object)
 		
 		return
