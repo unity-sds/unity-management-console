@@ -34,7 +34,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 			t, err := time.Parse(layout, *object.Key)
 			
 			if err != nil || t.IsZero()  {
-				// log.Warnf("File Doesn't Match: %s", *object.Key)
+				log.Warnf("File Doesn't Match: %s", *object.Key)
 				continue
 			}
 
