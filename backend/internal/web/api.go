@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 	strftime "github.com/ncruces/go-strftime"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
