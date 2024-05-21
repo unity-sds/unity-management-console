@@ -33,7 +33,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		for _, object := range result {
 				t, err := time.Parse(layout, *object.Key)
 				
-				if err != nil || t == nil {
+				if err != nil  {
 					log.Warnf("File Doesn't Match: %s", *object.Key)
 					continue
 				}
