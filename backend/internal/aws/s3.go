@@ -125,7 +125,7 @@ func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName s
 		log.WithError(err).Error("Couldn't lsit objects in bucket: %s. Here's why: %v\n", bucketName, err)
 	}
 
-	return result
+	return result.Contents
 
 }
 
