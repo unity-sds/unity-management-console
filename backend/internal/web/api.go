@@ -38,9 +38,6 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 				continue
 			}
 
-
-			log.Warnf("File: %s", *object.Key)
-
 			if latestHealthCheckObject == nil || t.After(*latestHealthCheckDatetime) {
 				latestHealthCheckObject = &result[i]
 				latestHealthCheckDatetime = &t
@@ -49,36 +46,14 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 
 		if latestHealthCheckObject == nil {
 			jsonData := []byte(`{"error": "Can't find any health check files"}`)
-			c.Data(http.StatusOK, "application/json", jsonData)
+			c.Data(http.StatusInternalServerError, "application/json", jsonData)
 		}
 
 		// Read the object and pass the data on to the requester
-		log.Warnf("%v", *latestHealthCheckObject.Key)
 		object := aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, *latestHealthCheckObject.Key)
-		log.Warnf("%d", len(object))
 		c.Data(http.StatusOK, "application/json", object)
 		
 		return
-
-
-
-		// db, err := database.NewGormDatastore()
-
-		// params, err := db.FetchSSMParams()
-
-		// p, err := aws.ReadSSMParameters(params)
-
-		if err != nil {
-			log.WithError(err).Error("Failed to get SSM params for " + healthCheckParamPath)
-		}
-		// fmt.Printf("%v", bucketName)
-
-		aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, "")
-
-		outStr := fmt.Sprintf(`{"msg":"%s"}`, *bucketNameParam.Parameter.Value)
-		jsonData := []byte(outStr)
-		c.Data(http.StatusOK, "application/json", jsonData)
-
 	}
 	return gin.HandlerFunc(fn)
 }
