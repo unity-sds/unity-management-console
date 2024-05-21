@@ -110,13 +110,14 @@ func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName strin
 	return bytesRead
 }
 
-func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string) ([]types.Object) {
+func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, prefix string) ([]types.Object) {
 	if s3client == nil {
 		s3client = InitS3Client(conf)
 	}
 
 	listobjectsinput := &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucketName),
+		Prefix: aws.String(prefx)
 	}
 
 	result, err := ListObjectsFromS3(context.TODO(), s3client, listobjectsinput)

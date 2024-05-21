@@ -17,9 +17,9 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		bucketNameParam, err := aws.ReadSSMParameter(healthCheckParamPath)
 
 		// Get a listing of all the files in the bucket and pick the one with the latest timestamp
-		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value)
+		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value, "health_check")
 
-		for i := 0; i < len(result); i++ {
+		for _, object := range result {
 			log.Warnf("%v", *result[i].Key)	
 		}
 		
