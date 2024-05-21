@@ -19,13 +19,15 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 
 		// Get a listing of all the files in the bucket and pick the one with the latest timestamp
 		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value, "health_check")
+
+		re := regexp.MustCompile(`health_check_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).json`)
 		for _, object := range result {
 			log.Warnf("%v",  *object.Key)
-			matched, err := regexp.MatchString(`health_check_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).json`, *object.Key)
-			if err != nil || !matched {
-				continue
-			}
-			log.Warnf("%v", matched)	
+			match := re.FindStringSubmatch(*object.Key)
+
+			if match != nil {
+				log.Warnf("%v", match[1])		
+			}	
 		}
 		
 		return
