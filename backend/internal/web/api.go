@@ -28,11 +28,23 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		}
 
 		var latestHealthCheckObject types.Object
+		var latestHealthCheckDatetime u.Time
+
 		for _, object := range result {
 				t, err := time.Parse(layout, *object.Key)
-				if err != nil {
+				
+				if err != nil || !t {
 					log.Warnf("File Doesn't Match: %s", *object.Key)
+					continue
 				}
+
+				if !latestHealthCheckDatetime || t.After(latestHealthCheckDatetime) {
+					latestHealthCheckObject = object
+					latestHealthCheckDatetime = t
+				}
+
+
+
 				log.Warnf("%v", t)		
 			
 		}
