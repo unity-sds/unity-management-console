@@ -28,7 +28,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		}
 
 		var latestHealthCheckObject types.Object
-		latestHealthCheckDatetime
+		var latestHealthCheckDatetime time.Time
 
 		for _, object := range result {
 				t, err := time.Parse(layout, *object.Key)
