@@ -117,7 +117,7 @@ func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName s
 
 	listobjectsinput := &s3.ListObjectsV2Input{
 		Bucket: aws.String(bucketName),
-		Prefix: aws.String(prefx)
+		Prefix: aws.String(prefx),
 	}
 
 	result, err := ListObjectsFromS3(context.TODO(), s3client, listobjectsinput)
