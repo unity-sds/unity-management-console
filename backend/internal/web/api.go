@@ -44,6 +44,13 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 				}
 		}
 
+		if latestHealthCheckObject == nil {
+			jsonData := []byte(`{"error": "Can't find any health heck files"}`)
+			c.Data(http.StatusOK, "application/json", jsonData)
+		}
+
+
+
 		log.Warnf("%v", *latestHealthCheckObject.Key)
 		
 		return
