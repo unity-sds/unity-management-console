@@ -22,7 +22,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		if err != nil {
 			log.WithError(err).Error("Failed to get Object listing for bucket: %s", healthCheckParamPath)
 		}
-		return nil
+		return
 
 
 
