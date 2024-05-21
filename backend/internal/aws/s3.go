@@ -24,6 +24,7 @@ type S3BucketAPI interface {
 	CreateBucket(ctx context.Context, params *s3.CreateBucketInput, optFns ...func(*s3.Options)) (*s3.CreateBucketOutput, error)
 	HeadBucket(ctx context.Context, params *s3.HeadBucketInput) (*s3.HeadBucketOutput, error)
 	GetObject(ctx context.Context, params *s3.GetObjectInput) (*s3.GetObjectOutput, error)
+	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error)
 }
 
 type AWSS3Client struct {
@@ -48,6 +49,11 @@ func (a *AWSS3Client) GetObject(ctx context.Context, params *s3.GetObjectInput) 
 	return a.Client.GetObject(ctx, params)
 }
 
+func (a *AWSS3Client) ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error) {
+	return a.Client.ListObjectsV2(ctx, params)
+}
+
+
 func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (string, error) {
 	resp, berr := api.CreateBucket(ctx, params)
 
@@ -62,6 +68,10 @@ func HeadBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.HeadBucke
 
 func GetObjectFromS3(ctx context.Context, api S3BucketAPI, params *s3.GetObjectInput) (*s3.GetObjectOutput, error) {
 	return api.GetObject(ctx, params)
+}
+
+func ListObjectsFromS3(ctx context.Context, api S3BucketAPI, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error ){
+	return api.ListObjectsV2(ctx, params)
 }
 
 func InitS3Client(conf *appconfig.AppConfig) S3BucketAPI {
@@ -98,6 +108,10 @@ func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName strin
 	}
 
 	return bytesRead
+}
+
+func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig) ([]types.Object, error) {
+	return nil
 }
 
 func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {

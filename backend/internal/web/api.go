@@ -12,8 +12,14 @@ import (
 
 func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
+		// Get the location of the health check bucket
 		healthCheckParamPath := fmt.Sprintf("/unity/deployment/%s/%s/cs/monitoring/s3/bucketName", appConfig.Project, appConfig.Venue)
 		bucketNameParam, err := aws.ReadSSMParameter(healthCheckParamPath)
+
+		// Get a listing of all the files in the bucket and pick the one with the latest timestamp
+		aws.ListObjectsFromS3(nil, &appConfig)
+
+
 
 		// db, err := database.NewGormDatastore()
 
