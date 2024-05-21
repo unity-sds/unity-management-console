@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"time"
+	strftime "github.com/ncruces/go-strftime"
 )
 
 func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
@@ -22,12 +23,17 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value, "health_check")
 
 		re := regexp.MustCompile(`health_check_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).json`)
+		layout, err := strftime.Layout("health_check_%Y-%m-%d_%H-%M-%S")
+		if err != nil {
+			log.Warnf("%s", "Error parsing date layout")					
+		}
+		
 		for _, object := range result {
 			log.Warnf("%v",  *object.Key)
 			match := re.FindStringSubmatch(*object.Key)
 
 			if match != nil {
-				t, _ := time.Parse("2024-03-04_13-00-00", match[1])
+				t, _ := time.Parse(layout, match[1])
 				log.Warnf("%v", t)		
 			}	
 		}
