@@ -22,7 +22,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		// Get a listing of all the files in the bucket and pick the one with the latest timestamp
 		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value, "health_check")
 
-		re := regexp.MustCompile(`health_check_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).json`)
+		// re := regexp.MustCompile(`health_check_(\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).json`)
 		layout, err := strftime.Layout("health_check_%Y-%m-%d_%H-%M-%S")
 		if err != nil {
 			log.Warnf("%s", "Error parsing date layout")					
