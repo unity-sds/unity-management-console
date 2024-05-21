@@ -27,15 +27,14 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		if err != nil {
 			log.Warnf("%s", "Error parsing date layout")					
 		}
-		
-		for _, object := range result {
-			log.Warnf("%v",  *object.Key)
-			match := re.FindStringSubmatch(*object.Key)
 
-			if match != nil {
-				t, _ := time.Parse(layout, match[1])
+		for _, object := range result {
+				t, err := time.Parse(layout, *object.Key)
+				if err != nil {
+					log.Warnf("File Doesn't Match: %s", *object.Key)
+				}
 				log.Warnf("%v", t)		
-			}	
+			
 		}
 		
 		return
