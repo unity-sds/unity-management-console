@@ -30,7 +30,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		var latestHealthCheckObject *types.Object
 		var latestHealthCheckDatetime *time.Time
 
-		for _, object := range result {
+		for i, object := range result {
 			t, err := time.Parse(layout, *object.Key)
 			
 			if err != nil || t.IsZero()  {
@@ -42,7 +42,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 			log.Warnf("File: %s", *object.Key)
 
 			if latestHealthCheckObject == nil || t.After(*latestHealthCheckDatetime) {
-				latestHealthCheckObject = &object
+				latestHealthCheckObject = &result[i]
 				latestHealthCheckDatetime = &t
 			}
 		}
