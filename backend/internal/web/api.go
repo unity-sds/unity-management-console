@@ -9,6 +9,7 @@ import (
 	// "github.com/unity-sds/unity-management-console/backend/internal/database"
 	"net/http"
 	"regexp"
+	"time"
 )
 
 func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
@@ -26,7 +27,8 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 			match := re.FindStringSubmatch(*object.Key)
 
 			if match != nil {
-				log.Warnf("%v", match[1])		
+				t, _ := time.Parse("2024-03-04_13-00-00", match[1])
+				log.Warnf("%v", t)		
 			}	
 		}
 		
