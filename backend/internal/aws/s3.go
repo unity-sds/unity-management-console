@@ -100,7 +100,6 @@ func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName strin
 		log.WithError(err).Error("Couldn't get object %v:%v. Here's why: %v\n", bucketName, objectKey, err)
 	}
 
-
 	bytesRead, err := io.ReadAll(result.Body)
 	if err != nil {
 		log.WithError(err).Error("Unable to read object")

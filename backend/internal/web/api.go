@@ -38,6 +38,8 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 					continue
 				}
 
+				log.Warnf("File: %v+", t)
+
 				if latestHealthCheckObject == nil || t.After(*latestHealthCheckDatetime) {
 					latestHealthCheckObject = &object
 					latestHealthCheckDatetime = &t
