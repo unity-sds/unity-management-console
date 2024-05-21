@@ -20,7 +20,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value)
 
 		for i := 0; i < len(result); i++ {
-			log.Warnf("%v", result[i].Key)	
+			log.Warnf("%v", *result[i].Key)	
 		}
 		
 		return
