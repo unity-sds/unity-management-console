@@ -27,8 +27,8 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 			log.Warnf("%s", "Error parsing date layout")					
 		}
 
-		var latestHealthCheckObject
-		var latestHealthCheckDatetime
+		latestHealthCheckObject := nil
+		latestHealthCheckDatetime := nil
 
 		for _, object := range result {
 				t, err := time.Parse(layout, *object.Key)
