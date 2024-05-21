@@ -31,19 +31,20 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		var latestHealthCheckDatetime *time.Time
 
 		for _, object := range result {
-				t, err := time.Parse(layout, *object.Key)
-				
-				if err != nil  {
-					// log.Warnf("File Doesn't Match: %s", *object.Key)
-					continue
-				}
+			t, err := time.Parse(layout, *object.Key)
+			
+			if err != nil || t.IsZero()  {
+				// log.Warnf("File Doesn't Match: %s", *object.Key)
+				continue
+			}
 
-				log.Warnf("File: %v+", t)
 
-				if latestHealthCheckObject == nil || t.After(*latestHealthCheckDatetime) {
-					latestHealthCheckObject = &object
-					latestHealthCheckDatetime = &t
-				}
+			log.Warnf("File: %v+", t)
+
+			if latestHealthCheckObject == nil || t.After(*latestHealthCheckDatetime) {
+				latestHealthCheckObject = &object
+				latestHealthCheckDatetime = &t
+			}
 		}
 
 		if latestHealthCheckObject == nil {
