@@ -138,7 +138,7 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 		bucket = conf.BucketName
 	} else {
 		// We get the name of this deployment's bucket from an SSM param (previously was a randomized string prefix)
-		bucketNameParamPath := fmt.Sprintf("/unity/deployment/%s/%s/cs/monitoring/s3/bucketName", conf.Project, conf.Venue)
+		bucketNameParamPath := fmt.Sprintf("/unity/%s/%s/cs/monitoring/s3/bucketName", conf.Project, conf.Venue)
 		bucketNameParam, err := ReadSSMParameter(bucketNameParamPath)
 
 		if err != nil {
