@@ -9,20 +9,6 @@ variable "default_tags" {
 
 data "aws_caller_identity" "current" {}
 
-resource "aws_ssm_parameter" "unity-venue" {
-  name  = "/unity/core/venue"
-  type  = "String"
-  value = var.venue
-  overwrite = true
-}
-
-resource "aws_ssm_parameter" "unity-project" {
-  name  = "/unity/core/project"
-  type  = "String"
-  value = var.project
-  overwrite = true
-}
-
 resource "aws_ssm_parameter" "eks-instance-role" {
   name = "/unity/account/roles/eksInstanceRoleArn"
   type = "String"
