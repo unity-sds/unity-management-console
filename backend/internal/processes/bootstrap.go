@@ -77,15 +77,15 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		return
 	}
 
-	err = installSharedServicesAPIGateway(store, appconf)
-	if err != nil {
-		log.WithError(err).Error("Error installing Shared Services API Gateway")
-		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
-		if err != nil {
-			log.WithError(err).Error("Problem writing to auditlog")
-		}
-		return
-	}
+	// err = installSharedServicesAPIGateway(store, appconf)
+	// if err != nil {
+	// 	log.WithError(err).Error("Error installing Shared Services API Gateway")
+	// 	err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+	// 	if err != nil {
+	// 		log.WithError(err).Error("Problem writing to auditlog")
+	// 	}
+	// 	return
+	// }
 
 	err = store.AddToAudit(application.Bootstrap_Successful, "test")
 	if err != nil {
