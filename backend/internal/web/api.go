@@ -46,7 +46,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 
 		// if latestHealthCheckObject == nil {
 			jsonData := []byte(`{"error": "Can't find any health check files"}`)
-			c.Data(http.StatusInternalServerError, "application/json", jsonData)
+			c.Data(http.StatusOK, "application/json", jsonData)
 		// }
 
 		// // Read the object and pass the data on to the requester
