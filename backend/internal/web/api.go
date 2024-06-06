@@ -1,11 +1,11 @@
 package web
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/gin-gonic/gin"
-	// log "github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
-	// "github.com/unity-sds/unity-management-console/backend/internal/aws"
+	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	// "github.com/unity-sds/unity-management-console/backend/internal/database"
 	// "github.com/aws/aws-sdk-go-v2/service/s3/types"
 	// strftime "github.com/ncruces/go-strftime"
@@ -16,8 +16,14 @@ import (
 func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		// Get the location of the health check bucket
-		// healthCheckParamPath := fmt.Sprintf("/unity/deployment/%s/%s/cs/monitoring/s3/bucketName", appConfig.Project, appConfig.Venue)
-		// bucketNameParam, err := aws.ReadSSMParameter(healthCheckParamPath)
+		healthCheckParamPath := fmt.Sprintf("/unity/deployment/%s/%s/cs/monitoring/s3/bucketName", appConfig.Project, appConfig.Venue)
+		bucketNameParam, err := aws.ReadSSMParameter(healthCheckParamPath)
+
+		if err != nil {
+			log.Warnf("Health check bucket name: %s", *bucketNameParam.Parameter.Value)
+		}
+
+		// log.Warnf("Bucket Location: %s", bucketNameParam)
 
 		// // Get a listing of all the files in the bucket and pick the one with the latest timestamp
 		// result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value, "health_check")
@@ -45,7 +51,8 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		// }
 
 		// if latestHealthCheckObject == nil {
-			jsonData := []byte(`{"error": "Can't find any health check files"}`)
+			jsonData := []byte(fmt.Sprintf(`{"error": "%s"}`, *bucketNameParam.Parameter.Value))
+			// jsonData := []byte(`{"error": "Can't find any health check files"}`)
 			c.Data(http.StatusOK, "application/json", jsonData)
 		// }
 
