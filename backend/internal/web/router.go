@@ -101,7 +101,8 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 
 	// API endpoints (eventually this could end up in its own file)
 	router.GET("/api/health_checks", func(c *gin.Context) {
-		c.File("./build/index.html")
+		jsonData := []byte(`{"error": "Can't find any health check files"}`)
+		c.Data(http.StatusOK, "application/json", jsonData)
 	})
 
 	//router.Use(EnsureTrailingSlash())
