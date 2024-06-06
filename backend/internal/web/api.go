@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	// log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/spf13/viper"
 	// "github.com/unity-sds/unity-management-console/backend/internal/aws"
 	// "github.com/unity-sds/unity-management-console/backend/internal/database"
 	// "github.com/aws/aws-sdk-go-v2/service/s3/types"
@@ -51,7 +52,7 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		// }
 
 		// if latestHealthCheckObject == nil {
-			jsonData := []byte(fmt.Sprintf(`{"error": "%s"}`,"BRO!"))
+			jsonData := []byte(fmt.Sprintf(`{"error": "%s"}`,viper.Get("bucketname")))
 			// jsonData := []byte(`{"error": "Can't find any health check files"}`)
 			c.Data(http.StatusOK, "application/json", jsonData)
 		// }
