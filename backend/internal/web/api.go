@@ -1,13 +1,11 @@
 package web
 
 import (
-	// "fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/spf13/viper"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
-	// "github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	strftime "github.com/ncruces/go-strftime"
 	"net/http"
