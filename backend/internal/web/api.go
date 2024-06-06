@@ -13,7 +13,7 @@ import (
 	// "time"
 )
 
-func HandleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
+func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
 		// Get the location of the health check bucket
 		// healthCheckParamPath := fmt.Sprintf("/unity/deployment/%s/%s/cs/monitoring/s3/bucketName", appConfig.Project, appConfig.Venue)
