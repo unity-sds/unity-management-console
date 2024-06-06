@@ -100,7 +100,7 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
 
 	// API endpoints (eventually this could end up in its own file)
-	router.GET("/api/health_checks", handleAPICall(conf))
+	// router.GET("/api/health_checks", handleAPICall(conf))
 
 	//router.Use(EnsureTrailingSlash())
 	router.Use(LoggingMiddleware())
