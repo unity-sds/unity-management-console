@@ -16,7 +16,7 @@ import (
 
 func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 	fn := func(c *gin.Context) {
-		bucketname := viper.Get("bucketname")
+		bucketname := viper.Get("bucketname").(string)
 
 		// Get a listing of all the files in the bucket and pick the one with the latest timestamp
 		result := aws.ListObjectsV2(nil, &appConfig, bucketname, "health_check")
