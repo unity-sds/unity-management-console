@@ -44,16 +44,13 @@ func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 		}
 
 		if latestHealthCheckObject == nil {
-			// jsonData := []byte(fmt.Sprintf(`{"error": "%s"}`,viper.Get("bucketname")))
 			jsonData := []byte(`{"error": "Can't find any health check files"}`)
 			c.Data(http.StatusOK, "application/json", jsonData)
 		}
 
-		// // Read the object and pass the data on to the requester
-		// object := aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, *latestHealthCheckObject.Key)
-		// c.Data(http.StatusOK, "application/json", object)
-
-		
+		// Read the object and pass the data on to the requester
+		object := aws.GetObject(nil, &appConfig, bucketname, *latestHealthCheckObject.Key)
+		c.Data(http.StatusOK, "application/json", object)
 	}
 	return gin.HandlerFunc(fn)
 }
