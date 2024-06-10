@@ -193,7 +193,7 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 
 func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
 	varmap := make(map[string]string)
-	varmap["health_checks_api_internal_endpoint"] = fmt.Sprintf("http://%s/api/health_checks")
+	varmap["health_checks_api_internal_endpoint"] = fmt.Sprintf("http://%s/api/health_checks", appConfig.ConsoleHost)
 	vars := marketplace.Install_Variables{
 		Values:         varmap,
 		AdvancedValues: nil,
