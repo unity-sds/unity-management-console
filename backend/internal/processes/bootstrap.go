@@ -192,13 +192,13 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 }
 
 func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
-	// simplevars := make(map[string]string)
-	// simplevars["health_checks_api_internal_endpoint"] = fmt.Sprintf("http://%s/api/health_checks", appConfig.ConsoleHost)
-	// variables := marketplace.Install_Variables{Values: simplevars}
+	simplevars := make(map[string]string)
+	simplevars["health_checks_api_internal_endpoint"] = fmt.Sprintf("http://%s/api/health_checks", appConfig.ConsoleHost)
+	variables := marketplace.Install_Variables{Values: simplevars}
 	applications := marketplace.Install_Applications{
 		Name:        "unity-apigateway",
 		Version:     "0.3",
-		Variables:   nil,
+		Variables:   &variables,
 		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-apigateway"),
 	}
 	install := marketplace.Install{
