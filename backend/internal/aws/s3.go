@@ -99,8 +99,7 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 			log.WithError(err).Error("Could not find SSM parameter for bucket name at: %s", bucketNameParamPath)
 		}
 
-		bucket := *bucketNameParam.Parameter.Value
-		// bucket = generateBucketName()
+		bucket = *bucketNameParam.Parameter.Value
 		conf.BucketName = bucket
 		viper.Set("bucketname", bucket)
 		err = viper.WriteConfigAs(viper.ConfigFileUsed())
