@@ -53,10 +53,9 @@ func (a *AWSS3Client) ListObjectsV2(ctx context.Context, params *s3.ListObjectsV
 	return a.Client.ListObjectsV2(ctx, params)
 }
 
-func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (string, error) {
+func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (*s3.CreateBucketOutput, error) {
 	resp, berr := api.CreateBucket(ctx, params)
-
-	return *resp.Location, berr
+	return resp, berr
 }
 
 func HeadBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.HeadBucketInput) error {
