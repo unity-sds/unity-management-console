@@ -37,7 +37,7 @@ var (
 			}
 			if bootstrap == true || !initialised {
 				log.Info("Bootstrap flag set or uninitialised workdir, bootstrapping")
-				processes.BootstrapEnv(&appConfig)
+				// processes.BootstrapEnv(&appConfig)
 			}
 			router := web.DefineRoutes(appConfig)
 
