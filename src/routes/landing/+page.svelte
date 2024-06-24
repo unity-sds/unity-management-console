@@ -9,7 +9,7 @@
     conf = value;
   });
 
-  $: console.log(config);
+  $: console.log($config);
 
   let setuprun: boolean;
   let bootstrapfailed: boolean;
