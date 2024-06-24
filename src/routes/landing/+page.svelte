@@ -46,8 +46,8 @@
     }
   ];
 
-  let project = $config ? $config.applicationConfig?.Project : '(loading)';
-  let venue = $config ? $config.applicationConfig?.Venue : '(loading)';
+  $: project = $config ? $config.applicationConfig?.Project : '(loading)';
+  $: venue = $config ? $config.applicationConfig?.Venue : '(loading)';
 </script>
 
 <header class="bg-blue-600 text-white text-center py-12 mb-12">
