@@ -46,6 +46,7 @@
     }
   ];
 
+  let project = $config ? $config.applicationConfig?.Project : '(loading)';
   let venue = $config ? $config.applicationConfig?.Venue : '(loading)';
 </script>
 
@@ -73,7 +74,7 @@
         <div class="managementfeedback">
           <ul class="list-decimal pl-5">
             <li class="bg-gray-200 p-4 border-b border-gray-300">
-              Project: {venue}
+              Project: {project}
             </li>
             <li class="bg-gray-200 p-4">Venue: {venue}</li>
           </ul>
