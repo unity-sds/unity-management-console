@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { config, parametersStore, projectStore, venueStore } from '../../store/stores';
+  import { config, parametersStore } from '../../store/stores';
   import type { Config } from '../../data/unity-cs-manager/protobuf/extensions';
   import ControlPanelItem from '../../components/ControlPanelItem.svelte';
 
@@ -8,8 +8,6 @@
   config.subscribe((value) => {
     conf = value;
   });
-
-  $: console.log($config);
 
   let setuprun: boolean;
   let bootstrapfailed: boolean;
@@ -72,8 +70,10 @@
       {:else}
         <div class="managementfeedback">
           <ul class="list-decimal pl-5">
-            <li class="bg-gray-200 p-4 border-b border-gray-300">Project: {$projectStore}</li>
-            <li class="bg-gray-200 p-4">Venue: {$venueStore}</li>
+            <li class="bg-gray-200 p-4 border-b border-gray-300">
+              Project: {$config.applicationConfig.Venue}
+            </li>
+            <li class="bg-gray-200 p-4">Venue: {$config.applicationConfig.Venue}</li>
           </ul>
         </div>
       {/if}
