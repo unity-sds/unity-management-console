@@ -45,6 +45,8 @@
       disabled: !setuprun
     }
   ];
+
+  let venue = $config ? $config.applicationConfig?.Venue : '(loading)';
 </script>
 
 <header class="bg-blue-600 text-white text-center py-12 mb-12">
@@ -71,9 +73,9 @@
         <div class="managementfeedback">
           <ul class="list-decimal pl-5">
             <li class="bg-gray-200 p-4 border-b border-gray-300">
-              Project: {$config.applicationConfig.Venue || '(loading)'}
+              Project: {venue}
             </li>
-            <li class="bg-gray-200 p-4">Venue: {$config.applicationConfig.Venue || '(loading)'}</li>
+            <li class="bg-gray-200 p-4">Venue: {venue}</li>
           </ul>
         </div>
       {/if}
