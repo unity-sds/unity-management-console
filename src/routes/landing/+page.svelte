@@ -9,6 +9,8 @@
     conf = value;
   });
 
+  $: console.log(config);
+
   let setuprun: boolean;
   let bootstrapfailed: boolean;
   let bootstrapped: boolean;
