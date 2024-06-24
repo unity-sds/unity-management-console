@@ -71,9 +71,9 @@
         <div class="managementfeedback">
           <ul class="list-decimal pl-5">
             <li class="bg-gray-200 p-4 border-b border-gray-300">
-              Project: {$config.applicationConfig?.Project}
+              Project: {$config.applicationConfig.Venue || '(loading)'}
             </li>
-            <li class="bg-gray-200 p-4">Venue: {$config?.applicationConfig.Venue}</li>
+            <li class="bg-gray-200 p-4">Venue: {$config.applicationConfig.Venue || '(loading)'}</li>
           </ul>
         </div>
       {/if}
