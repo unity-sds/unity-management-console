@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { config, parametersStore, projectStore, venueStore } from '../../store/stores';
+  import { config, parametersStore } from '../../store/stores';
   import type { Config } from '../../data/unity-cs-manager/protobuf/extensions';
   import ControlPanelItem from '../../components/ControlPanelItem.svelte';
 
@@ -45,6 +45,9 @@
       disabled: !setuprun
     }
   ];
+
+  $: project = $config ? $config.applicationConfig?.Project : '(loading)';
+  $: venue = $config ? $config.applicationConfig?.Venue : '(loading)';
 </script>
 
 <header class="bg-blue-600 text-white text-center py-12 mb-12">
@@ -70,8 +73,10 @@
       {:else}
         <div class="managementfeedback">
           <ul class="list-decimal pl-5">
-            <li class="bg-gray-200 p-4 border-b border-gray-300">Project: {$projectStore}</li>
-            <li class="bg-gray-200 p-4">Venue: {$venueStore}</li>
+            <li class="bg-gray-200 p-4 border-b border-gray-300">
+              Project: {project}
+            </li>
+            <li class="bg-gray-200 p-4">Venue: {venue}</li>
           </ul>
         </div>
       {/if}
