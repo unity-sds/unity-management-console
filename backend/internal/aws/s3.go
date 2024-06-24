@@ -4,7 +4,8 @@ import (
 	"context"
 	"math/rand"
 	"time"
-
+	"fmt"
+	"io"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -22,6 +23,8 @@ var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 type S3BucketAPI interface {
 	CreateBucket(ctx context.Context, params *s3.CreateBucketInput, optFns ...func(*s3.Options)) (*s3.CreateBucketOutput, error)
 	HeadBucket(ctx context.Context, params *s3.HeadBucketInput) (*s3.HeadBucketOutput, error)
+	GetObject(ctx context.Context, params *s3.GetObjectInput) (*s3.GetObjectOutput, error)
+	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error)
 }
 
 type AWSS3Client struct {
@@ -42,10 +45,17 @@ func (a *AWSS3Client) HeadBucket(ctx context.Context, params *s3.HeadBucketInput
 	return a.Client.HeadBucket(ctx, params)
 }
 
-func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (string, error) {
-	resp, berr := api.CreateBucket(ctx, params)
+func (a *AWSS3Client) GetObject(ctx context.Context, params *s3.GetObjectInput) (*s3.GetObjectOutput, error) {
+	return a.Client.GetObject(ctx, params)
+}
 
-	return *resp.Location, berr
+func (a *AWSS3Client) ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error) {
+	return a.Client.ListObjectsV2(ctx, params)
+}
+
+func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (*s3.CreateBucketOutput, error) {
+	resp, berr := api.CreateBucket(ctx, params)
+	return resp, berr
 }
 
 func HeadBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.HeadBucketInput) error {
@@ -53,6 +63,15 @@ func HeadBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.HeadBucke
 
 	return err
 }
+
+func GetObjectFromS3(ctx context.Context, api S3BucketAPI, params *s3.GetObjectInput) (*s3.GetObjectOutput, error) {
+	return api.GetObject(ctx, params)
+}
+
+func ListObjectsFromS3(ctx context.Context, api S3BucketAPI, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error) {
+	return api.ListObjectsV2(ctx, params)
+}
+
 
 func InitS3Client(conf *appconfig.AppConfig) S3BucketAPI {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(conf.AWSRegion))
@@ -72,10 +91,18 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 	if conf.BucketName != "" {
 		bucket = conf.BucketName
 	} else {
-		bucket = generateBucketName()
+		// We get the name of this deployment's bucket from an SSM param (previously was a randomized string prefix)
+		bucketNameParamPath := fmt.Sprintf("/unity/%s/%s/cs/monitoring/s3/bucketName", conf.Project, conf.Venue)
+		bucketNameParam, err := ReadSSMParameter(bucketNameParamPath)
+
+		if err != nil {
+			log.WithError(err).Error("Could not find SSM parameter for bucket name at: %s", bucketNameParamPath)
+		}
+
+		bucket = *bucketNameParam.Parameter.Value
 		conf.BucketName = bucket
 		viper.Set("bucketname", bucket)
-		err := viper.WriteConfigAs(viper.ConfigFileUsed())
+		err = viper.WriteConfigAs(viper.ConfigFileUsed())
 		if err != nil {
 			log.WithError(err).Error("Could not write config file")
 		}
@@ -192,6 +219,52 @@ func DeleteS3Bucket(bucketName string) error {
 	}
 
 	return nil
+}
+
+func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, objectKey string) []byte {
+	if s3client == nil {
+		s3client = InitS3Client(conf)
+	}
+
+	objectinput := &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(objectKey),
+	}
+
+	result, err := GetObjectFromS3(context.TODO(), s3client, objectinput)
+
+	// defer result.Body.Close()
+
+	if err != nil {
+		log.WithError(err).Error("Couldn't get object %v:%v. Here's why: %v\n", bucketName, objectKey, err)
+	}
+
+	bytesRead, err := io.ReadAll(result.Body)
+	if err != nil {
+		log.WithError(err).Error("Unable to read object")
+	}
+
+	return bytesRead
+}
+
+func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, prefix string) []types.Object {
+	if s3client == nil {
+		s3client = InitS3Client(conf)
+	}
+
+	listobjectsinput := &s3.ListObjectsV2Input{
+		Bucket: aws.String(bucketName),
+		Prefix: aws.String(prefix),
+	}
+
+	result, err := ListObjectsFromS3(context.TODO(), s3client, listobjectsinput)
+
+	if err != nil {
+		log.WithError(err).Error("Couldn't lsit objects in bucket: %s. Here's why: %v\n", bucketName, err)
+	}
+
+	return result.Contents
+
 }
 
 func stringWithCharset(length int, charset string) string {
