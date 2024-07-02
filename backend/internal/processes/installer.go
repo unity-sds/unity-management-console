@@ -196,7 +196,7 @@ func TriggerInstall(wsManager *websocket.WebSocketManager, userid string, store 
 
 func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Uninstall, conf *config.AppConfig) error {
 	if received.All == true {
-		return UninstallAll(conf, wsManager, userid)
+		return UninstallAll(conf, wsManager, userid, received)
 	} else {
 		return UninstallApplication(received.Application, received.DeploymentName, received.DisplayName, conf, store, wsManager, userid)
 	}

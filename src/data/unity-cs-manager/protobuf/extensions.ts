@@ -75,6 +75,7 @@ export interface Uninstall {
   Application: string;
   DisplayName: string;
   All: boolean;
+  DeleteBucket: boolean;
 }
 
 export interface SimpleMessage {
@@ -1137,7 +1138,7 @@ export const Install_Applications_DependenciesEntry = {
 };
 
 function createBaseUninstall(): Uninstall {
-  return { DeploymentName: "", Application: "", DisplayName: "", All: false };
+  return { DeploymentName: "", Application: "", DisplayName: "", All: false, DeleteBucket: false };
 }
 
 export const Uninstall = {
@@ -1153,6 +1154,9 @@ export const Uninstall = {
     }
     if (message.All === true) {
       writer.uint32(24).bool(message.All);
+    }
+    if (message.DeleteBucket === true) {
+      writer.uint32(40).bool(message.DeleteBucket);
     }
     return writer;
   },
@@ -1192,6 +1196,13 @@ export const Uninstall = {
 
           message.All = reader.bool();
           continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.DeleteBucket = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1207,6 +1218,7 @@ export const Uninstall = {
       Application: isSet(object.Application) ? String(object.Application) : "",
       DisplayName: isSet(object.DisplayName) ? String(object.DisplayName) : "",
       All: isSet(object.All) ? Boolean(object.All) : false,
+      DeleteBucket: isSet(object.DeleteBucket) ? Boolean(object.DeleteBucket) : false,
     };
   },
 
@@ -1216,6 +1228,7 @@ export const Uninstall = {
     message.Application !== undefined && (obj.Application = message.Application);
     message.DisplayName !== undefined && (obj.DisplayName = message.DisplayName);
     message.All !== undefined && (obj.All = message.All);
+    message.DeleteBucket !== undefined && (obj.DeleteBucket = message.DeleteBucket);
     return obj;
   },
 
@@ -1229,6 +1242,7 @@ export const Uninstall = {
     message.Application = object.Application ?? "";
     message.DisplayName = object.DisplayName ?? "";
     message.All = object.All ?? false;
+    message.DeleteBucket = object.DeleteBucket ?? false;
     return message;
   },
 };
