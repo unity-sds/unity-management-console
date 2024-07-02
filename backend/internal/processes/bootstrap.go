@@ -66,6 +66,16 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		}
 		return
 	}
+	
+	err = installHealthStatusLambda(store, appconf)
+	if err != nil {
+		log.WithError(err).Error("Error installing Health Status ")
+		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
+		return
+	}
 
 	err = installBasicAPIGateway(store, appconf)
 	if err != nil {
