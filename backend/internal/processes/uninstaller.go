@@ -24,7 +24,7 @@ type UninstallPayload struct {
 	Deployment         string
 }
 
-func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, userid string) error {
+func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, userid string, received *marketplace.Uninstall) error {
 	executor := &terraform.RealTerraformExecutor{}
 	err := terraform.DestroyAllTerraform(conf, conn, userid, executor)
 	if err != nil {
@@ -32,9 +32,11 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 		//return err
 	}
 
-	err = aws.DeleteS3Bucket(conf.BucketName)
-	if err != nil {
-		log.WithError(err).Error("FAILED TO REMOVE S3 BUCKET")
+	if (received.DeleteBucket) {
+		err = aws.DeleteS3Bucket(conf.BucketName)
+		if err != nil {
+			log.WithError(err).Error("FAILED TO REMOVE S3 BUCKET")
+		}		
 	}
 
 	err = aws.DeleteStateTable(conf.InstallPrefix)

@@ -73,7 +73,8 @@ export class HttpHandler {
 		const uninstallApp = Uninstall.create({
 			DeploymentName: deployment,
 			Application: app,
-			DisplayName: displayname
+			DisplayName: displayname,
+			DeleteBucket: false
 		});
 		const uninstallSoftware = UnityWebsocketMessage.create({ uninstall: uninstallApp });
 		websocketStore.send(UnityWebsocketMessage.encode(uninstallSoftware).finish());
