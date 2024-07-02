@@ -25,6 +25,7 @@ type S3BucketAPI interface {
 	HeadBucket(ctx context.Context, params *s3.HeadBucketInput) (*s3.HeadBucketOutput, error)
 	GetObject(ctx context.Context, params *s3.GetObjectInput) (*s3.GetObjectOutput, error)
 	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error)
+	PutBucketVersioning(ctx context.Context, params *s3.PutBucketVersioningInput) (*s3.PutBucketVersioningOutput, error)
 }
 
 type AWSS3Client struct {
@@ -53,6 +54,10 @@ func (a *AWSS3Client) ListObjectsV2(ctx context.Context, params *s3.ListObjectsV
 	return a.Client.ListObjectsV2(ctx, params)
 }
 
+func (a *AWSS3Client) PutBucketVersioning(ctx context.Context, params *s3.PutBucketVersioningInput) (*s3.PutBucketVersioningOutput, error) {
+	return a.Client.PutBucketVersioning(ctx, params)
+}
+
 func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (*s3.CreateBucketOutput, error) {
 	resp, berr := api.CreateBucket(ctx, params)
 	return resp, berr
@@ -72,6 +77,10 @@ func ListObjectsFromS3(ctx context.Context, api S3BucketAPI, params *s3.ListObje
 	return api.ListObjectsV2(ctx, params)
 }
 
+func PutBucketVersioning(ctx context.Context, api S3BucketAPI, params *s3.PutBucketVersioningInput) (*s3.PutBucketVersioningOutput, error) {
+	return api.PutBucketVersioning(ctx, params)
+}
+
 
 func InitS3Client(conf *appconfig.AppConfig) S3BucketAPI {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(conf.AWSRegion))
@@ -82,7 +91,6 @@ func InitS3Client(conf *appconfig.AppConfig) S3BucketAPI {
 }
 
 func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
-
 	if s3client == nil {
 		s3client = InitS3Client(conf)
 	}
@@ -130,6 +138,14 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 
 		if berr != nil {
 			log.Errorf("Error creating bucket: %v", berr)
+			return
+		}
+
+		// Enable versioning on bucket
+		berr = EnableBucketVersioning(s3client, conf, bucket)
+
+		if berr != nil {
+			log.Errorf("Error enabling versioning on bucket: %v", berr)
 			return
 		}
 	} else {
@@ -260,11 +276,32 @@ func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName s
 	result, err := ListObjectsFromS3(context.TODO(), s3client, listobjectsinput)
 
 	if err != nil {
-		log.WithError(err).Error("Couldn't lsit objects in bucket: %s. Here's why: %v\n", bucketName, err)
+		log.WithError(err).Error("Couldn't list objects in bucket: %s. Here's why: %v\n", bucketName, err)
 	}
 
 	return result.Contents
 
+}
+
+func EnableBucketVersioning(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string) error {
+	if s3client == nil {
+		s3client = InitS3Client(conf)
+	}
+
+	putBucketVersioningInput := &s3.PutBucketVersioningInput{
+		Bucket: aws.String(bucketName),
+		VersioningConfiguration: &types.VersioningConfiguration{
+			Status: "Enabled",
+		},
+	}
+
+	_, err := PutBucketVersioning(context.TODO(), s3client, putBucketVersioningInput)
+
+	if err != nil {
+		log.WithError(err).Error("Couldn't enable bucket versioning: %s. Here's why: %v\n", bucketName, err)
+	}
+
+	return nil
 }
 
 func stringWithCharset(length int, charset string) string {
