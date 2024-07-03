@@ -201,19 +201,23 @@ func DestroyAllTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, 
 		log.Fatalf("error running NewTerraform: %s", err)
 	}
 
-	wwsWriter := &wsWriter{
-		userid: id,
-		wsmgr:  wsmgr,
-		level:  "INFO",
-	}
+	writerStdout := io.MultiWriter(os.Stdout)
+	writerStderr := io.MultiWriter(os.Stderr)
+	if wsmgr != nil {
+		wwsWriter := &wsWriter{
+			userid: id,
+			wsmgr:  wsmgr,
+			level:  "INFO",
+		}
 
-	wwserrWriter := &wsWriter{
-		userid: id,
-		wsmgr:  wsmgr,
-		level:  "ERROR",
+		wwserrWriter := &wsWriter{
+			userid: id,
+			wsmgr:  wsmgr,
+			level:  "ERROR",
+		}		
+		writerStdout = io.MultiWriter(os.Stdout, wwsWriter)
+		writerStderr = io.MultiWriter(os.Stderr, wwserrWriter)
 	}
-	writerStdout := io.MultiWriter(os.Stdout, wwsWriter)
-	writerStderr := io.MultiWriter(os.Stderr, wwserrWriter)
 
 	tf.SetStdout(writerStdout)
 	tf.SetStderr(writerStderr)
@@ -222,23 +226,28 @@ func DestroyAllTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, 
 	err = tf.Destroy(context.Background())
 	if err != nil {
 		log.WithError(err).Error("error running terraform destroy")
+		if wsmgr != nil {
+			message := marketplace.SimpleMessage{
+				Operation: "terraform",
+				Payload:   "failed",
+			}
+			om := marketplace.UnityWebsocketMessage_Simplemessage{Simplemessage: &message}
+			wrap := marketplace.UnityWebsocketMessage{Content: &om}
+			b, _ := proto.Marshal(&wrap)
+			wsmgr.SendMessageToUserID(id, b)
+			return err			
+		}
+	}
+
+	if wsmgr != nil {
 		message := marketplace.SimpleMessage{
 			Operation: "terraform",
-			Payload:   "failed",
+			Payload:   "completed",
 		}
 		om := marketplace.UnityWebsocketMessage_Simplemessage{Simplemessage: &message}
 		wrap := marketplace.UnityWebsocketMessage{Content: &om}
 		b, _ := proto.Marshal(&wrap)
-		wsmgr.SendMessageToUserID(id, b)
-		return err
+		wsmgr.SendMessageToUserID(id, b)		
 	}
-	message := marketplace.SimpleMessage{
-		Operation: "terraform",
-		Payload:   "completed",
-	}
-	om := marketplace.UnityWebsocketMessage_Simplemessage{Simplemessage: &message}
-	wrap := marketplace.UnityWebsocketMessage{Content: &om}
-	b, _ := proto.Marshal(&wrap)
-	wsmgr.SendMessageToUserID(id, b)
 	return nil
 }

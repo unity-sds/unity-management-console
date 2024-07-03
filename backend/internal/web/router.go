@@ -98,9 +98,8 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router.StaticFS("/ui/", http.Dir("./build"))
 	router.GET("/ws", handleWebsocket)
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
-
-	// API endpoints (eventually this could end up in its own file)
-	router.GET("/api/health_checks", handleAPICall(appConfig))
+	router.GET("/api/:endpoint", handleGetAPICall(appConfig))
+	router.POST("/api/:endpoint", handlePostAPICall(appConfig))
 
 	//router.Use(EnsureTrailingSlash())
 	router.Use(LoggingMiddleware())
