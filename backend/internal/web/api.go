@@ -72,8 +72,8 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	}
 
 	fmt.Printf("%v", received)
-	// processes.UninstallAll(&conf, nil, "restAPIUser", received)
-	// c.String(http.StatusOK, "application/json", []byte(`{"status": "uninstall in progress"}`))
+	processes.UninstallAll(&conf, nil, "restAPIUser", received)
+	c.String(http.StatusOK, "application/json", []byte(`{"status": "uninstall in progress"}`))
 }
 
 func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
