@@ -66,6 +66,8 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 
 	fmt.Printf("%v", uninstallOptions)
 
+	c.JSON(http.StatusBadRequest, gin.H{"hello": "there"})
+
 	// received := &marketplace.Uninstall{
 	// 	DeleteBucket: uninstallOptions.DeleteBucket,
 	// }
