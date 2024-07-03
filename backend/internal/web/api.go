@@ -61,17 +61,17 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	err := c.BindJSON(&uninstallOptions)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad input posted."})
 		return
 	}
 
-	fmt.Printf("%v", uninstallOptions)
+	fmt.Printf("%v", uninstallOptions.DeleteBucket)
 
-	c.JSON(http.StatusBadRequest, gin.H{"hello": "there"})
+	received := &marketplace.Uninstall{
+		DeleteBucket: uninstallOptions.DeleteBucket,
+	}
 
-	// received := &marketplace.Uninstall{
-	// 	DeleteBucket: uninstallOptions.DeleteBucket,
-	// }
+	fmt.Printf("%v", received)
 	// processes.UninstallAll(&conf, nil, "restAPIUser", received)
 	// c.String(http.StatusOK, "application/json", []byte(`{"status": "uninstall in progress"}`))
 }
