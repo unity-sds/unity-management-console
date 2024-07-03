@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"time"
 	"fmt"
+	"io"
 )
 
 func handleHealthChecks(c *gin.Context, appConfig config.AppConfig) {
@@ -72,7 +73,11 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	}
 
 	fmt.Printf("%v", received)
-	processes.UninstallAll(&conf, nil, "restAPIUser", received)
+	c.Stream(func(w io.Writer) bool {
+		processes.UninstallAllNew(&conf, w, "restAPIUser", received)
+		return false
+	})
+	
 	c.String(http.StatusOK, "application/json", []byte(`{"status": "uninstall in progress"}`))
 }
 
