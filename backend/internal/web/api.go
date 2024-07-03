@@ -73,6 +73,8 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	}
 
 	fmt.Printf("%v", received)
+	rc := http.NewResponseController(c.Writer)
+	rc.SetWriteDeadline(time.Time{})
 	c.Stream(func(w io.Writer) bool {
 		processes.UninstallAllNew(&conf, w, "restAPIUser", received)
 		return false
