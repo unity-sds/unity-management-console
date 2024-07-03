@@ -8,10 +8,11 @@ import (
 	"github.com/spf13/viper"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
-	"github.com/unity-sds/unity-management-console/backend/internal/processes"
-	"github.com/unity-sds/unity-cs-manager/marketplace"
+	// "github.com/unity-sds/unity-management-console/backend/internal/processes"
+	// "github.com/unity-sds/unity-cs-manager/marketplace"
 	"net/http"
 	"time"
+	"fmt"
 )
 
 func handleHealthChecks(c *gin.Context, appConfig config.AppConfig) {
