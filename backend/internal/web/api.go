@@ -63,11 +63,13 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
 
-	received := &marketplace.Uninstall{
-		DeleteBucket: uninstallOptions.DeleteBucket,
-	}
-	processes.UninstallAll(&conf, nil, "restAPIUser", received)
-	c.String(http.StatusOK, "application/json", []byte(`{"status": "uninstall in progress"}`))
+	fmt.Printf("%v", uninstallOptions)
+
+	// received := &marketplace.Uninstall{
+	// 	DeleteBucket: uninstallOptions.DeleteBucket,
+	// }
+	// processes.UninstallAll(&conf, nil, "restAPIUser", received)
+	// c.String(http.StatusOK, "application/json", []byte(`{"status": "uninstall in progress"}`))
 }
 
 func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
