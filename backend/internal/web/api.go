@@ -62,6 +62,7 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	fmt.Printf("%v", uninstallOptions)
