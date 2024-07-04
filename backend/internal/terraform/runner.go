@@ -251,25 +251,3 @@ func DestroyAllTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, 
 	}
 	return nil
 }
-
-func DestroyAllTerraformNew(appconf *config.AppConfig, w io.Writer, id string, executor TerraformExecutor) error {
-	p := filepath.Join(appconf.Workdir, "workspace")
-
-	tf, err := executor.NewTerraform(p, "/usr/local/bin/terraform")
-	if err != nil {
-		log.Fatalf("error running NewTerraform: %s", err)
-	}
-
-	writerStdout := io.MultiWriter(os.Stdout, w)
-	writerStderr := io.MultiWriter(os.Stderr, w)
-
-	tf.SetStdout(writerStdout)
-	tf.SetStderr(writerStderr)
-	tf.SetLogger(log.StandardLogger())
-
-	err = tf.Destroy(context.Background())
-	if err != nil {
-		log.WithError(err).Error("error running terraform destroy")
-	}
-	return nil
-}

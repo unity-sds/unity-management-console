@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"time"
 	"fmt"
-	"io"
 )
 
 func handleHealthChecks(c *gin.Context, appConfig config.AppConfig) {
@@ -56,6 +55,13 @@ func handleHealthChecks(c *gin.Context, appConfig config.AppConfig) {
 }
 
 func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
+	uninstallStatus := viper.Get("uninstallStatus").(string)
+
+	if uninstallStatus == "" {
+		c.JSON(http.StatusOK, gin.H{"uninstall_status": uninstallStatus})
+		return
+	}
+
 	var uninstallOptions struct {
 		DeleteBucket bool `form:"delete_bucket" json:"delete_bucket" binding:"required"`
 	}
@@ -72,13 +78,9 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 		DeleteBucket: uninstallOptions.DeleteBucket,
 	}
 
-	fmt.Printf("%v", received)
-	rc := http.NewResponseController(c.Writer)
-	rc.SetWriteDeadline(time.Time{})
-	c.Stream(func(w io.Writer) bool {
-		processes.UninstallAllNew(&conf, w, "restAPIUser", received)
-		return false
-	})
+	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
+	viper.Set("uninstallStatus", "in progress")
+	c.JSON(http.StatusOK, gin.H{"uninstall_status": "in progress"})
 }
 
 func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
