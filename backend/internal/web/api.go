@@ -55,9 +55,9 @@ func handleHealthChecks(c *gin.Context, appConfig config.AppConfig) {
 }
 
 func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
-	uninstallStatus := viper.Get("uninstallStatus").(string)
+	uninstallStatus := viper.Get("uninstallStatus")
 
-	if uninstallStatus == "" {
+	if uninstallStatus == nil {
 		c.JSON(http.StatusOK, gin.H{"uninstall_status": uninstallStatus})
 		return
 	}
