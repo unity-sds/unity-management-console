@@ -57,12 +57,10 @@ func handleHealthChecks(c *gin.Context, appConfig config.AppConfig) {
 func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	uninstallStatus := viper.Get("uninstallStatus")
 
-	if uninstallStatus == nil {
+	if uninstallStatus != nil {
 		c.JSON(http.StatusOK, gin.H{"uninstall_status": uninstallStatus})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"uninstall_status": "in progress"})
-	return
 
 	var uninstallOptions struct {
 		DeleteBucket bool `form:"delete_bucket" json:"delete_bucket" binding:"required"`
@@ -74,6 +72,9 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 		return
 	}
 
+	c.JSON(http.StatusOK, gin.H{"uninstall_status": "in progress"})
+	return
+	
 	fmt.Printf("%v", uninstallOptions.DeleteBucket)
 
 	received := &marketplace.Uninstall{
