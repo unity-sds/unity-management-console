@@ -77,8 +77,6 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	received := &marketplace.Uninstall{
 		DeleteBucket: uninstallOptions.DeleteBucket,
 	}
-	c.JSON(http.StatusOK, gin.H{"uninstall_status": "dinugs"})
-	return
 
 	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
 	viper.Set("uninstallStatus", "in progress")
