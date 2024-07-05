@@ -293,6 +293,10 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 func installHealthStatusLambda(store database.Datastore, appConfig *config.AppConfig) error {
 	simplevars := make(map[string]string)
 	variables := marketplace.Install_Variables{Values: simplevars}
+	delete(variables.Values, "deployment_name")
+    	delete(variables.Values, "tags")
+   	delete(variables.Values, "installprefix")
+	
 	applications := marketplace.Install_Applications{
 		Name:        "unity-cs-monitoring-lambda",
 		Version:     "0.1",
