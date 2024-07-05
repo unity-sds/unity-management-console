@@ -80,6 +80,7 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 
 	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
 	viper.Set("uninstallStatus", "in progress")
+	c.JSON(http.StatusOK, gin.H{"uninstall_status": "in progress"})
 }
 
 func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
