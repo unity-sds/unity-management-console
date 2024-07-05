@@ -293,9 +293,37 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 func installHealthStatusLambda(store database.Datastore, appConfig *config.AppConfig) error {
 	simplevars := make(map[string]string)
 	variables := marketplace.Install_Variables{Values: simplevars}
-	delete(variables.Values, "deployment_name")
-    	delete(variables.Values, "tags")
-   	delete(variables.Values, "installprefix")
+
+	log.WithFields(log.Fields{
+		"variables": variables.Values,
+	}).Info("Initial variables")
+
+	// delete the specific keys and log if they existed
+	if _, exists := variables.Values["deployment_name"]; exists {
+		delete(variables.Values, "deployment_name")
+		log.Info("Deleted key: deployment_name")
+	} else {
+		log.Info("Key not found: deployment_name")
+	}
+
+	if _, exists := variables.Values["tags"]; exists {
+		delete(variables.Values, "tags")
+		log.Info("Deleted key: tags")
+	} else {
+		log.Info("Key not found: tags")
+	}
+
+	if _, exists := variables.Values["installprefix"]; exists {
+		delete(variables.Values, "installprefix")
+		log.Info("Deleted key: installprefix")
+	} else {
+		log.Info("Key not found: installprefix")
+	}
+
+	// Log the values in variables after deletion
+	log.WithFields(log.Fields{
+		"variables": variables.Values,
+	}).Info("Variables after deletion")
 	
 	applications := marketplace.Install_Applications{
 		Name:        "unity-cs-monitoring-lambda",
