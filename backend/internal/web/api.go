@@ -61,6 +61,8 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 		c.JSON(http.StatusOK, gin.H{"uninstall_status": uninstallStatus})
 		return
 	}
+	c.JSON(http.StatusOK, gin.H{"uninstall_status": "in progress"})
+	return
 
 	var uninstallOptions struct {
 		DeleteBucket bool `form:"delete_bucket" json:"delete_bucket" binding:"required"`
@@ -82,7 +84,6 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 
 	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
 	viper.Set("uninstallStatus", "in progress")
-	c.JSON(http.StatusOK, gin.H{"uninstall_status": "in progress"})
 }
 
 func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
