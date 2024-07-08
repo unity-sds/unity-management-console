@@ -73,8 +73,7 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	}
 
 	fmt.Printf("%v", uninstallOptions.DeleteBucket)
-	return
-
+	
 	deleteBucket := false
 	if uninstallOptions.DeleteBucket != nil {
 		deleteBucket = *uninstallOptions.DeleteBucket
@@ -83,6 +82,9 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	received := &marketplace.Uninstall{
 		DeleteBucket: deleteBucket,
 	}
+
+	fmt.Printf("%v", received)
+	return
 
 	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
 	viper.Set("uninstallStatus", "in progress")
