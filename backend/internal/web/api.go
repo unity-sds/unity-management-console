@@ -12,7 +12,7 @@ import (
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"net/http"
 	"time"
-	"fmt"
+	// "fmt"
 )
 
 func handleHealthChecks(c *gin.Context, appConfig config.AppConfig) {
