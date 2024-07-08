@@ -75,8 +75,13 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	fmt.Printf("%v", uninstallOptions.DeleteBucket)
 	return
 
+	deleteBucket := false
+	if uninstallOptions.DeleteBucket != nil {
+		deleteBucket = *uninstallOptions.DeleteBucket
+	}
+
 	received := &marketplace.Uninstall{
-		DeleteBucket: uninstallOptions.DeleteBucket,
+		DeleteBucket: deleteBucket,
 	}
 
 	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
