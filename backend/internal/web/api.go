@@ -71,8 +71,6 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad input posted."})
 		return
 	}
-
-	fmt.Printf("%v", uninstallOptions.DeleteBucket)
 	
 	deleteBucket := false
 	if uninstallOptions.DeleteBucket != nil {
@@ -82,9 +80,6 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	received := &marketplace.Uninstall{
 		DeleteBucket: deleteBucket,
 	}
-
-	fmt.Printf("GOT: %v", received)
-	return
 
 	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
 	viper.Set("uninstallStatus", "in progress")
