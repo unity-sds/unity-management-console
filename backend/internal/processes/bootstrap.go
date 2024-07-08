@@ -66,6 +66,16 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		}
 		return
 	}
+	
+	err = installHealthStatusLambda(store, appconf)
+	if err != nil {
+		log.WithError(err).Error("Error installing Health Status ")
+		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
+		return
+	}
 
 	err = installBasicAPIGateway(store, appconf)
 	if err != nil {
@@ -276,6 +286,24 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 	err = TriggerInstall(nil, "", store, &install, appConfig)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Unity Cloud Env")
+		return err
+	}
+	return nil
+}
+func installHealthStatusLambda(store database.Datastore, appConfig *config.AppConfig) error {
+	applications := marketplace.Install_Applications{
+		Name:        "unity-cs-monitoring-lambda",
+		Version:     "0.1",
+		Variables:   nil,
+		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-cs-monitoring-lambda"),
+	}
+	install := marketplace.Install{
+		Applications:   &applications,
+		DeploymentName: "Unity Health Status Lambda",
+	}
+	err := TriggerInstall(nil, "", store, &install, appConfig)
+	if err != nil {
+		log.WithError(err).Error("Issue installing Unity Health Status Lambda")
 		return err
 	}
 	return nil
