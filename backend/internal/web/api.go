@@ -63,7 +63,7 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	}
 
 	var uninstallOptions struct {
-		DeleteBucket bool `form:"delete_bucket" json:"delete_bucket" binding:"required"`
+		DeleteBucket *bool `form:"delete_bucket" json:"delete_bucket"`
 	}
 	err := c.BindJSON(&uninstallOptions)
 
@@ -73,6 +73,7 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	}
 
 	fmt.Printf("%v", uninstallOptions.DeleteBucket)
+	return
 
 	received := &marketplace.Uninstall{
 		DeleteBucket: uninstallOptions.DeleteBucket,
