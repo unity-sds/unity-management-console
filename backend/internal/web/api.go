@@ -83,7 +83,7 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 		DeleteBucket: deleteBucket,
 	}
 
-	fmt.Printf("%v", received)
+	fmt.Printf("GOT: %v", received)
 	return
 
 	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
