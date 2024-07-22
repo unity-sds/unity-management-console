@@ -77,15 +77,15 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		return
 	}
 
-	// err = installSharedServicesAPIGateway(store, appconf)
-	// if err != nil {
-	// 	log.WithError(err).Error("Error installing Shared Services API Gateway")
-	// 	err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
-	// 	if err != nil {
-	// 		log.WithError(err).Error("Problem writing to auditlog")
-	// 	}
-	// 	return
-	// }
+	err = installSharedServicesAPIGateway(store, appconf)
+	if err != nil {
+		log.WithError(err).Error("Error installing Shared Services API Gateway")
+		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
+		return
+	}
 
 	err = store.AddToAudit(application.Bootstrap_Successful, "test")
 	if err != nil {
@@ -220,30 +220,30 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 	return nil
 }
 
-// func installSharedServicesAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
-// 	varmap := make(map[string]string)
+func installSharedServicesAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
+	varmap := make(map[string]string)
 
-// 	apiEndpointUri := fmt.Sprintf("https://${aws_api_gateway_rest_api.rest_api.id}.execute-api.${var.region}.amazonaws.com/dev/%s/%s/api/{proxy}", appConfig.Project, appConfig.Venue)
-// 	varmap["project_leveL_rest_api_integration_uri"] = apiEndpointUri
-// 	variables := marketplace.Install_Variables{Values: varmap}
+	apiEndpointUri := fmt.Sprintf("https://${aws_api_gateway_rest_api.rest_api.id}.execute-api.${var.region}.amazonaws.com/dev/%s/%s/api/{proxy}", appConfig.Project, appConfig.Venue)
+	varmap["project_leveL_rest_api_integration_uri"] = apiEndpointUri
+	variables := marketplace.Install_Variables{Values: varmap}
 
-// 	applications := marketplace.Install_Applications{
-// 		Name:        "unity-sharedservices-apigateway",
-// 		Version:     "0.1",
-// 		Variables:   &variables,
-// 		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-sharedservices-apigateway"),
-// 	}
-// 	install := marketplace.Install{
-// 		Applications:   &applications,
-// 		DeploymentName: "Shared Services API Gateway",
-// 	}
-// 	err := TriggerInstall(nil, "", store, &install, appConfig)
-// 	if err != nil {
-// 		log.WithError(err).Error("Issue installing Shared Services API Gateway")
-// 		return err
-// 	}
-// 	return nil
-// }
+	applications := marketplace.Install_Applications{
+		Name:        "unity-sharedservices-apigateway",
+		Version:     "0.1",
+		Variables:   &variables,
+		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-sharedservices-apigateway"),
+	}
+	install := marketplace.Install{
+		Applications:   &applications,
+		DeploymentName: "Shared Services API Gateway",
+	}
+	err := TriggerInstall(nil, "", store, &install, appConfig)
+	if err != nil {
+		log.WithError(err).Error("Issue installing Shared Services API Gateway")
+		return err
+	}
+	return nil
+}
 
 
 func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig) error {
