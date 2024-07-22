@@ -213,6 +213,7 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 	simplevars["privatesubnets"] = privatesubnets
 	variables := marketplace.Install_Variables{Values: simplevars}
 
+	fmt.Printf("%v", variables)
 	applications := marketplace.Install_Applications{
 		Name:        "unity-apigateway",
 		Version:     "0.4",
