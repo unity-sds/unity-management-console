@@ -223,7 +223,7 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 		Applications:   &applications,
 		DeploymentName: "Core API Gateway",
 	}
-	err := TriggerInstall(nil, "", store, &install, appConfig)
+	err = TriggerInstall(nil, "", store, &install, appConfig)
 	if err != nil {
 		log.WithError(err).Error("Issue installing API Gateway")
 		return err
