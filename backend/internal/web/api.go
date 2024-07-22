@@ -1,59 +1,108 @@
 package web
 
 import (
-	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/gin-gonic/gin"
+	strftime "github.com/ncruces/go-strftime"
 	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
-	// "github.com/unity-sds/unity-management-console/backend/internal/database"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
-	strftime "github.com/ncruces/go-strftime"
+	"github.com/unity-sds/unity-management-console/backend/internal/processes"
+	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"net/http"
 	"time"
+	"fmt"
 )
 
-func handleAPICall(appConfig config.AppConfig) gin.HandlerFunc {
-	fn := func(c *gin.Context) {
-		// Get the location of the health check bucket
-		healthCheckParamPath := fmt.Sprintf("/unity/deployment/%s/%s/cs/monitoring/s3/bucketName", appConfig.Project, appConfig.Venue)
-		bucketNameParam, err := aws.ReadSSMParameter(healthCheckParamPath)
+func handleHealthChecks(c *gin.Context, appConfig config.AppConfig) {
+	bucketname := viper.Get("bucketname").(string)
 
-		// Get a listing of all the files in the bucket and pick the one with the latest timestamp
-		result := aws.ListObjectsV2(nil, &appConfig, *bucketNameParam.Parameter.Value, "health_check")
+	// Get a listing of all the files in the bucket and pick the one with the latest timestamp
+	result := aws.ListObjectsV2(nil, &appConfig, bucketname, "health_check")
 
-		layout, err := strftime.Layout("health_check_%Y-%m-%d_%H-%M-%S.json")
-		if err != nil {
-			log.Warnf("%s", "Error parsing date layout")
+	layout, err := strftime.Layout("health_check_%Y-%m-%d_%H-%M-%S.json")
+	if err != nil {
+		log.Warnf("%s", "Error parsing date layout")
+	}
+
+	var latestHealthCheckObject *types.Object
+	var latestHealthCheckDatetime *time.Time
+
+	for i, object := range result {
+		t, err := time.Parse(layout, *object.Key)
+
+		if err != nil || t.IsZero() {
+			log.Warnf("File Doesn't Match: %s", *object.Key)
+			continue
 		}
 
-		var latestHealthCheckObject *types.Object
-		var latestHealthCheckDatetime *time.Time
-
-		for i, object := range result {
-			t, err := time.Parse(layout, *object.Key)
-
-			if err != nil || t.IsZero() {
-				log.Warnf("File Doesn't Match: %s", *object.Key)
-				continue
-			}
-
-			if latestHealthCheckObject == nil || t.After(*latestHealthCheckDatetime) {
-				latestHealthCheckObject = &result[i]
-				latestHealthCheckDatetime = &t
-			}
+		if latestHealthCheckObject == nil || t.After(*latestHealthCheckDatetime) {
+			latestHealthCheckObject = &result[i]
+			latestHealthCheckDatetime = &t
 		}
+	}
 
-		if latestHealthCheckObject == nil {
-			jsonData := []byte(`{"error": "Can't find any health check files"}`)
-			c.Data(http.StatusInternalServerError, "application/json", jsonData)
-		}
-
-		// Read the object and pass the data on to the requester
-		object := aws.GetObject(nil, &appConfig, *bucketNameParam.Parameter.Value, *latestHealthCheckObject.Key)
-		c.Data(http.StatusOK, "application/json", object)
-
+	if latestHealthCheckObject == nil {
+		jsonData := []byte(`{"error": "Can't find any health check files"}`)
+		c.Data(http.StatusOK, "application/json", jsonData)
 		return
+	}
+
+	// Read the object and pass the data on to the requester
+	object := aws.GetObject(nil, &appConfig, bucketname, *latestHealthCheckObject.Key)
+	c.Data(http.StatusOK, "application/json", object)
+}
+
+func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
+	uninstallStatus := viper.Get("uninstallStatus")
+
+	if uninstallStatus != nil {
+		c.JSON(http.StatusOK, gin.H{"uninstall_status": uninstallStatus})
+		return
+	}
+
+	var uninstallOptions struct {
+		DeleteBucket bool `form:"delete_bucket" json:"delete_bucket" binding:"required"`
+	}
+	err := c.BindJSON(&uninstallOptions)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Bad input posted."})
+		return
+	}
+
+	fmt.Printf("%v", uninstallOptions.DeleteBucket)
+
+	received := &marketplace.Uninstall{
+		DeleteBucket: uninstallOptions.DeleteBucket,
+	}
+
+	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
+	viper.Set("uninstallStatus", "in progress")
+	c.JSON(http.StatusOK, gin.H{"uninstall_status": "in progress"})
+}
+
+func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		switch endpoint := c.Param("endpoint"); endpoint {
+		case "health_checks":
+			handleHealthChecks(c, appConfig)
+		default:
+			handleNoRoute(c)
+		}
+	}
+	return gin.HandlerFunc(fn)
+}
+
+func handlePostAPICall(appConfig config.AppConfig) gin.HandlerFunc {
+	fn := func(c *gin.Context) {
+		switch endpoint := c.Param("endpoint"); endpoint {
+		case "uninstall":
+			handleUninstall(c, appConfig)
+		default:
+			handleNoRoute(c)
+		}
 	}
 	return gin.HandlerFunc(fn)
 }

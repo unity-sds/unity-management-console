@@ -1,12 +1,5 @@
 <script lang="ts">
-  import {
-    config,
-    installError,
-    installRunning,
-    parametersStore,
-    projectStore,
-    venueStore
-  } from '../../store/stores';
+  import { config, installError, installRunning, parametersStore } from '../../store/stores';
   import ProgressFeedback from '../../components/ProgressFeedback.svelte';
   import { derived, get } from 'svelte/store';
   import { HttpHandler } from '../../data/httpHandler';
@@ -23,42 +16,22 @@
   let value = '';
   let list: { key: string; value: string }[] = [];
 
-  const venueAndProjectStore = derived(
-    [venueStore, projectStore],
-    ([$venueStore, $projectStore]) => {
-      // Do validations and derivations here
-      return {
-        venueIsValid: /^[a-z0-9]+$/i.test($venueStore),
-        projectIsValid: /^[a-z0-9]+$/i.test($projectStore)
-      };
-    }
-  );
+  let project = '(loading)';
+  let venue = '(loading)';
+
+  $: if ($config) {
+    project = $config?.applicationConfig?.Project || '';
+    venue = $config?.applicationConfig?.Venue || '';
+  }
 
   function handleInputChange(e: CustomEvent) {
     const target = e.detail.target as HTMLInputElement;
     const { id, value } = target;
-    if (id === 'project') projectStore.set(value);
-    if (id === 'venue') venueStore.set(value);
-    // Handle other changes
   }
 
   function handleSubmit() {
     const unsubscribe = parametersStore.subscribe((items) => {
       let l = items.parameterlist;
-      l['project'] = createBaseParameters_Parameter({
-        name: 'project',
-        type: 'String',
-        insync: true,
-        value: get(projectStore),
-        tracked: true
-      });
-      l['venue'] = createBaseParameters_Parameter({
-        name: 'venue',
-        type: 'String',
-        insync: true,
-        value: get(venueStore),
-        tracked: true
-      });
       installRunning.set(true);
       installError.set(false);
       httpHandler.updateParameters(items.parameterlist);
@@ -68,20 +41,6 @@
 
   parametersStore.subscribe((value) => {
     parameters = value; // Update parameters whenever the store changes
-
-    // Check if the value is not null and has the key
-    if ($config?.applicationConfig?.Project) {
-      projectStore.set($config?.applicationConfig?.Project);
-    } else {
-      console.log('Key does not exist or parameters is null/undefined.');
-    }
-
-    // Check if the value is not null and has the key
-    if ($config?.applicationConfig?.Venue) {
-      venueStore.set($config?.applicationConfig?.Venue);
-    } else {
-      console.log('Key does not exist or parameters is null/undefined.');
-    }
   });
 
   let privateSubnets: string[] = [];
@@ -142,21 +101,21 @@
       {#if $installRunning === false}
         <form class="space-y-4">
           <InputField
-            label={`Project Name ${!$projectStore ? '(loading...)' : ''}`}
+            label={`Project Name`}
             id="project"
             on:input={handleInputChange}
             isValid={true}
             subtext="The project managing this Unity environment."
-            value={$projectStore}
+            value={project}
             disabled={true}
           />
           <InputField
-            label={`Venue Name ${!$venueStore ? '(loading...)' : ''}`}
+            label={`Venue Name`}
             id="venue"
             on:input={handleInputChange}
             isValid={true}
             subtext="The venue this Unity environment is deployed into."
-            value={$venueStore}
+            value={venue}
             disabled={true}
           />
 
