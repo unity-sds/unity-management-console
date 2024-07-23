@@ -211,7 +211,7 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 
 	_, priv, err := aws.FetchSubnets()
 
-	fmt.Printf("subnets: %s", priv)
+	log.Infof("subnets: %s", priv)
 
 	simplevars := make(map[string]string)
 	simplevars["privatesubnets"] = strings.Join(priv, ",")
