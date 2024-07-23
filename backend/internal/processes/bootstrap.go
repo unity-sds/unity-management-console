@@ -217,7 +217,8 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 	// log.Infof("subnets: %s", priv)
 
 	simplevars := make(map[string]string)
-	simplevars["privatesubnets"] = strings.Join(privatesubnets, ",")
+	// simplevars["privatesubnets"] = strings.Join(privatesubnets, ",")
+	simplevars["privatesubnets"] = privatesubnets
 	variables := marketplace.Install_Variables{Values: simplevars}
 
 	fmt.Printf("%v", variables)
