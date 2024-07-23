@@ -202,22 +202,22 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 }
 
 func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
-	// privatesubnets, err := getSSMParameterValueFromDatabase("privatesubnets", store)
-	// if err != nil {
-	// 	log.WithError(err).Error("Problem fetching private subnets")
-	// 	return err
-	// }
+	privatesubnets, err := getSSMParameterValueFromDatabase("privatesubnets", store)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching private subnets")
+		return err
+	}
 
-	_, priv, err := aws.FetchSubnets()
+	// _, priv, err := aws.FetchSubnets()
 
-	log.Infof("Privatej subnets found: %s", priv)
+	log.Infof("Privatej subnets found: %s", privatesubnets)
 
 	
 
-	log.Infof("subnets: %s", priv)
+	// log.Infof("subnets: %s", priv)
 
 	simplevars := make(map[string]string)
-	simplevars["privatesubnets"] = strings.Join(priv, ",")
+	simplevars["privatesubnets"] = strings.Join(privatesubnets, ",")
 	variables := marketplace.Install_Variables{Values: simplevars}
 
 	fmt.Printf("%v", variables)
