@@ -207,9 +207,12 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 		log.WithError(err).Error("Problem fetching private subnets")
 		return err
 	}
-	log.Infof("Private subnets found: %s", privatesubnets)
 
 	_, priv, err := aws.FetchSubnets()
+	
+	log.Infof("Private subnets found: %s", priv)
+
+	
 
 	log.Infof("subnets: %s", priv)
 
