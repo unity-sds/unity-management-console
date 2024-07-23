@@ -211,6 +211,8 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 
 	_, priv, err := aws.FetchSubnets()
 
+	fmr.Printf("subnets: %s", priv)
+
 	simplevars := make(map[string]string)
 	simplevars["privatesubnets"] = strings.Join(priv, ",")
 	variables := marketplace.Install_Variables{Values: simplevars}
