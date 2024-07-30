@@ -202,6 +202,7 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 }
 
 func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
+	log.Infof("INSTALLING API GATEWAY")
 	// privatesubnets, err := getSSMParameterValueFromDatabase("privatesubnets", store)
 	// if err != nil {
 	// 	log.WithError(err).Error("Problem fetching private subnets")
