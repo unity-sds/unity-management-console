@@ -36,7 +36,7 @@ func CreateTable(appConfig *config.AppConfig, prefix string) error {
 			ReadCapacityUnits:  aws.Int64(5),
 			WriteCapacityUnits: aws.Int64(5),
 		},
-		TableName: aws.String(config.Project + "-" + config.Venue + "-terraform-state"),
+		TableName: aws.String(appConfig.Project + "-" + appConfig.Venue + "-terraform-state"),
 	}
 
 	// Create the table
@@ -61,7 +61,7 @@ func DeleteStateTable(prefix string) error {
 	client := dynamodb.NewFromConfig(cfg)
 
 	input := &dynamodb.DeleteTableInput{
-		TableName: aws.String(config.Project + "-" + config.Venue + "-terraform-state"),
+		TableName: aws.String(prefix + "-terraform-state"),
 	}
 
 	_, err = client.DeleteTable(context.Background(), input)
