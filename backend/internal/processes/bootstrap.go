@@ -130,7 +130,7 @@ required_providers {
     }
   }
   backend "s3" {
-    dynamodb_table = "%s-%s-terraform_state"
+    dynamodb_table = "%s-%s-terraform-state"
   }
 }
 
