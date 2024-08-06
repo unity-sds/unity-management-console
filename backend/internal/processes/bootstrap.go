@@ -121,6 +121,10 @@ func initTerraform(store database.Datastore, appconf *config.AppConfig) error {
 }
 
 func writeInitTemplate(fs afero.Fs, appConfig *config.AppConfig) error {
+	// Extract Project and Venue from appConfig
+	project := appConfig.Project
+	venue := appConfig.Venue
+
 	// Define the terraform configuration
 	tfconfig := fmt.Sprintf(`terraform {
 required_providers {
@@ -130,9 +134,9 @@ required_providers {
     }
   }
   backend "s3" {
-    dynamodb_table = "%s-terraform_state"
+    dynamodb_table = "%s-%s-terraform-state"
   }
-}
+}`, project, venue)
 
 provider "aws" {
   region = "us-west-2"

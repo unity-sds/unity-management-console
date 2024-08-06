@@ -61,7 +61,7 @@ func DeleteStateTable(prefix string) error {
 	client := dynamodb.NewFromConfig(cfg)
 
 	input := &dynamodb.DeleteTableInput{
-		TableName: aws.String(prefix + "-terraform_state"),
+		TableName: aws.String(conf.Project + "-" + conf.Venue + "-terraform-state"),
 	}
 
 	_, err = client.DeleteTable(context.Background(), input)
