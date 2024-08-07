@@ -26,6 +26,7 @@ type S3BucketAPI interface {
 	GetObject(ctx context.Context, params *s3.GetObjectInput) (*s3.GetObjectOutput, error)
 	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error)
 	PutBucketVersioning(ctx context.Context, params *s3.PutBucketVersioningInput) (*s3.PutBucketVersioningOutput, error)
+	PutBucketLifecycleConfiguration(ctx context.Context, params *s3.PutBucketLifecycleConfigurationInput, optFns ...func(*s3.Options)) (*s3.PutBucketLifecycleConfigurationOutput, error)
 }
 
 type AWSS3Client struct {
@@ -146,6 +147,14 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 
 		if berr != nil {
 			log.Errorf("Error enabling versioning on bucket: %v", berr)
+			return
+		}
+
+		// Add 7-day lifecycle rule
+		berr = AddLifecycleRule(s3client, conf, bucket)
+
+		if berr != nil {
+			log.Errorf("Error adding lifecycle rule to bucket: %v", berr)
 			return
 		}
 	} else {
@@ -299,6 +308,35 @@ func EnableBucketVersioning(s3client S3BucketAPI, conf *appconfig.AppConfig, buc
 
 	if err != nil {
 		log.WithError(err).Error("Couldn't enable bucket versioning: %s. Here's why: %v\n", bucketName, err)
+	}
+
+	return nil
+}
+
+func AddLifecycleRule(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string) error {
+	if s3client == nil {
+		s3client = InitS3Client(conf)
+	}
+
+	putBucketLifecycleConfigurationInput := &s3.PutBucketLifecycleConfigurationInput{
+		Bucket: aws.String(bucketName),
+		LifecycleConfiguration: &types.BucketLifecycleConfiguration{
+			Rules: []types.LifecycleRule{
+				{
+					ID:     aws.String("Delete objects after 7 days"),
+					Status: types.ExpirationStatusEnabled,
+					Expiration: &types.LifecycleExpiration{
+						Days: aws.Int32(7),
+					},
+				},
+			},
+		},
+	}
+
+	_, err := s3client.PutBucketLifecycleConfiguration(context.TODO(), putBucketLifecycleConfigurationInput)
+
+	if err != nil {
+		log.WithError(err).Error("Couldn't add lifecycle rule to bucket: %s. Here's why: %v\n", bucketName, err)
 	}
 
 	return nil
