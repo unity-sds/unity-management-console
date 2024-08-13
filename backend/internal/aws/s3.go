@@ -156,7 +156,8 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 		}
 
 		// Add 7-day lifecycle rule
-		bucketLifecycleInDaysParam, err := ReadSSMParameter("BucketLifecycleInDays")
+		bucketLifecycleInDaysParamPath := fmt.Sprintf("/unity/%s/%s/cs/monitoring/s3/bucketLifecycleInDays", conf.Project, conf.Venue)
+		bucketLifecycleInDaysParam, err := ReadSSMParameter(bucketLifecycleInDaysParamPath)
 
 		bucketLifecycleInDays := int32(7)
 		if err != nil {
