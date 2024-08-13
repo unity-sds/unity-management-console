@@ -59,6 +59,10 @@ func (a *AWSS3Client) PutBucketVersioning(ctx context.Context, params *s3.PutBuc
 	return a.Client.PutBucketVersioning(ctx, params)
 }
 
+func (a *AWSS3Client) PutBucketLifecycleConfiguration(ctx context.Context, params *s3.PutBucketLifecycleConfigurationInput, optFns ...func(*s3.Options)) (*s3.PutBucketLifecycleConfigurationOutput, error) {
+	return a.Client.PutBucketLifecycleConfiguration(ctx, params, optFns...)
+}
+
 func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (*s3.CreateBucketOutput, error) {
 	resp, berr := api.CreateBucket(ctx, params)
 	return resp, berr
@@ -326,7 +330,7 @@ func AddLifecycleRule(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketNam
 					ID:     aws.String("Delete objects after 7 days"),
 					Status: types.ExpirationStatusEnabled,
 					Expiration: &types.LifecycleExpiration{
-						Days: aws.Int32(7),
+						Days: 7,
 					},
 				},
 			},
