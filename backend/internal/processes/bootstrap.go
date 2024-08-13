@@ -130,13 +130,13 @@ required_providers {
     }
   }
   backend "s3" {
-    dynamodb_table = "%s-terraform_state"
+    dynamodb_table = "%s-%s-terraform-state"
   }
 }
 
 provider "aws" {
   region = "us-west-2"
-}`, appConfig.InstallPrefix)
+}`, appConfig.Project, appConfig.Venue)
 
 	err := fs.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
 	if err != nil {
