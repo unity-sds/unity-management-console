@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	appconfig "github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"strconv"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -155,7 +156,21 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 		}
 
 		// Add 7-day lifecycle rule
-		berr = AddLifecycleRule(s3client, conf, bucket)
+		bucketLifecycleInDaysParamPath := fmt.Sprintf("/unity/%s/%s/cs/monitoring/s3/bucketLifecycleInDays", conf.Project, conf.Venue)
+		bucketLifecycleInDaysParam, err := ReadSSMParameter(bucketLifecycleInDaysParamPath)
+
+		bucketLifecycleInDays := int32(7)
+		if err != nil {
+			log.Errorf("Error getting the configured bucket lifecycle length in days: %v, defaulting to 7.", err)
+		} else {
+			bucketLifecycleInDaysInt, err := strconv.Atoi(*bucketLifecycleInDaysParam.Parameter.Value)
+			bucketLifecycleInDays = int32(bucketLifecycleInDaysInt)
+			if err != nil {
+				log.Errorf("Error getting the configured bucket lifecycle length in days: %v, defaulting to 7.", err)
+			}
+		}
+
+		berr = AddLifecycleRule(s3client, conf, bucket, bucketLifecycleInDays)
 
 		if berr != nil {
 			log.Errorf("Error adding lifecycle rule to bucket: %v", berr)
@@ -317,7 +332,7 @@ func EnableBucketVersioning(s3client S3BucketAPI, conf *appconfig.AppConfig, buc
 	return nil
 }
 
-func AddLifecycleRule(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string) error {
+func AddLifecycleRule(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, lifecycleDays int32) error {
 	if s3client == nil {
 		s3client = InitS3Client(conf)
 	}
@@ -330,7 +345,7 @@ func AddLifecycleRule(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketNam
 					ID:     aws.String("Delete objects after 7 days"),
 					Status: types.ExpirationStatusEnabled,
 					Expiration: &types.LifecycleExpiration{
-						Days: 7,
+						Days: lifecycleDays,
 					},
 				},
 			},
