@@ -237,7 +237,7 @@ func DeleteS3Bucket(bucketName string) error {
 	return nil
 }
 
-func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, objectKey string) []byte {
+func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, objectKey string) ([]byte, error) {
 	if s3client == nil {
 		s3client = InitS3Client(conf)
 	}
@@ -253,14 +253,16 @@ func GetObject(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName strin
 
 	if err != nil {
 		log.WithError(err).Error("Couldn't get object %v:%v. Here's why: %v\n", bucketName, objectKey, err)
+		return nil, err
 	}
 
 	bytesRead, err := io.ReadAll(result.Body)
 	if err != nil {
 		log.WithError(err).Error("Unable to read object")
+		return nil, err
 	}
 
-	return bytesRead
+	return bytesRead, nil
 }
 
 func ListObjectsV2(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, prefix string) []types.Object {
