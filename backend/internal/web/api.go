@@ -1,7 +1,6 @@
 package web
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -34,7 +33,7 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	}
 
 	var uninstallOptions struct {
-		DeleteBucket bool `form:"delete_bucket" json:"delete_bucket" binding:"required"`
+		DeleteBucket *bool `form:"delete_bucket" json:"delete_bucket"`
 	}
 	err := c.BindJSON(&uninstallOptions)
 
@@ -43,10 +42,13 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 		return
 	}
 
-	fmt.Printf("%v", uninstallOptions.DeleteBucket)
+	deleteBucket := false
+	if uninstallOptions.DeleteBucket != nil {
+		deleteBucket = *uninstallOptions.DeleteBucket
+	}
 
 	received := &marketplace.Uninstall{
-		DeleteBucket: uninstallOptions.DeleteBucket,
+		DeleteBucket: deleteBucket,
 	}
 
 	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
