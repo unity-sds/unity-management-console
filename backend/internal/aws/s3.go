@@ -155,26 +155,11 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 			return
 		}
 
-		// Add 7-day lifecycle rule
-		bucketLifecycleInDaysParamPath := fmt.Sprintf("/unity/%s/%s/cs/monitoring/s3/bucketLifecycleInDays", conf.Project, conf.Venue)
-		bucketLifecycleInDaysParam, err := ReadSSMParameter(bucketLifecycleInDaysParamPath)
-
-		bucketLifecycleInDays := int32(7)
-		if err != nil {
-			log.Errorf("Error getting the configured bucket lifecycle length in days: %v, defaulting to 7.", err)
-		} else {
-			bucketLifecycleInDaysInt, err := strconv.Atoi(*bucketLifecycleInDaysParam.Parameter.Value)
-			bucketLifecycleInDays = int32(bucketLifecycleInDaysInt)
-			if err != nil {
-				log.Errorf("Error getting the configured bucket lifecycle length in days: %v, defaulting to 7.", err)
-			}
-		}
-
-		berr = AddLifecycleRule(s3client, conf, bucket, bucketLifecycleInDays)
-
+		// Add lifecycle rule
+		berr = AddLifecycleRule(s3client, conf, bucket)
 		if berr != nil {
 			log.Errorf("Error adding lifecycle rule to bucket: %v", berr)
-			return
+			// Continue execution, as this is not a critical error
 		}
 	} else {
 		log.Infof("Bucket %s exists", bucket)
@@ -334,9 +319,25 @@ func EnableBucketVersioning(s3client S3BucketAPI, conf *appconfig.AppConfig, buc
 	return nil
 }
 
-func AddLifecycleRule(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, lifecycleDays int32) error {
+func AddLifecycleRule(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string) error {
 	if s3client == nil {
 		s3client = InitS3Client(conf)
+	}
+
+	// Get the lifecycle days from SSM parameter
+	bucketLifecycleInDaysParamPath := fmt.Sprintf("/unity/%s/%s/cs/monitoring/s3/bucketLifecycleInDays", conf.Project, conf.Venue)
+	bucketLifecycleInDaysParam, err := ReadSSMParameter(bucketLifecycleInDaysParamPath)
+
+	var lifecycleDays int32 = 7 // Default to 7 days
+	if err != nil {
+		log.Warnf("Error getting the configured bucket lifecycle length in days: %v, defaulting to 7 days.", err)
+	} else {
+		bucketLifecycleInDaysInt, err := strconv.Atoi(*bucketLifecycleInDaysParam.Parameter.Value)
+		if err != nil {
+			log.Warnf("Error parsing the configured bucket lifecycle length: %v, defaulting to 7 days.", err)
+		} else {
+			lifecycleDays = int32(bucketLifecycleInDaysInt)
+		}
 	}
 
 	putBucketLifecycleConfigurationInput := &s3.PutBucketLifecycleConfigurationInput{
@@ -344,8 +345,11 @@ func AddLifecycleRule(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketNam
 		LifecycleConfiguration: &types.BucketLifecycleConfiguration{
 			Rules: []types.LifecycleRule{
 				{
-					ID:     aws.String("Delete objects after 7 days"),
+					ID:     aws.String(fmt.Sprintf("Delete objects after %d days", lifecycleDays)),
 					Status: types.ExpirationStatusEnabled,
+					Filter: &types.LifecycleRuleFilter{
+						Prefix: aws.String(""),
+					},
 					Expiration: &types.LifecycleExpiration{
 						Days: lifecycleDays,
 					},
@@ -354,12 +358,14 @@ func AddLifecycleRule(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketNam
 		},
 	}
 
-	_, err := s3client.PutBucketLifecycleConfiguration(context.TODO(), putBucketLifecycleConfigurationInput)
+	_, err = s3client.PutBucketLifecycleConfiguration(context.TODO(), putBucketLifecycleConfigurationInput)
 
 	if err != nil {
-		log.WithError(err).Error("Couldn't add lifecycle rule to bucket: %s. Here's why: %v\n", bucketName, err)
+		log.WithError(err).Errorf("Couldn't add lifecycle rule to bucket: %s. Here's why: %v", bucketName, err)
+		return err
 	}
 
+	log.Infof("Successfully added lifecycle rule to bucket %s. Objects will be deleted after %d days.", bucketName, lifecycleDays)
 	return nil
 }
 
