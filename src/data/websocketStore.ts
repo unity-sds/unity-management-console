@@ -6,7 +6,7 @@ const url: string =
 	typeof window !== 'undefined'
 		? `ws${window.location.protocol === 'https:' ? 's' : ''}://${
 				window.location.host
-		  }/management/ws`
+		  }` + "/management/ws"
 		: 'ws://localhost:8080/ws';
 
 // Create the WebSocket store using the provided function

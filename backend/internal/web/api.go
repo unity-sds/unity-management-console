@@ -1,57 +1,27 @@
 package web
 
 import (
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/gin-gonic/gin"
-	strftime "github.com/ncruces/go-strftime"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
+	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
-	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"net/http"
-	"time"
-	"fmt"
 )
 
 func handleHealthChecks(c *gin.Context, appConfig config.AppConfig) {
 	bucketname := viper.Get("bucketname").(string)
 
-	// Get a listing of all the files in the bucket and pick the one with the latest timestamp
-	result := aws.ListObjectsV2(nil, &appConfig, bucketname, "health_check")
-
-	layout, err := strftime.Layout("health_check_%Y-%m-%d_%H-%M-%S.json")
+	// Get the latest health check file
+	result, err := aws.GetObject(nil, &appConfig, bucketname, "health_check_latest.json")
 	if err != nil {
-		log.Warnf("%s", "Error parsing date layout")
-	}
-
-	var latestHealthCheckObject *types.Object
-	var latestHealthCheckDatetime *time.Time
-
-	for i, object := range result {
-		t, err := time.Parse(layout, *object.Key)
-
-		if err != nil || t.IsZero() {
-			log.Warnf("File Doesn't Match: %s", *object.Key)
-			continue
-		}
-
-		if latestHealthCheckObject == nil || t.After(*latestHealthCheckDatetime) {
-			latestHealthCheckObject = &result[i]
-			latestHealthCheckDatetime = &t
-		}
-	}
-
-	if latestHealthCheckObject == nil {
-		jsonData := []byte(`{"error": "Can't find any health check files"}`)
-		c.Data(http.StatusOK, "application/json", jsonData)
+		log.Errorf("Error getting health check file: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve health check data"})
 		return
 	}
-
-	// Read the object and pass the data on to the requester
-	object := aws.GetObject(nil, &appConfig, bucketname, *latestHealthCheckObject.Key)
-	c.Data(http.StatusOK, "application/json", object)
+	c.Data(http.StatusOK, "application/json", result)
 }
 
 func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
@@ -63,7 +33,7 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 	}
 
 	var uninstallOptions struct {
-		DeleteBucket bool `form:"delete_bucket" json:"delete_bucket" binding:"required"`
+		DeleteBucket *bool `form:"delete_bucket" json:"delete_bucket"`
 	}
 	err := c.BindJSON(&uninstallOptions)
 
@@ -72,10 +42,13 @@ func handleUninstall(c *gin.Context, appConfig config.AppConfig) {
 		return
 	}
 
-	fmt.Printf("%v", uninstallOptions.DeleteBucket)
+	deleteBucket := false
+	if uninstallOptions.DeleteBucket != nil {
+		deleteBucket = *uninstallOptions.DeleteBucket
+	}
 
 	received := &marketplace.Uninstall{
-		DeleteBucket: uninstallOptions.DeleteBucket,
+		DeleteBucket: deleteBucket,
 	}
 
 	go processes.UninstallAll(&conf, nil, "restAPIUser", received)
