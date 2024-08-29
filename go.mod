@@ -1,10 +1,12 @@
 module github.com/unity-sds/unity-management-console
 
-go 1.20
+go 1.21
+
+toolchain go1.21.3
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/aws/aws-sdk-go-v2 v1.21.0
+	github.com/aws/aws-sdk-go-v2 v1.30.4
 	github.com/aws/aws-sdk-go-v2/config v1.15.5
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.20.1
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.102.0
@@ -12,7 +14,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/iam v1.19.12
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.26.9
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.36.6
-	github.com/aws/smithy-go v1.14.2
+	github.com/aws/smithy-go v1.20.4
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-git/go-git/v5 v5.6.2-0.20230411180853-ce62f3e9ff86
 	github.com/golang/protobuf v1.5.3
