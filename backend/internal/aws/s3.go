@@ -157,9 +157,7 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 			log.Errorf("Error enabling versioning on bucket: %v", berr)
 			return
 		}
-	} else {
-		log.Infof("Bucket %s exists", bucket)
-		
+
 		bucketLifecycleInDaysParamPath := fmt.Sprintf("/unity/%s/%s/cs/monitoring/s3/bucketLifecycleInDays", conf.Project, conf.Venue)
 		bucketLifecylceInDaysParam, err := ReadSSMParameter(bucketLifecycleInDaysParamPath)
 
@@ -167,7 +165,7 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 		bucketLifecycleInDays := defaultBucketLifecycleInDays
 
 		if err != nil {
-			log.Infof("Lifecycle in days SSM param (%s) not defined,  using default value of %d days.", bucketLifecycleInDaysParamPath, defaultBucketLifecycleInDays)
+			log.Infof("Lifecycle in days SSM param (%s) not defined, using default value of %d days.", bucketLifecycleInDaysParamPath, defaultBucketLifecycleInDays)
 		} else {
 			bucketLifecycleInDaysInt, err := strconv.Atoi(*bucketLifecylceInDaysParam.Parameter.Value)
 
@@ -180,12 +178,14 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 
 		// Set bucket lifecycle length
 		log.Printf("Setting lifecycle length on bucket: %s", bucket)
-		berr := SetBucketLifecycleLength(s3client, conf, bucket, bucketLifecycleInDays)
+		berr = SetBucketLifecycleLength(s3client, conf, bucket, bucketLifecycleInDays)
 
 		if berr != nil {
 			log.Errorf("Error setting lifecycle length on bucket: %v", berr)
 			return
 		}
+	} else {
+		log.Infof("Bucket %s exists", bucket)
 	}
 }
 
