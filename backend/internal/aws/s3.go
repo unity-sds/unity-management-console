@@ -332,8 +332,8 @@ func SetBucketLifecycleLength(s3client S3BucketAPI, conf *appconfig.AppConfig, b
 		Expiration: &types.LifecycleExpiration{
 			Days: lifecycleInDays,
 		},
-		Prefix: nil,
-		Status: "Enabled",
+		Filter: &types.LifecycleRuleFilterMemberPrefix{},
+		Status: types.ExpirationStatusEnabled,
 	}
 
 	putBucketLifecycleConfigurationInput := &s3.PutBucketLifecycleConfigurationInput{
