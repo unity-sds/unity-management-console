@@ -152,15 +152,21 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 		// Enable versioning on bucket
 		berr = EnableBucketVersioning(s3client, conf, bucket)
 
-		// Set bucket lifecycle length
-		berr = SetBucketLifecycleLength(s3client, conf, bucket, int32(7))
-
 		if berr != nil {
 			log.Errorf("Error enabling versioning on bucket: %v", berr)
 			return
 		}
 	} else {
 		log.Infof("Bucket %s exists", bucket)
+		
+		// Set bucket lifecycle length
+		log.Printf("Setting lifecycle length on bucket: %s", bucket)
+		berr := SetBucketLifecycleLength(s3client, conf, bucket, int32(7))
+
+		if berr != nil {
+			log.Errorf("Error setting lifecycle length on bucket: %v", berr)
+			return
+		}
 	}
 }
 
@@ -327,6 +333,7 @@ func SetBucketLifecycleLength(s3client S3BucketAPI, conf *appconfig.AppConfig, b
 			Days: lifecycleInDays,
 		},
 		Prefix: nil,
+		Status: "Enabled",
 	}
 
 	putBucketLifecycleConfigurationInput := &s3.PutBucketLifecycleConfigurationInput{
