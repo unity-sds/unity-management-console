@@ -167,12 +167,12 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 		bucketLifecycleInDays := defaultBucketLifecycleInDays
 
 		if err != nil {
-			log.Infof("Lifecycle in days SSM param (%s) not defined,  using default value of %s days.", bucketLifecycleInDaysParamPath, defaultBucketLifecycleInDays)
+			log.Infof("Lifecycle in days SSM param (%s) not defined,  using default value of %d days.", bucketLifecycleInDaysParamPath, defaultBucketLifecycleInDays)
 		} else {
 			bucketLifecycleInDaysInt, err := strconv.Atoi(*bucketLifecylceInDaysParam.Parameter.Value)
 
 			if err != nil {
-				log.Infof("Error reading SSM param for bucket lifecycle in days, defaulting to %s days.", defaultBucketLifecycleInDays)
+				log.Infof("Error reading SSM param for bucket lifecycle in days, defaulting to %d days.", defaultBucketLifecycleInDays)
 			} else {
 				bucketLifecycleInDays = int32(bucketLifecycleInDaysInt)
 			}
