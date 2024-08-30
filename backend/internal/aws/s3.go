@@ -2,10 +2,7 @@ package aws
 
 import (
 	"context"
-	"math/rand"
-	"time"
 	"fmt"
-	"io"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -14,6 +11,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	appconfig "github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"io"
+	"math/rand"
+	"time"
+	"strconv"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -26,6 +27,7 @@ type S3BucketAPI interface {
 	GetObject(ctx context.Context, params *s3.GetObjectInput) (*s3.GetObjectOutput, error)
 	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error)
 	PutBucketVersioning(ctx context.Context, params *s3.PutBucketVersioningInput) (*s3.PutBucketVersioningOutput, error)
+	PutBucketLifecycleConfiguration(ctx context.Context, params *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error)
 }
 
 type AWSS3Client struct {
@@ -58,6 +60,10 @@ func (a *AWSS3Client) PutBucketVersioning(ctx context.Context, params *s3.PutBuc
 	return a.Client.PutBucketVersioning(ctx, params)
 }
 
+func (a *AWSS3Client) PutBucketLifecycleConfiguration(ctx context.Context, params *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error) {
+	return a.Client.PutBucketLifecycleConfiguration(ctx, params)
+}
+
 func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (*s3.CreateBucketOutput, error) {
 	resp, berr := api.CreateBucket(ctx, params)
 	return resp, berr
@@ -81,6 +87,9 @@ func PutBucketVersioning(ctx context.Context, api S3BucketAPI, params *s3.PutBuc
 	return api.PutBucketVersioning(ctx, params)
 }
 
+func PutBucketLifecycleConfiguration(ctx context.Context, api S3BucketAPI, params *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error) {
+	return api.PutBucketLifecycleConfiguration(ctx, params)
+}
 
 func InitS3Client(conf *appconfig.AppConfig) S3BucketAPI {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(conf.AWSRegion))
@@ -146,6 +155,33 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 
 		if berr != nil {
 			log.Errorf("Error enabling versioning on bucket: %v", berr)
+			return
+		}
+
+		bucketLifecycleInDaysParamPath := fmt.Sprintf("/unity/%s/%s/cs/monitoring/s3/bucketLifecycleInDays", conf.Project, conf.Venue)
+		bucketLifecylceInDaysParam, err := ReadSSMParameter(bucketLifecycleInDaysParamPath)
+
+		defaultBucketLifecycleInDays := int32(7)
+		bucketLifecycleInDays := defaultBucketLifecycleInDays
+
+		if err != nil {
+			log.Infof("Lifecycle in days SSM param (%s) not defined, using default value of %d days.", bucketLifecycleInDaysParamPath, defaultBucketLifecycleInDays)
+		} else {
+			bucketLifecycleInDaysInt, err := strconv.Atoi(*bucketLifecylceInDaysParam.Parameter.Value)
+
+			if err != nil {
+				log.Infof("Error reading SSM param for bucket lifecycle in days, defaulting to %d days.", defaultBucketLifecycleInDays)
+			} else {
+				bucketLifecycleInDays = int32(bucketLifecycleInDaysInt)
+			}
+		}
+
+		// Set bucket lifecycle length
+		log.Printf("Setting lifecycle length on bucket: %s", bucket)
+		berr = SetBucketLifecycleLength(s3client, conf, bucket, bucketLifecycleInDays)
+
+		if berr != nil {
+			log.Errorf("Error setting lifecycle length on bucket: %v", berr)
 			return
 		}
 	} else {
@@ -301,6 +337,37 @@ func EnableBucketVersioning(s3client S3BucketAPI, conf *appconfig.AppConfig, buc
 
 	if err != nil {
 		log.WithError(err).Error("Couldn't enable bucket versioning: %s. Here's why: %v\n", bucketName, err)
+	}
+
+	return nil
+}
+
+func SetBucketLifecycleLength(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, lifecycleInDays int32) error {
+	if s3client == nil {
+		s3client = InitS3Client(conf)
+	}
+
+	lifecycleRule := &types.LifecycleRule{
+		Expiration: &types.LifecycleExpiration{
+			Days: lifecycleInDays,
+		},
+		Filter: &types.LifecycleRuleFilterMemberPrefix{},
+		Status: types.ExpirationStatusEnabled,
+	}
+
+	putBucketLifecycleConfigurationInput := &s3.PutBucketLifecycleConfigurationInput{
+		Bucket: aws.String(bucketName),
+		LifecycleConfiguration: &types.BucketLifecycleConfiguration{
+			Rules: []types.LifecycleRule{
+				*lifecycleRule,
+			},
+		},
+	}
+
+	_, err := PutBucketLifecycleConfiguration(context.TODO(), s3client, putBucketLifecycleConfigurationInput)
+
+	if err != nil {
+		log.WithError(err).Error("Couldn't enable bucket lifecycle configuration for: %s. Here's why: %v\n", bucketName, err)
 	}
 
 	return nil
