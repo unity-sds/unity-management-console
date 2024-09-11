@@ -14,6 +14,24 @@ import (
 )
 
 func BootstrapEnv(appconf *config.AppConfig) {
+	// Print out everything in appConfig
+    log.Infof("AppConfig contents:")
+    log.Infof("GithubToken: %s", appconf.GithubToken)
+    log.Infof("MarketplaceBaseUrl: %s", appconf.MarketplaceBaseUrl)
+    log.Infof("MarketplaceOwner: %s", appconf.MarketplaceOwner)
+    log.Infof("MarketplaceRepo: %s", appconf.MarketplaceRepo)
+    log.Infof("AWSRegion: %s", appconf.AWSRegion)
+    log.Infof("BucketName: %s", appconf.BucketName)
+    log.Infof("Workdir: %s", appconf.Workdir)
+    log.Infof("BasePath: %s", appconf.BasePath)
+    log.Infof("ConsoleHost: %s", appconf.ConsoleHost)
+    log.Infof("InstallPrefix: %s", appconf.InstallPrefix)
+    log.Infof("Project: %s", appconf.Project)
+    log.Infof("Venue: %s", appconf.Venue)
+    log.Infof("MarketplaceItems:")
+    for _, item := range appconf.MarketplaceItems {
+        log.Infof("  - Name: %s, Version: %s", item.Name, item.Version)
+    }
 	store, err := database.NewGormDatastore()
 	if err != nil {
 		log.WithError(err).Error("Problem creating database")
@@ -221,95 +239,76 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 }
 
 func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig) error {
+    project := appConfig.Project
+    venue := appConfig.Venue
 
-	//venue, err := getSSMParameterValueFromDatabase("venue", store)
-	//if err != nil {
-	//	log.WithError(err).Error("Problem fetching venue")
-	//	return err
-	//}
-	//log.Infof("Venue found: %s", venue)
-	//project, err := getSSMParameterValueFromDatabase("project", store)
-	//if err != nil {
-	//	log.WithError(err).Error("Problem fetching project")
-	//	return err
-	//}
-	//log.Infof("Project found: %s", project)
-	project := appConfig.Project
-	venue := appConfig.Venue
+    if project == "" {
+        log.Error("Config value Project not set")
+    }
+    if venue == "" {
+        log.Error("Config value Venue not set")
+    }
 
-	if project == "" {
-		log.Error("Config value Project not set")
-	}
-	if venue == "" {
-		log.Error("Config value Venue not set")
-	}
+    publicsubnets, err := getSSMParameterValueFromDatabase("publicsubnets", store)
+    if err != nil {
+        log.WithError(err).Error("Problem fetching public subnets")
+        return err
+    }
+    log.Infof("Public subnets found: %s", publicsubnets)
+    privatesubnets, err := getSSMParameterValueFromDatabase("privatesubnets", store)
+    if err != nil {
+        log.WithError(err).Error("Problem fetching private subnets")
+        return err
+    }
+    log.Infof("Private subnets found: %s", privatesubnets)
 
-	publicsubnets, err := getSSMParameterValueFromDatabase("publicsubnets", store)
-	if err != nil {
-		log.WithError(err).Error("Problem fetching public subnets")
-		return err
-	}
-	log.Infof("Public subnets found: %s", publicsubnets)
-	privatesubnets, err := getSSMParameterValueFromDatabase("privatesubnets", store)
-	if err != nil {
-		log.WithError(err).Error("Problem fetching private subnets")
-		return err
-	}
-	log.Infof("Private subnets found: %s", privatesubnets)
+    // Find the marketplace item for unity-cloud-env
+    var name, version string
+    for _, item := range appConfig.MarketplaceItems {
+        if item.Name == "unity-cloud-env" {
+            name = item.Name
+            version = item.Version
+            break
+        }
+    }
 
-	//ssmParameters, err := generateSSMParameters(db)
-	//if err != nil {
-	//	log.WithError(err).Error("Problem fetching params")
-	//	return err
-	//}
+    // Print the name and version
+    log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
 
-	varmap := make(map[string]string)
+    // If the item wasn't found, log an error and return
+    if name == "" || version == "" {
+        log.Error("unity-cloud-env not found in MarketplaceItems")
+        return fmt.Errorf("unity-cloud-env not found in MarketplaceItems")
+    }
 
-	varmap["venue"] = venue
-	varmap["project"] = project
-	varmap["publicsubnets"] = publicsubnets
-	varmap["privatesubnets"] = privatesubnets
-	vars := marketplace.Install_Variables{
-		Values:         varmap,
-		AdvancedValues: nil,
-	}
-	applications := marketplace.Install_Applications{
-		Name:        "unity-cloud-env",
-		Version:     "0.1",
-		Variables:   &vars,
-		Displayname: "unity-cloud-env",
-	}
-	install := marketplace.Install{
-		Applications:   &applications,
-		DeploymentName: "Unity Cloud Environment",
-	}
-	err = TriggerInstall(nil, "", store, &install, appConfig)
-	if err != nil {
-		log.WithError(err).Error("Issue installing Unity Cloud Env")
-		return err
-	}
-	return nil
+    varmap := make(map[string]string)
+    varmap["venue"] = venue
+    varmap["project"] = project
+    varmap["publicsubnets"] = publicsubnets
+    varmap["privatesubnets"] = privatesubnets
+    vars := marketplace.Install_Variables{
+        Values:         varmap,
+        AdvancedValues: nil,
+    }
+    applications := marketplace.Install_Applications{
+        Name:        name,
+        Version:     version,
+        Variables:   &vars,
+        Displayname: name,
+    }
+    install := marketplace.Install{
+        Applications:   &applications,
+        DeploymentName: "Unity Cloud Environment",
+    }
+    err = TriggerInstall(nil, "", store, &install, appConfig)
+    if err != nil {
+        log.WithError(err).Error("Issue installing Unity Cloud Env")
+        return err
+    }
+    return nil
 }
 
 func installHealthStatusLambda(store database.Datastore, appConfig *config.AppConfig) error {
-    // Print out everything in appConfig
-    log.Infof("AppConfig contents:")
-    log.Infof("GithubToken: %s", appConfig.GithubToken)
-    log.Infof("MarketplaceBaseUrl: %s", appConfig.MarketplaceBaseUrl)
-    log.Infof("MarketplaceOwner: %s", appConfig.MarketplaceOwner)
-    log.Infof("MarketplaceRepo: %s", appConfig.MarketplaceRepo)
-    log.Infof("AWSRegion: %s", appConfig.AWSRegion)
-    log.Infof("BucketName: %s", appConfig.BucketName)
-    log.Infof("Workdir: %s", appConfig.Workdir)
-    log.Infof("BasePath: %s", appConfig.BasePath)
-    log.Infof("ConsoleHost: %s", appConfig.ConsoleHost)
-    log.Infof("InstallPrefix: %s", appConfig.InstallPrefix)
-    log.Infof("Project: %s", appConfig.Project)
-    log.Infof("Venue: %s", appConfig.Venue)
-    log.Infof("MarketplaceItems:")
-    for _, item := range appConfig.MarketplaceItems {
-        log.Infof("  - Name: %s, Version: %s", item.Name, item.Version)
-    }
 
 
     // Find the marketplace item for the health status lambda
