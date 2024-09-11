@@ -290,21 +290,61 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 	}
 	return nil
 }
+
 func installHealthStatusLambda(store database.Datastore, appConfig *config.AppConfig) error {
-	applications := marketplace.Install_Applications{
-		Name:        "unity-cs-monitoring-lambda",
-		Version:     "0.1",
-		Variables:   nil,
-		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-cs-monitoring-lambda"),
-	}
-	install := marketplace.Install{
-		Applications:   &applications,
-		DeploymentName: "Unity Health Status Lambda",
-	}
-	err := TriggerInstall(nil, "", store, &install, appConfig)
-	if err != nil {
-		log.WithError(err).Error("Issue installing Unity Health Status Lambda")
-		return err
-	}
-	return nil
+    // Print out everything in appConfig
+    log.Infof("AppConfig contents:")
+    log.Infof("GithubToken: %s", appConfig.GithubToken)
+    log.Infof("MarketplaceBaseUrl: %s", appConfig.MarketplaceBaseUrl)
+    log.Infof("MarketplaceOwner: %s", appConfig.MarketplaceOwner)
+    log.Infof("MarketplaceRepo: %s", appConfig.MarketplaceRepo)
+    log.Infof("AWSRegion: %s", appConfig.AWSRegion)
+    log.Infof("BucketName: %s", appConfig.BucketName)
+    log.Infof("Workdir: %s", appConfig.Workdir)
+    log.Infof("BasePath: %s", appConfig.BasePath)
+    log.Infof("ConsoleHost: %s", appConfig.ConsoleHost)
+    log.Infof("InstallPrefix: %s", appConfig.InstallPrefix)
+    log.Infof("Project: %s", appConfig.Project)
+    log.Infof("Venue: %s", appConfig.Venue)
+    log.Infof("MarketplaceItems:")
+    for _, item := range appConfig.MarketplaceItems {
+        log.Infof("  - Name: %s, Version: %s", item.Name, item.Version)
+    }
+
+
+    // Find the marketplace item for the health status lambda
+    var name, version string
+    for _, item := range appConfig.MarketplaceItems {
+        if item.Name == "unity-cs-monitoring-lambda" {
+            name = item.Name
+            version = item.Version
+            break
+        }
+    }
+
+    // Print the name and version
+    log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
+
+    // If the item wasn't found, log an error and return
+    if name == "" || version == "" {
+        log.Error("unity-cs-monitoring-lambda not found in MarketplaceItems")
+        return fmt.Errorf("unity-cs-monitoring-lambda not found in MarketplaceItems")
+    }
+
+    applications := marketplace.Install_Applications{
+        Name:        name,
+        Version:     version,
+        Variables:   nil,
+        Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
+    }
+    install := marketplace.Install{
+        Applications:   &applications,
+        DeploymentName: "Unity Health Status Lambda",
+    }
+    err := TriggerInstall(nil, "", store, &install, appConfig)
+    if err != nil {
+        log.WithError(err).Error("Issue installing Unity Health Status Lambda")
+        return err
+    }
+    return nil
 }
