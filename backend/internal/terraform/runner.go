@@ -97,7 +97,8 @@ func (w *wsWriter) Write(p []byte) (n int, err error) {
 
 func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string, executor TerraformExecutor, target string) error {
 	bucket := fmt.Sprintf("bucket=%s", appconf.BucketName)
-	key := fmt.Sprintf("key=%s", "default")
+
+	key := fmt.Sprintf("key=%s-%s-tfstate", appconf.Project, appconf.Venue)
 	region := fmt.Sprintf("region=%s", appconf.AWSRegion)
 
 	p := filepath.Join(appconf.Workdir, "workspace")
