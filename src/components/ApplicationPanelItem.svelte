@@ -46,7 +46,7 @@
         {/if}
       </div>
     </div>
-    <div class="p-4 border-t">
+    <div class="p-4 border-t" style="text-align: center;">
       <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
       <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
         >Reapply Installation
@@ -55,7 +55,7 @@
         on:click={uninstallApp}
         on:keydown={handleKeydown}
         class="st-button tertiary"
-        style="color: red;"
+        style="color: red; margin-top: 5px;"
         >Uninstall
       </button>
     </div>
