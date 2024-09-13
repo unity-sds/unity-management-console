@@ -37,30 +37,21 @@
   <div class="bg-white border rounded shadow-md h-full">
     <div style="display: flex; flex-direction: column;">
       <span class="st-typography-header">{title}</span>
-      <div style="display:flex; gap: 10px">
+      <div style="display:flex; gap: 10px; margin: 10px; justify-content: center;">
         <span class="st-typography-bold">Installation Status:</span>
         {#if status === 'COMPLETE'}
-          <img alt="complete icon" height="16" src={checkIcon} width="16" />
+          <span style="color: green;">Done</span>
+        {:else}
+          <span style="color:red;">{status}</span>
         {/if}
       </div>
     </div>
     <div class="p-4 border-t">
-      <a
-        href={link}
-        on:keydown={handleKeydown}
-        class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded mr-2 inline-block"
-        >Explore</a
-      >
-      <button
-        on:click={reapplyApp}
-        on:keydown={handleKeydown}
-        class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded inline-block"
+      <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
+      <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
         >Reapply Installation
       </button>
-      <button
-        on:click={uninstallApp}
-        on:keydown={handleKeydown}
-        class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded inline-block"
+      <button on:click={uninstallApp} on:keydown={handleKeydown} class="st-button tertiary"
         >Uninstall
       </button>
     </div>
