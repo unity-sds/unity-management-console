@@ -2,6 +2,8 @@
   import { HttpHandler, reapplyApplication } from '../data/httpHandler';
   import { goto } from '$app/navigation';
 
+  import checkIcon from '../icons/check.svg';
+
   export let title = '';
   export let description = '';
   export let link = '';
@@ -38,7 +40,7 @@
       <span class="st-typography-bold"
         >Installation Status:
         {#if status === 'COMPLETE'}
-          <img alt="complete icon" height="32" src="../icons/check.svg" width="32" />
+          <img alt="complete icon" height="32" src={checkIcon} width="32" />
         {/if}
         c</span
       >
