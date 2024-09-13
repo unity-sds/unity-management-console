@@ -54,7 +54,7 @@
       {#if isUninstalling}
         <div style="display: flex; gap: 5px;">
           <span class="st-typography-medium">Uninstalling....</span>
-          <ScaleOut />
+          <ScaleOut size={20} />
         </div>
       {:else}
         <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
