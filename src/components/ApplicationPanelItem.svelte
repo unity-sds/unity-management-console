@@ -51,7 +51,11 @@
       <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
         >Reapply Installation
       </button>
-      <button on:click={uninstallApp} on:keydown={handleKeydown} class="st-button tertiary"
+      <button
+        on:click={uninstallApp}
+        on:keydown={handleKeydown}
+        class="st-button tertiary"
+        style="color: red;"
         >Uninstall
       </button>
     </div>
