@@ -52,7 +52,10 @@
     </div>
     <div class="p-4 border-t" style="text-align: center;">
       {#if isUninstalling}
-        Uninstalling....
+        <div style="display: flex; gap: 5px;">
+          <span class="st-typography-medium">Uninstalling....</span>
+          <ScaleOut />
+        </div>
       {:else}
         <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
         <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
