@@ -40,9 +40,9 @@
       <div style="display:flex; gap: 10px; margin: 10px; justify-content: center;">
         <span class="st-typography-bold">Installation Status:</span>
         {#if status === 'COMPLETE'}
-          <span style="color: green;">Done</span>
+          <span class="st-typography-small-caps" style="color: green;">Done</span>
         {:else}
-          <span style="color:red;">{status}</span>
+          <span class="st-typography-small-caps" style="color:red;">{status}</span>
         {/if}
       </div>
     </div>

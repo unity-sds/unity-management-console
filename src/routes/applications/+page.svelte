@@ -67,7 +67,7 @@
 
 <div style="margin-left: 20px">
   <div class="st-typography-displayH3">Installed Applications</div>
-  <div class="row text-center mt-5">
+  <div style="width:90%; display: flex; gap:20px;">
     {#each cardData as card, index (card.title)}
       <ApplicationPanelItem
         title={card.title}
