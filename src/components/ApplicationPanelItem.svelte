@@ -33,7 +33,7 @@
   };
 </script>
 
-<div class="lg:w-1/4 md:w-1/2 mb-3">
+<div class="lg:w-1/3 md:w-1/2 mb-4">
   <div class="bg-white border rounded shadow-md h-full">
     <div style="display: flex; flex-direction: column; align-items: center; padding: 5px;">
       <span class="st-typography-header">{title}</span>
