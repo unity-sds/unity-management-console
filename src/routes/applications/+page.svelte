@@ -65,9 +65,8 @@
   $: cardData = [];
 </script>
 
-<div class="st-typography-displayH3">Installed Applications</div>
-
-<div class="container">
+<div style="margin-left: 20px">
+  <div class="st-typography-displayH3">Installed Applications</div>
   <div class="row text-center mt-5">
     {#each cardData as card, index (card.title)}
       <ApplicationPanelItem
