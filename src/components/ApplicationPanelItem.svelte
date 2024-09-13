@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ScaleOut from './common/ScaleOut.svelte';
   import { HttpHandler, reapplyApplication } from '../data/httpHandler';
   import { goto } from '$app/navigation';
 
@@ -13,10 +14,13 @@
   export let deployment = '';
 
   export let objectnumber = 0;
+
+  let isUninstalling = false;
   const uninstallApp = () => {
-    const httphandler = new HttpHandler();
-    console.log('Uninstalling ' + appName);
-    httphandler.uninstallSoftware(appName, appPackage, deployment);
+    isUninstalling = true;
+    // const httphandler = new HttpHandler();
+    // console.log('Uninstalling ' + appName);
+    // httphandler.uninstallSoftware(appName, appPackage, deployment);
   };
 
   const handleKeydown = (event: KeyboardEvent) => {
@@ -47,17 +51,21 @@
       </div>
     </div>
     <div class="p-4 border-t" style="text-align: center;">
-      <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
-      <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
-        >Reapply Installation
-      </button>
-      <button
-        on:click={uninstallApp}
-        on:keydown={handleKeydown}
-        class="st-button tertiary"
-        style="color: red; margin-top: 5px;"
-        >Uninstall
-      </button>
+      {#if isUninstalling}
+        Uninstalling....
+      {:else}
+        <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
+        <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
+          >Reapply Installation
+        </button>
+        <button
+          on:click={uninstallApp}
+          on:keydown={handleKeydown}
+          class="st-button tertiary"
+          style="color: red; margin-top: 5px;"
+          >Uninstall
+        </button>
+      {/if}
     </div>
   </div>
 </div>
