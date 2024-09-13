@@ -37,7 +37,7 @@
   <div class="bg-white border rounded shadow-md h-full">
     <div style="display: flex; flex-direction: column;">
       <span class="st-typography-header">{title}</span>
-      <div style="display:flex: gap: 10px">
+      <div style="display:flex; gap: 10px">
         <span class="st-typography-bold">Installation Status:</span>
         {#if status === 'COMPLETE'}
           <img alt="complete icon" height="16" src={checkIcon} width="16" />
