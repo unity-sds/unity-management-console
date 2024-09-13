@@ -65,9 +65,8 @@
   $: cardData = [];
 </script>
 
-<header class="bg-primary text-white text-center py-5 mb-5">
-  <h1>Installed Applications</h1>
-</header>
+<h1>Installed Applications</h1>
+
 <div class="container">
   <div class="row text-center mt-5">
     {#each cardData as card, index (card.title)}
