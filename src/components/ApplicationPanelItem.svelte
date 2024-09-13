@@ -33,7 +33,7 @@
 
 <div class="lg:w-1/4 md:w-1/2 mb-4">
   <div class="bg-white border rounded shadow-md h-full">
-    <div class="p-4">
+    <div style="display: flex; flex-direction: column;">
       <span class="st-typography-header">{title}</span>
       <span class="st-typography-bold">Installation Status: {status}</span>
     </div>
