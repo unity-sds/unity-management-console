@@ -35,7 +35,13 @@
   <div class="bg-white border rounded shadow-md h-full">
     <div style="display: flex; flex-direction: column;">
       <span class="st-typography-header">{title}</span>
-      <span class="st-typography-bold">Installation Status: {status}</span>
+      <span class="st-typography-bold"
+        >Installation Status:
+        {#if status === 'COMPLETE'}
+          <img alt="complete icon" height="32" src="../icons/check.svg" width="32" />
+        {/if}
+        c</span
+      >
     </div>
     <div class="p-4 border-t">
       <a

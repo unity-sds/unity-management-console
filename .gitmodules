@@ -1,3 +1,6 @@
 [submodule "unity-cs-manager"]
 	path = unity-cs-manager
 	url = https://github.com/unity-sds/unity-cs-manager.git
+[submodule "src/stellar"]
+	path = src/stellar
+	url = git@github.com:nasa-jpl/stellar.git
