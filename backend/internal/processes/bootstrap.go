@@ -198,44 +198,82 @@ func storeDefaultSSMParameters(appConfig *config.AppConfig, store database.Datas
 }
 
 func installGateway(store database.Datastore, appConfig *config.AppConfig) error {
-	simplevars := make(map[string]string)
-	simplevars["mgmt_dns"] = appConfig.ConsoleHost
-	variables := marketplace.Install_Variables{Values: simplevars}
-	applications := marketplace.Install_Applications{
-		Name:        "unity-proxy",
-		Version:     "0.14",
-		Variables:   &variables,
-		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-proxy"),
-	}
-	install := marketplace.Install{
-		Applications:   &applications,
-		DeploymentName: "Core Mgmt Gateway",
-	}
-	err := TriggerInstall(nil, "", store, &install, appConfig)
-	if err != nil {
-		log.WithError(err).Error("Issue installing Mgmt Gateway")
-		return err
-	}
-	return nil
+    // Find the marketplace item for unity-proxy
+    var name, version string
+    for _, item := range appConfig.MarketplaceItems {
+        if item.Name == "unity-proxy" {
+            name = item.Name
+            version = item.Version
+            break
+        }
+    }
+
+    // Print the name and version
+    log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
+
+    // If the item wasn't found, log an error and return
+    if name == "" || version == "" {
+        log.Error("unity-proxy not found in MarketplaceItems")
+        return fmt.Errorf("unity-proxy not found in MarketplaceItems")
+    }
+
+    simplevars := make(map[string]string)
+    simplevars["mgmt_dns"] = appConfig.ConsoleHost
+    variables := marketplace.Install_Variables{Values: simplevars}
+    applications := marketplace.Install_Applications{
+        Name:        name,
+        Version:     version,
+        Variables:   &variables,
+        Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
+    }
+    install := marketplace.Install{
+        Applications:   &applications,
+        DeploymentName: "Core Mgmt Gateway",
+    }
+    err := TriggerInstall(nil, "", store, &install, appConfig)
+    if err != nil {
+        log.WithError(err).Error("Issue installing Mgmt Gateway")
+        return err
+    }
+    return nil
 }
 
 func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
-	applications := marketplace.Install_Applications{
-		Name:        "unity-apigateway",
-		Version:     "0.4",
-		Variables:   nil,
-		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, "unity-apigateway"),
-	}
-	install := marketplace.Install{
-		Applications:   &applications,
-		DeploymentName: "Core API Gateway",
-	}
-	err := TriggerInstall(nil, "", store, &install, appConfig)
-	if err != nil {
-		log.WithError(err).Error("Issue installing API Gateway")
-		return err
-	}
-	return nil
+    // Find the marketplace item for unity-apigateway
+    var name, version string
+    for _, item := range appConfig.MarketplaceItems {
+        if item.Name == "unity-apigateway" {
+            name = item.Name
+            version = item.Version
+            break
+        }
+    }
+
+    // Print the name and version
+    log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
+
+    // If the item wasn't found, log an error and return
+    if name == "" || version == "" {
+        log.Error("unity-apigateway not found in MarketplaceItems")
+        return fmt.Errorf("unity-apigateway not found in MarketplaceItems")
+    }
+
+    applications := marketplace.Install_Applications{
+        Name:        name,
+        Version:     version,
+        Variables:   nil,
+        Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
+    }
+    install := marketplace.Install{
+        Applications:   &applications,
+        DeploymentName: "Core API Gateway",
+    }
+    err := TriggerInstall(nil, "", store, &install, appConfig)
+    if err != nil {
+        log.WithError(err).Error("Issue installing API Gateway")
+        return err
+    }
+    return nil
 }
 
 func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig) error {
