@@ -27,7 +27,25 @@
   let cardData: CardItem[] = [];
 
   $: {
-    cardData;
+    if ($deploymentStore) {
+      cardData = $deploymentStore.deployment.reduce((acc, el) => {
+        const dplName = el.name;
+        el.application.forEach((ar) => {
+          const newCard = {
+            title: ar.displayName,
+            source: ar.source,
+            version: ar.version,
+            status: ar.status,
+            packageName: ar.packageName,
+            link: '',
+            deploymentName: dplName,
+            applicationName: ar.displayName
+          };
+          acc.push(newCard);
+        });
+        return acc;
+      }, []);
+    }
   }
 
   const unsubscribe = deploymentStore.subscribe((value) => {
