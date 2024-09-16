@@ -1,7 +1,6 @@
 <script lang="ts">
   import ScaleOut from './common/ScaleOut.svelte';
-  import { installRunning } from '../store/stores';
-  import { HttpHandler, reapplyApplication, fetchDeployedApplications } from '../data/httpHandler';
+  import { HttpHandler, reapplyApplication } from '../data/httpHandler';
   import { goto } from '$app/navigation';
 
   import checkIcon from '../icons/check.svg';
@@ -31,13 +30,6 @@
       goto(link);
     }
   };
-
-  $: {
-    if (!$installRunning) {
-      console.log('Check for uninstall!');
-      fetchDeployedApplications();
-    }
-  }
 
   const reapplyApp = () => {
     console.log('Reapplying: ' + title);

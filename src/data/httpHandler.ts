@@ -116,6 +116,7 @@ export class HttpHandler {
 							if (message.simplemessage.payload === 'completed') {
 								installRunning.set(false);
 								installError.set(false);
+								await fetchDeployedApplications();
 							}
 
 							if (message.simplemessage.payload === 'failed') {
@@ -177,7 +178,6 @@ export async function reapplyApplication(name: string, appPackage: string, deplo
 }
 
 export async function fetchDeployedApplications() {
-	console.log('FETCHING DEPLOYED APPLICATIONS!');
 	if (!dev) {
 		const paramrequest = SimpleMessage.create({
 			operation: 'request all applications',
