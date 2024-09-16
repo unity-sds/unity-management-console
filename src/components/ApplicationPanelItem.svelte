@@ -1,6 +1,6 @@
 <script lang="ts">
   import ScaleOut from './common/ScaleOut.svelte';
-  import { installRunning } from '../../store/stores';
+  import { installRunning } from '../store/stores';
   import { HttpHandler, reapplyApplication } from '../data/httpHandler';
   import { goto } from '$app/navigation';
 
