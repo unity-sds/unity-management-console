@@ -1,7 +1,7 @@
 <script lang="ts">
   import ScaleOut from './common/ScaleOut.svelte';
   import { installRunning } from '../store/stores';
-  import { HttpHandler, reapplyApplication } from '../data/httpHandler';
+  import { HttpHandler, reapplyApplication, fetchDeployedApplications } from '../data/httpHandler';
   import { goto } from '$app/navigation';
 
   import checkIcon from '../icons/check.svg';
@@ -36,7 +36,7 @@
     if (!$installRunning) {
       const httphandler = new HttpHandler();
       console.log('Check for uninstall!');
-      httphandler.checkUninstallStatus(appName, appPackage, deployment);
+      fetchDeployedApplications();
     }
   }
 

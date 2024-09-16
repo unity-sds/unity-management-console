@@ -159,8 +159,6 @@ func handleMessages() error {
 		case *marketplace.UnityWebsocketMessage_Parameters:
 			params := content.Parameters
 			processes.UpdateParameters(params, store, &conf, websocket2.WsManager, message.Client.UserID)
-		case *marketplace.UnityWebsocketMessage_UninstallStatus:
-			log.Error("asdFASDF")
 		default:
 			log.Error("Unknown message type")
 		}
