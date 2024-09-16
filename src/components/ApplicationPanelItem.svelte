@@ -1,5 +1,6 @@
 <script lang="ts">
   import ScaleOut from './common/ScaleOut.svelte';
+  import { installRunning } from '../../store/stores';
   import { HttpHandler, reapplyApplication } from '../data/httpHandler';
   import { goto } from '$app/navigation';
 
@@ -30,6 +31,12 @@
       goto(link);
     }
   };
+
+  $: {
+    if (!$installRunning) {
+      console.log('Check for uninstall!');
+    }
+  }
 
   const reapplyApp = () => {
     console.log('Reapplying: ' + title);
