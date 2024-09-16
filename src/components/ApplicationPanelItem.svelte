@@ -34,7 +34,6 @@
 
   $: {
     if (!$installRunning) {
-      const httphandler = new HttpHandler();
       console.log('Check for uninstall!');
       fetchDeployedApplications();
     }

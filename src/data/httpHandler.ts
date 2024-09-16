@@ -177,6 +177,7 @@ export async function reapplyApplication(name: string, appPackage: string, deplo
 }
 
 export async function fetchDeployedApplications() {
+	console.log('FETCHING DEPLOYED APPLICATIONS!');
 	if (!dev) {
 		const paramrequest = SimpleMessage.create({
 			operation: 'request all applications',
