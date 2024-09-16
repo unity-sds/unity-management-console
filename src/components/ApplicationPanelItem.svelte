@@ -18,9 +18,9 @@
   let isUninstalling = false;
   const uninstallApp = () => {
     isUninstalling = true;
-    // const httphandler = new HttpHandler();
-    // console.log('Uninstalling ' + appName);
-    // httphandler.uninstallSoftware(appName, appPackage, deployment);
+    const httphandler = new HttpHandler();
+    console.log('Uninstalling ' + appName);
+    httphandler.uninstallSoftware(appName, appPackage, deployment);
   };
 
   const handleKeydown = (event: KeyboardEvent) => {
@@ -52,7 +52,7 @@
     </div>
     <div class="p-4 border-t" style="text-align: center;">
       {#if isUninstalling}
-        <div style="display: flex; gap: 5px;">
+        <div style="display: flex; gap: 5px; align-items: center; justify-content: center;">
           <span class="st-typography-medium">Uninstalling....</span>
           <ScaleOut size={20} />
         </div>

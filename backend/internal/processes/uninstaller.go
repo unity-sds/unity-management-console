@@ -59,7 +59,7 @@ func UninstallApplication(appname string, deploymentname string, displayname str
 	}
 
 	for _, file := range files {
-		log.Infof("Checking file	%s has prefix: %s", file.Name(), appname)
+		log.Infof("Checking file %s has prefix: %s", file.Name(), appname)
 		if strings.HasPrefix(file.Name(), appname) {
 			log.Infof("File was a match")
 			// Open the file
