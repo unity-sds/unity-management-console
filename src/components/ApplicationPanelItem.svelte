@@ -35,7 +35,7 @@
   $: {
     if (!$installRunning) {
       console.log('Check for uninstall!');
-      HttpHandler.requestConfig(appName, appPackage, deployment);
+      HttpHandler.checkUninstallStatus(appName, appPackage, deployment);
     }
   }
 
