@@ -19,7 +19,8 @@ import {
 	Install_Applications,
 	Install,
 	Parameters_Parameter,
-	Uninstall
+	Uninstall,
+	UninstallStatus
 } from './unity-cs-manager/protobuf/extensions';
 
 let headers = {};
@@ -81,6 +82,23 @@ export class HttpHandler {
 		return '';
 	}
 
+	async checkUninstallStatus(
+		displayname: string,
+		app: string,
+		deployment: string
+	): Promise<string> {
+		const uninstallStatusRequest = UninstallStatus.create({
+			DeploymentName: deployment,
+			Application: app,
+			DisplayName: displayname
+		});
+		const uninstallStatus = UnityWebsocketMessage.create({
+			uninstallstatus: uninstallStatusRequest
+		});
+		websocketStore.send(UnityWebsocketMessage.encode(uninstallStatus).finish());
+		return '';
+	}
+
 	async uninstallAllSoftware(): Promise<string> {
 		const uninstallAll = Uninstall.create({
 			All: true
@@ -111,8 +129,6 @@ export class HttpHandler {
 				// loop through the received messages
 				for (let i = lastProcessedIndex + 1; i < receivedMessages.length; i++) {
 					const message = receivedMessages[i];
-					console.log(`MESSAGE: `);
-					console.log(message);
 					if (message.simplemessage) {
 						if (message.simplemessage.operation === 'terraform') {
 							if (message.simplemessage.payload === 'completed') {

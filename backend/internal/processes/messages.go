@@ -29,10 +29,6 @@ func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppCo
 		log.Info("Request to reapply application")
 		err := reapplyApplication(message.Payload, conf, store, wsmgr, userid)
 		return nil, err
-	} else if message.Operation == "check uninstall status" {
-		log.Info("Checking uninstall status of application")
-		err := checkApplicationUninstallStatus(message.Payload, conf, store, wsmgr, userid)
-		return nil, err
 	}
 	return nil, nil
 }
@@ -155,12 +151,6 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 }
 
 func reapplyApplication(name string, conf *config.AppConfig, store database.Datastore, wsmgr *websocket.WebSocketManager, userid string) error {
-	log.Infof("Repplying application %s", name)
-
-	return ReapplyApplication(name, conf, store, wsmgr, userid)
-}
-
-func checkApplicationUninstallStatus(name string, conf *config.AppConfig, store database.Datastore, wsmgr *websocket.WebSocketManager, userid string) error {
 	log.Infof("Repplying application %s", name)
 
 	return ReapplyApplication(name, conf, store, wsmgr, userid)
