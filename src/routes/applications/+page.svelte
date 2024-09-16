@@ -28,10 +28,10 @@
 
   $: {
     if ($deploymentStore) {
-      cardData = $deploymentStore.deployment.reduce((acc, el) => {
+      cardData = $deploymentStore.deployment.reduce<CardItem[]>((acc, el) => {
         const dplName = el.name;
         el.application.forEach((ar) => {
-          const newCard = {
+          const newCard: CardItem = {
             title: ar.displayName,
             source: ar.source,
             version: ar.version,
