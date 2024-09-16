@@ -32,9 +32,9 @@
 
   const unsubscribe = deploymentStore.subscribe((value) => {
     console.log(value);
-    debugger;
 
     value?.deployment.forEach((el) => {
+      console.log(el);
       const dplName = el.name;
       el.application.forEach((ar) => {
         const newCardItem = {

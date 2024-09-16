@@ -111,7 +111,8 @@ export class HttpHandler {
 				// loop through the received messages
 				for (let i = lastProcessedIndex + 1; i < receivedMessages.length; i++) {
 					const message = receivedMessages[i];
-					console.log(`MESSAGE: ${message}`);
+					console.log(`MESSAGE: `);
+					console.log(message);
 					if (message.simplemessage) {
 						if (message.simplemessage.operation === 'terraform') {
 							if (message.simplemessage.payload === 'completed') {
