@@ -35,7 +35,7 @@
   $: {
     if (!$installRunning) {
       console.log('Check for uninstall!');
-      console.log({ deployment });
+      console.log({ appName, appPackage, deployment });
     }
   }
 
