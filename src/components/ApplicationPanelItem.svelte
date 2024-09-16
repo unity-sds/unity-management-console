@@ -34,8 +34,9 @@
 
   $: {
     if (!$installRunning) {
+      const httphandler = new HttpHandler();
       console.log('Check for uninstall!');
-      HttpHandler.checkUninstallStatus(appName, appPackage, deployment);
+      httphandler.checkUninstallStatus(appName, appPackage, deployment);
     }
   }
 
