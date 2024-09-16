@@ -32,6 +32,7 @@
 
   const unsubscribe = deploymentStore.subscribe((value) => {
     console.log(value);
+    debugger;
 
     value?.deployment.forEach((el) => {
       const dplName = el.name;
