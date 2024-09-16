@@ -35,6 +35,7 @@
   $: {
     if (!$installRunning) {
       console.log('Check for uninstall!');
+      console.log({ deployment });
     }
   }
 

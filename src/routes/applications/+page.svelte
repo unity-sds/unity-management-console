@@ -34,7 +34,6 @@
     console.log(value);
 
     value?.deployment.forEach((el) => {
-      console.log(el);
       const dplName = el.name;
       el.application.forEach((ar) => {
         const newCardItem = {
