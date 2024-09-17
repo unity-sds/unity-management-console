@@ -82,12 +82,13 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		return
 	}
 
-	go func() {
 		err := store.AddToAudit(application.Bootstrap_Successful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
 
+
+	go func() {
 		err = UpdateCoreConfig(appconf, store, nil, "")
 		if err != nil {
 			log.WithError(err).Error("Problem updating core config")
