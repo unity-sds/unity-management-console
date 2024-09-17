@@ -82,15 +82,17 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		return
 	}
 
-	err = store.AddToAudit(application.Bootstrap_Successful, "test")
-	if err != nil {
-		log.WithError(err).Error("Problem writing to auditlog")
-	}
+	go func() {
+		err := store.AddToAudit(application.Bootstrap_Successful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
 
-	err = UpdateCoreConfig(appconf, store, nil, "")
-	if err != nil {
-		log.WithError(err).Error("Problem updating core config")
-	}
+		err = UpdateCoreConfig(appconf, store, nil, "")
+		if err != nil {
+			log.WithError(err).Error("Problem updating core config")
+		}
+	}()
 }
 
 func provisionS3(appConfig *config.AppConfig) error {
