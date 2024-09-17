@@ -52,22 +52,6 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		return
 	}
 
-	shouldUpdateCoreConfigOnBootstrap := true
-	updateCoreConfigParamValue, err := getSSMParameterValueFromDatabase("bootstrapCoreConfig", store)
-	if err != nil {
-		log.WithError(err).Error("Problem fetching bootstrapCoreConfig value")
-	}
-	if updateCoreConfigParamValue == "false" {
-		shouldUpdateCoreConfigOnBootstrap = false
-	}
-
-	if shouldUpdateCoreConfigOnBootstrap {
-		err = UpdateCoreConfig(appconf, store, nil, "")
-		if err != nil {
-			log.WithError(err).Error("Problem updating ssm config")
-		}
-	}
-
 	err = installGateway(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing HTTPD Gateway")
@@ -103,6 +87,10 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		log.WithError(err).Error("Problem writing to auditlog")
 	}
 
+	err = UpdateCoreConfig(appconf, store, nil, "")
+	if err != nil {
+		log.WithError(err).Error("Problem updating ssm config")
+	}
 }
 
 func provisionS3(appConfig *config.AppConfig) error {
