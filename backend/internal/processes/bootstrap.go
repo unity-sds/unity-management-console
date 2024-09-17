@@ -82,7 +82,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		return
 	}
 
-		err := store.AddToAudit(application.Bootstrap_Successful, "test")
+		err = store.AddToAudit(application.Bootstrap_Successful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
