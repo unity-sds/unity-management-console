@@ -89,7 +89,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 
 	err = UpdateCoreConfig(appconf, store, nil, "")
 	if err != nil {
-		log.WithError(err).Error("Problem updating ssm config")
+		log.WithError(err).Error("Problem updating core config")
 	}
 }
 
