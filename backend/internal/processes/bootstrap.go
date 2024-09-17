@@ -52,11 +52,22 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		return
 	}
 
-	//r := action.ActRunnerImpl{}
-	//err = UpdateCoreConfig(appconf, store, nil, "")
-	//if err != nil {
-	//	log.WithError(err).Error("Problem updating ssm config")
-	//}
+	shouldUpdateCoreConfigOnBootstrap := true
+	updateCoreConfigParamValue, err := getSSMParameterValueFromDatabase("bootstrapCoreConfig", store)
+	if err != nil {
+		log.WithError(err).Error("Problem fetching bootstrapCoreConfig value")
+	}
+	if updateCoreConfigParamValue == "false" {
+		shouldUpdateCoreConfigOnBootstrap = false
+	}
+
+	if shouldUpdateCoreConfigOnBootstrap {
+		err = UpdateCoreConfig(appconf, store, nil, "")
+		if err != nil {
+			log.WithError(err).Error("Problem updating ssm config")
+		}
+	}
+
 	err = installGateway(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing HTTPD Gateway")
@@ -66,7 +77,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		}
 		return
 	}
-	
+
 	err = installHealthStatusLambda(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing Health Status ")
