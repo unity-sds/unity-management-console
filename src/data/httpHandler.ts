@@ -116,6 +116,7 @@ export class HttpHandler {
 							if (message.simplemessage.payload === 'completed') {
 								installRunning.set(false);
 								installError.set(false);
+								fetchDeployedApplications();
 							}
 
 							if (message.simplemessage.payload === 'failed') {
