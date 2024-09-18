@@ -223,5 +223,11 @@ func (g GormDatastore) RemoveApplicationByName(deploymentName string, applicatio
 		return fmt.Errorf("error deleting application: %v", err)
 	}
 
+	// Delete the deployment
+	err = g.db.Delete(&deployment).Error
+	if err != nil {
+		return fmt.Errorf("error deleting deployment: %v", err)
+	}
+
 	return nil
 }
