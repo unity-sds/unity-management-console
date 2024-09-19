@@ -129,10 +129,11 @@ func initTerraform(store database.Datastore, appconf *config.AppConfig) error {
 	if err != nil {
 		return err
 	}
-	err = installUnityCloudEnv(store, appconf)
-	if err != nil {
-		return err
-	}
+
+	# err = installUnityCloudEnv(store, appconf)
+	# if err != nil {
+	# 	return err
+	# }
 
 	return nil
 
