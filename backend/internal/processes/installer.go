@@ -76,6 +76,8 @@ func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketpla
 		return fmt.Errorf("failed to create install_logs directory: %w", err)
 	}
 
+	logfilePath := filepath.Join(logDir, fmt.Sprintf("%s.log", deploymentID))
+
 	executor := &terraform.RealTerraformExecutor{}
 
 	//m, err := fetchMandatoryVars()
@@ -89,7 +91,9 @@ func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketpla
 	}
 	db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "INSTALLING")
 	fetchAllApplications(db)
-	err = terraform.RunTerraform(appConfig, conn, userid, executor, "")
+	// err = terraform.RunTerraform(appConfig, conn, userid, executor, "")
+	err = terraform.RunTerraformLogOutToFile(appConfig, logfilePath, userid, executor, "")
+
 	if err != nil {
 		db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "FAILED")
 		fetchAllApplications(db)

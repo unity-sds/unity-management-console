@@ -194,7 +194,7 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 	return nil
 }
 
-func RunTerraformLogOutToFile(appconf *config.AppConfig, logfile string, executor TerraformExecutor, target string) error {
+func RunTerraformLogOutToFile(appconf *config.AppConfig, logfile string, id string, executor TerraformExecutor, target string) error {
 	bucket := fmt.Sprintf("bucket=%s", appconf.BucketName)
 	key := fmt.Sprintf("key=%s-%s-tfstate", appconf.Project, appconf.Venue)
 	region := fmt.Sprintf("region=%s", appconf.AWSRegion)
