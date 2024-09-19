@@ -72,7 +72,7 @@ func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid stri
 func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, install *marketplace.Install, deploymentID uint, conn *websocket.WebSocketManager, userid string) error {
 	// Create install_logs directory if it doesn't exist
 	logDir := filepath.Join(appConfig.Workdir, "install_logs")
-	if err := os.MkdirAll(logDir, 0755); err != nil {
+	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
 		return fmt.Errorf("failed to create install_logs directory: %w", err)
 	}
 
