@@ -27,7 +27,25 @@
   let cardData: CardItem[] = [];
 
   $: {
-    cardData;
+    if ($deploymentStore) {
+      cardData = $deploymentStore.deployment.reduce<CardItem[]>((acc, el) => {
+        const dplName = el.name;
+        el.application.forEach((ar) => {
+          const newCard: CardItem = {
+            title: ar.displayName,
+            source: ar.source,
+            version: ar.version,
+            status: ar.status,
+            packageName: ar.packageName,
+            link: '',
+            deploymentName: dplName,
+            applicationName: ar.displayName
+          };
+          acc.push(newCard);
+        });
+        return acc;
+      }, []);
+    }
   }
 
   const unsubscribe = deploymentStore.subscribe((value) => {
@@ -65,11 +83,9 @@
   $: cardData = [];
 </script>
 
-<header class="bg-primary text-white text-center py-5 mb-5">
-  <h1>Installed Applications</h1>
-</header>
-<div class="container">
-  <div class="row text-center mt-5">
+<div style="margin-left: 20px">
+  <div class="st-typography-displayH3">Installed Applications</div>
+  <div style="width:90%; display: flex; gap:20px; margin-top: 10px;">
     {#each cardData as card, index (card.title)}
       <ApplicationPanelItem
         title={card.title}
