@@ -21,6 +21,7 @@ var clients = make(map[*websocket.Conn]bool)
 var broadcast = make(chan websocket2.ClientMessage)
 
 var appConf config.AppConfig
+var store database.Datastore
 
 // setupFeatureFlags sets up feature flags for the application.
 // It uses the username from the gin context to create a new user for the feature flag client.
@@ -103,7 +104,8 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 		api.GET("/health_checks", gin.HandlerFunc(handleHealthChecks(appConfig)))
 		// api.GET("/application_uninstall_status/:application_name/:deployment_id", handleGetApplicationInstallStatus(appConfig))
 		api.POST("/uninstall", gin.HandlerFunc(handleUninstall(appConfig)))
-		api.POST("/install_application",gin.HandlerFunc(handleApplicationInstall(appConfig)))
+		api.POST("/install_application",gin.HandlerFunc(handleApplicationInstall(appConfig, store)))
+		api.GET("/install_logs/:installID", gin.HandlerFunc(handleGetInstallLogs(appConfig)))
 	}
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
 

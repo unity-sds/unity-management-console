@@ -66,7 +66,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		}
 		return
 	}
-	
+
 	err = installHealthStatusLambda(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing Health Status ")
