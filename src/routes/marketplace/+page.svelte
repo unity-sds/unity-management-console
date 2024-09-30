@@ -84,6 +84,10 @@
                   <option value={product.Version}>{product.Version}</option>
                 {/each}
               </select>
+              <button
+                class="text-white bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded inline-block"
+                >Install</button
+              >
             </div>
             <ProductItem
               product={selectedVersionsForProducts[name]}
