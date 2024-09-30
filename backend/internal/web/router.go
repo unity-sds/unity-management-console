@@ -97,9 +97,15 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	})
 	router.StaticFS("/ui/", http.Dir("./build"))
 	router.GET("/ws", handleWebsocket)
+
+	api := router.Group("/api") 
+	{
+		api.GET("/health_checks", gin.HandlerFunc(handleHealthChecks(appConfig)))
+		// api.GET("/application_uninstall_status/:application_name/:deployment_id", handleGetApplicationInstallStatus(appConfig))
+		api.POST("/uninstall", gin.HandlerFunc(handleUninstall(appConfig)))
+		api.POST("/install_application",gin.HandlerFunc(handleApplicationInstall(appConfig)))
+	}
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
-	router.GET("/api/:endpoint", handleGetAPICall(appConfig))
-	router.POST("/api/:endpoint", handlePostAPICall(appConfig))
 
 	//router.Use(EnsureTrailingSlash())
 	router.Use(LoggingMiddleware())

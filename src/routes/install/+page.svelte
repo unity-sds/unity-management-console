@@ -20,24 +20,31 @@
   let currentStepIndex = 0;
 
   let applicationMetadata = {
-    deploymentName: '',
-    baseVariables: {} as { [key: string]: string }
+    DeploymentName: '',
+    Variables: {} as { [key: string]: string }
   };
 
   $: {
     if ($config?.applicationConfig?.Project) {
-      applicationMetadata.baseVariables.project = $config?.applicationConfig?.Project;
+      applicationMetadata.Variables.project = $config?.applicationConfig?.Project;
     }
     if ($config?.applicationConfig?.Venue) {
-      applicationMetadata.baseVariables.venue = $config?.applicationConfig?.Venue;
+      applicationMetadata.Variables.venue = $config?.applicationConfig?.Venue;
     }
   }
 
-  $: baseVariables = product?.DefaultDeployment?.Variables?.Values || {};
+  $: Variables = product?.DefaultDeployment?.Variables?.Values || {};
 
   async function installApplication() {
     const outObj = { name: product.Name, version: product.Version, ...applicationMetadata };
     console.log(outObj);
+    const url =
+      `http${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}` +
+      '/management/install_application';
+    const res = await fetch(url, { method: 'POST', body: JSON.stringify(outObj) });
+    if (!res.ok) {
+      console.log(res);
+    }
   }
 
   $: console.log(product);
@@ -58,17 +65,17 @@
       <div class="st-typography-displayBody">Deployment Details</div>
       <div class="variablesForm">
         <div class="st-typography-label">Deployment Name</div>
-        <input class="st-input" bind:value={applicationMetadata.deploymentName} />
+        <input class="st-input" bind:value={applicationMetadata.DeploymentName} />
       </div>
     {:else if steps[currentStepIndex] === 'variables'}
       <div class="st-typography-small-caps">Variables</div>
       <div class="variablesForm">
-        {#each Object.entries(baseVariables) as [key, value]}
+        {#each Object.entries(Variables) as [key, value]}
           <div>
             <div class="st-typography-label">
               {key}
             </div>
-            <input class="st-input" bind:value={applicationMetadata.baseVariables[key]} />
+            <input class="st-input" bind:value={applicationMetadata.Variables[key]} />
           </div>
         {/each}
       </div>
@@ -82,7 +89,7 @@
         <hr />
         <div>
           <div class="st-typography-label">Variables</div>
-          {#each Object.entries(applicationMetadata.baseVariables) as [key, value]}
+          {#each Object.entries(applicationMetadata.Variables) as [key, value]}
             <div style="display: flex;">
               <div class="st-typography-label">{key}:&nbsp;</div>
               <div class="st-typography-bold">{value}</div>
