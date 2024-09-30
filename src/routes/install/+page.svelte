@@ -22,6 +22,8 @@
     deploymentName: ''
   };
 
+  $: baseVariables = product?.DefaultDeployment?.Variables?.Values || {};
+
   $: console.log(product);
 </script>
 
@@ -31,14 +33,21 @@
   <hr />
   <div class="wizardContainer">
     {#if steps[currentStepIndex] === 'deploymentDetails'}
+      <div class="st-typography-displayBody">Deployment Details</div>
       <div>
         <div class="st-typography-label">Deployment Name</div>
         <input class="st-input" bind:value={applicationMetadata.deploymentName} />
       </div>
     {:else if steps[currentStepIndex] === 'variables'}
-      <div>variables</div>
+      <div class="st-typography-displayBody">Variables</div>
+      {#each Object.entries(baseVariables) as [key, value]}
+        <div>{key}</div>
+      {/each}
     {/if}
     <div>
+      {#if currentStepIndex > 0}
+        <button class="st-button" on:click={(_) => currentStepIndex--}>Back</button>
+      {/if}
       <button class="st-button" on:click={(_) => currentStepIndex++}>Next</button>
     </div>
   </div>
