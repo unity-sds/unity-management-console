@@ -21,7 +21,7 @@
 
   $: applicationMetadata = {
     deploymentName: '',
-    baseVariables: { project: $config?.applicationConfig?.Project }
+    baseVariables: { project: $config?.applicationConfig?.Project } as { [key: string]: string }
   };
 
   $: baseVariables = product?.DefaultDeployment?.Variables?.Values || {};
@@ -54,7 +54,7 @@
             <div class="st-typography-label">
               {key}
             </div>
-            <input class="st-input" bind:value={applicationMetadata.baseVariables[key]} />
+            <input class="st-input" bind:value={applicationMetadata.baseVariables[key] || ''} />
           </div>
         {/each}
       </div>
