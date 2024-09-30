@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { get } from 'svelte/store';
+  import { get, config } from 'svelte/store';
   import type { NodeGroupType } from '../../data/entities';
   import { productInstall } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
@@ -25,12 +25,14 @@
   $: baseVariables = product?.DefaultDeployment?.Variables?.Values || {};
 
   $: console.log(product);
+  $: console.log(config);
 </script>
 
 <div class="container">
   <div>
-    <div class="st-typography-header">Installing Marketplace Application:</div>
-    {product.DisplayName}
+    <div class="st-typography-header">
+      Installing Marketplace Application: <span>{product.DisplayName}</span>
+    </div>
   </div>
   <hr />
   <div class="wizardContainer">
@@ -46,7 +48,7 @@
         {#each Object.entries(baseVariables) as [key, value]}
           <div>
             <div class="st-typography-label" style="text-transform: capitalize;">
-              {key.replace('_', ' ')}
+              {key.replace(/_/g, ' ')}
             </div>
             <input class="st-input" placeholder={value} />
           </div>
@@ -92,5 +94,9 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+  }
+
+  .variablesForm input {
+    width: 250px;
   }
 </style>
