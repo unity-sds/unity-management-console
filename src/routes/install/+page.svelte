@@ -34,6 +34,13 @@
   }
 
   $: Variables = product?.DefaultDeployment?.Variables?.Values || {};
+  $: {
+    Object.entries(Variables).forEach(([key, value]) => {
+      if (value) {
+        applicationMetadata.Variables[key] = value;
+      }
+    });
+  }
 
   async function installApplication() {
     const outObj = { name: product.Name, version: product.Version, ...applicationMetadata };
