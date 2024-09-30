@@ -43,7 +43,7 @@
   }
 
   async function installApplication() {
-    const outObj = { name: product.Name, version: product.Version, ...applicationMetadata };
+    const outObj = { Name: product.Name, Version: product.Version, ...applicationMetadata };
     console.log(outObj);
     const url =
       `http${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}` +
@@ -90,7 +90,7 @@
       <div class="st-typography-small-caps">Installation Summary</div>
       <div class="variablesForm">
         <div style="display: flex;">
-          <div class="st-typography-label">Version</div>
+          <div class="st-typography-label">Version:&nbsp;</div>
           <div class="st-typography-bold">{product.Version}</div>
         </div>
         <hr />
@@ -117,18 +117,6 @@
       {/if}
     </div>
   </div>
-  <!--   <div class="row">
-    <div class="col-md-12">
-      {#if product}
-
-        <h1 class="my-4">{product.DisplayName} Installation</h1> -->
-
-  <!--       {:else}
-        <p>Loading product...</p>
-      {/if}
-    </div>
- -->
-  <!-- </div> -->
 </div>
 
 <!-- <SetupWizard /> -->
