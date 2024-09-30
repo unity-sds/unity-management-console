@@ -16,12 +16,15 @@
   $: managedDependenciesKeys =
     product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
 
-  const steps = ['deploymentDetails', 'variables'];
+  const steps = ['deploymentDetails', 'variables', 'summary'];
   let currentStepIndex = 0;
 
   $: applicationMetadata = {
     deploymentName: '',
-    baseVariables: { project: $config?.applicationConfig?.Project } as { [key: string]: string }
+    baseVariables: {
+      project: $config?.applicationConfig?.Project,
+      venue: $config?.applicationConfig?.Venue
+    } as { [key: string]: string }
   };
 
   $: baseVariables = product?.DefaultDeployment?.Variables?.Values || {};
@@ -58,12 +61,32 @@
           </div>
         {/each}
       </div>
+    {:else if steps[currentStepIndex] === 'summary'}
+      <div class="st-typography-small-caps">Installation Summary</div>
+      <div>
+        <div class="st-typography-label">Version</div>
+        <div class="st-typography-bold">{product.Version}</div>
+      </div>
+      <hr />
+      <div>
+        <div class="st-typography-label">Variables</div>
+        {#each Object.entries(applicationMetadata.baseVariables) as [key, value]}
+          <div>
+            <div class="st-typography-label">{key}</div>
+            <div class="st-typography-bold">{value}</div>
+          </div>
+        {/each}
+      </div>
     {/if}
     <div>
       {#if currentStepIndex > 0}
-        <button class="st-button" on:click={(_) => currentStepIndex--}>Back</button>
+        <button class="st-button secondary" on:click={(_) => currentStepIndex--}>Back</button>
       {/if}
-      <button class="st-button" on:click={(_) => currentStepIndex++}>Next</button>
+      {#if currentStepIndex === steps.length - 1}
+        <button class="st-button" on:click={(_) => currentStepIndex++}>Install</button>
+      {:else}
+        <button class="st-button" on:click={(_) => currentStepIndex++}>Next</button>
+      {/if}
     </div>
   </div>
   <!--   <div class="row">
@@ -92,12 +115,14 @@
   .wizardContainer {
     display: flex;
     flex-direction: column;
+    padding-top: 10px;
   }
 
   .variablesForm {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-top: 10px;
   }
 
   .variablesForm input {
