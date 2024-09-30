@@ -35,6 +35,11 @@
 
   $: baseVariables = product?.DefaultDeployment?.Variables?.Values || {};
 
+  async function installApplication() {
+    const outObj = { name: product.Name, version: product.Version, ...applicationMetadata };
+    console.log(outObj);
+  }
+
   $: console.log(product);
   $: console.log($config);
 </script>
