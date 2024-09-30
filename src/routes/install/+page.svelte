@@ -51,7 +51,7 @@
   <div class="wizardContainer">
     {#if steps[currentStepIndex] === 'deploymentDetails'}
       <div class="st-typography-displayBody">Deployment Details</div>
-      <div>
+      <div class="variablesForm">
         <div class="st-typography-label">Deployment Name</div>
         <input class="st-input" bind:value={applicationMetadata.deploymentName} />
       </div>
@@ -69,20 +69,21 @@
       </div>
     {:else if steps[currentStepIndex] === 'summary'}
       <div class="st-typography-small-caps">Installation Summary</div>
-      <hr />
-      <div style="display: flex;">
-        <div class="st-typography-label">Version</div>
-        <div class="st-typography-bold">{product.Version}</div>
-      </div>
-      <hr />
-      <div>
-        <div class="st-typography-label">Variables</div>
-        {#each Object.entries(applicationMetadata.baseVariables) as [key, value]}
-          <div style="display: flex;">
-            <div class="st-typography-label">{key}:&nbsp;</div>
-            <div class="st-typography-bold">{value}</div>
-          </div>
-        {/each}
+      <div class="variablesForm">
+        <div style="display: flex;">
+          <div class="st-typography-label">Version</div>
+          <div class="st-typography-bold">{product.Version}</div>
+        </div>
+        <hr />
+        <div>
+          <div class="st-typography-label">Variables</div>
+          {#each Object.entries(applicationMetadata.baseVariables) as [key, value]}
+            <div style="display: flex;">
+              <div class="st-typography-label">{key}:&nbsp;</div>
+              <div class="st-typography-bold">{value}</div>
+            </div>
+          {/each}
+        </div>
       </div>
     {/if}
     <hr />
@@ -110,7 +111,8 @@
  -->
   <!-- </div> -->
 </div>
-<SetupWizard />
+
+<!-- <SetupWizard /> -->
 
 <style>
   .container {
