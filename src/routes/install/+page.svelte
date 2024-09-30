@@ -31,9 +31,9 @@
   </div>
   <div class="wizardContainer">
     {#if steps[currentStepIndex] === 'deploymentDetails'}
-      <div class="st-typography-header">Deployment Details</div>
       <div>
-        <input type="text" class="st-input" bind:value={applicationMetadata.deploymentName} />
+        <div class="st-typography-label">Deployment Name</div>
+        <input class="st-input" bind:value={applicationMetadata.deploymentName} />
       </div>
     {/if}
   </div>
@@ -55,6 +55,8 @@
   .container {
     display: flex;
     margin: 10px;
+    flex-direction: column;
+    margin-left: 30px;
   }
 
   .wizardContainer {
