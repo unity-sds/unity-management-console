@@ -64,8 +64,8 @@
 
   function handleStartInstall(name: string) {
     return () => {
-      console.log(selectedVersionsForProducts[name]);
-      // goto('/management/ui/install');
+      const product = selectedVersionsForProducts[name];
+      goto(`/management/ui/install?name=${name}&version=${product.Version}`);
     };
   }
 </script>
