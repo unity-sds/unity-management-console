@@ -26,9 +26,9 @@
 </script>
 
 <div class="container">
-  <div class="st-typography-header">
-    Installing Marketplace Application: {product.DisplayName}
-  </div>
+  <div class="st-typography-header">Installing Marketplace Application:</div>
+  {product.DisplayName}
+  <hr />
   <div class="wizardContainer">
     {#if steps[currentStepIndex] === 'deploymentDetails'}
       <div>
@@ -42,7 +42,7 @@
       {#if product}
 
         <h1 class="my-4">{product.DisplayName} Installation</h1> -->
-  <!-- <SetupWizard /> -->
+
   <!--       {:else}
         <p>Loading product...</p>
       {/if}
@@ -50,6 +50,7 @@
  -->
   <!-- </div> -->
 </div>
+<SetupWizard />
 
 <style>
   .container {
