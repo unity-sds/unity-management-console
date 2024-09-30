@@ -45,7 +45,9 @@
       <div class="variablesForm">
         {#each Object.entries(baseVariables) as [key, value]}
           <div>
-            <div class="st-typography-label">{key}</div>
+            <div class="st-typography-label" style="text-transform: capitalize;">
+              {key.replace('_', ' ')}
+            </div>
             <input class="st-input" placeholder={value} />
           </div>
         {/each}
