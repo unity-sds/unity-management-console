@@ -69,7 +69,8 @@
       </div>
     {:else if steps[currentStepIndex] === 'summary'}
       <div class="st-typography-small-caps">Installation Summary</div>
-      <div>
+      <hr />
+      <div style="display: flex;">
         <div class="st-typography-label">Version</div>
         <div class="st-typography-bold">{product.Version}</div>
       </div>
@@ -78,13 +79,14 @@
         <div class="st-typography-label">Variables</div>
         {#each Object.entries(applicationMetadata.baseVariables) as [key, value]}
           <div style="display: flex;">
-            <div class="st-typography-label">{key}:</div>
+            <div class="st-typography-label">{key}:&nbsp;</div>
             <div class="st-typography-bold">{value}</div>
           </div>
         {/each}
       </div>
     {/if}
-    <div>
+    <hr />
+    <div style="margin-top:10px;">
       {#if currentStepIndex > 0}
         <button class="st-button secondary" on:click={(_) => currentStepIndex--}>Back</button>
       {/if}
