@@ -97,7 +97,7 @@
         <button class="st-button secondary" on:click={(_) => currentStepIndex--}>Back</button>
       {/if}
       {#if currentStepIndex === steps.length - 1}
-        <button class="st-button" on:click={(_) => currentStepIndex++}>Install</button>
+        <button class="st-button" on:click={installApplication}>Install</button>
       {:else}
         <button class="st-button" on:click={(_) => currentStepIndex++}>Next</button>
       {/if}
