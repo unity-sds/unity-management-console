@@ -26,7 +26,7 @@
   $: baseVariables = product?.DefaultDeployment?.Variables?.Values || {};
 
   $: console.log(product);
-  $: console.log(config);
+  $: console.log($config);
 </script>
 
 <div class="container">
