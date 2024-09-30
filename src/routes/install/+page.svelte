@@ -15,6 +15,9 @@
   $: managedDependenciesKeys =
     product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
 
+  const steps = ['deploymentDetails'];
+  let currentStepIndex = 0;
+
   $: console.log(product);
 </script>
 
@@ -22,6 +25,9 @@
   <div class="st-typography-displayH3">
     Installing Marketplace Application: {product.DisplayName}
   </div>
+  {#if steps[currentStepIndex] === 'deploymentDetails'}
+    <div class="st-typography-displayH4">Deployment Details</div>
+  {/if}
   <!--   <div class="row">
     <div class="col-md-12">
       {#if product}
