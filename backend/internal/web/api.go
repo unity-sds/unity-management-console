@@ -1,14 +1,18 @@
 package web
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
+	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
+	"github.com/unity-sds/unity-management-console/backend/types"
 	"net/http"
+	"path/filepath"
 )
 
 func handleHealthChecks(appConfig config.AppConfig) func(c *gin.Context) {
@@ -60,17 +64,9 @@ func handleUninstall(appConfig config.AppConfig) func(c *gin.Context) {
 	}
 }
 
-func handleApplicationInstall(appConfig config.AppConfig) func(c *gin.Context) {
+func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
 	return func(c *gin.Context) {
-
-		type ApplicationInstallParams struct {
-			Name      string
-			Version   string
-			DeploymentName string
-			Variables string
-		}
-
-		var applicationInstallParams ApplicationInstallParams
+		var applicationInstallParams types.ApplicationInstallParams
 		err := c.BindJSON(&applicationInstallParams)
 
 		if err != nil {
@@ -80,6 +76,38 @@ func handleApplicationInstall(appConfig config.AppConfig) func(c *gin.Context) {
 		}
 
 		log.Errorf("Got JSON: %v", applicationInstallParams)
+
+		valid, metadata, err := processes.ValidateMarketplaceInstallation(applicationInstallParams.Name, applicationInstallParams.Version, &appConfig)
+
+		if !valid {
+			log.Errorf("Marketplace item invalid for application: %s, %v", applicationInstallParams.Name, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to get application metadata"})
+			return
+		}
+
+		if err != nil {
+			log.Errorf("Unable to get application metadata for application: %s, %v", applicationInstallParams.Name, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to get application metadata"})
+			return
+		}
+
+		location, err := processes.FetchPackage(&metadata, &conf)
+		if err != nil {
+			log.Errorf("Unable to fetch pagkage for application: %s, %v", applicationInstallParams.Name, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to fetch package"})
+			return
+		}
+		installID, err := processes.InstallMarketplaceApplicationNew(&appConfig, location, &applicationInstallParams, &metadata, db)
+		c.JSON(http.StatusOK, gin.H{"installID": installID})
+		return
+	}
+}
+
+func handleGetInstallLogs(appConfig config.AppConfig) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		installID := c.Param("installID")
+		logDir := filepath.Join(appConfig.Workdir, "install_logs")
+		logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", installID))
 	}
 }
 
