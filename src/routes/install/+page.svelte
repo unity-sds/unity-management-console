@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { get, config } from 'svelte/store';
+  import { get } from 'svelte/store';
+  import { config } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
   import { productInstall } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
