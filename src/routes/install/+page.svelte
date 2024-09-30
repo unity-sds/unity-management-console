@@ -15,7 +15,7 @@
   $: managedDependenciesKeys =
     product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
 
-  const steps = ['deploymentDetails'];
+  const steps = ['deploymentDetails', 'variables'];
   let currentStepIndex = 0;
 
   let applicationMetadata = {
@@ -35,7 +35,12 @@
         <div class="st-typography-label">Deployment Name</div>
         <input class="st-input" bind:value={applicationMetadata.deploymentName} />
       </div>
+    {:else if steps[currentStepIndex] === 'variables'}
+      <div>variables</div>
     {/if}
+    <div>
+      <button class="st-button" on:click={(_) => currentStepIndex++}>Next</button>
+    </div>
   </div>
   <!--   <div class="row">
     <div class="col-md-12">
