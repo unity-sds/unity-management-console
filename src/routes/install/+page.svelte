@@ -22,17 +22,17 @@
   <div class="st-typography-displayH3">
     Installing Marketplace Application: {product.DisplayName}
   </div>
-  <!-- <div class="row">
+<!--   <div class="row">
     <div class="col-md-12">
       {#if product}
 
-        <h1 class="my-4">{product.DisplayName} Installation</h1>
+        <h1 class="my-4">{product.DisplayName} Installation</h1> -->
         <SetupWizard />
-      {:else}
+<!--       {:else}
         <p>Loading product...</p>
       {/if}
-    </div> -->
-  <!-- </div> -->
+    </div>
+ -->  <!-- </div> -->
 </div>
 
 <style>
