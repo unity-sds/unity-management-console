@@ -25,9 +25,14 @@
   <div class="st-typography-displayH3">
     Installing Marketplace Application: {product.DisplayName}
   </div>
-  {#if steps[currentStepIndex] === 'deploymentDetails'}
-    <div class="st-typography-displayH4">Deployment Details</div>
-  {/if}
+  <div class="wizardContainer">
+    {#if steps[currentStepIndex] === 'deploymentDetails'}
+      <div class="st-typography-header">Deployment Details</div>
+      <div>
+        <input class="st-input" type="text" />
+      </div>
+    {/if}
+  </div>
   <!--   <div class="row">
     <div class="col-md-12">
       {#if product}
@@ -46,5 +51,10 @@
   .container {
     display: flex;
     margin: 10px;
+  }
+
+  .wizardContainer {
+    display: flex;
+    flex-direction: column;
   }
 </style>
