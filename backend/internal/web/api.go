@@ -12,6 +12,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
 	"github.com/unity-sds/unity-management-console/backend/types"
 	"net/http"
+	"os"
 	"path/filepath"
 )
 
@@ -108,6 +109,17 @@ func handleGetInstallLogs(appConfig config.AppConfig) func(c *gin.Context) {
 		installID := c.Param("installID")
 		logDir := filepath.Join(appConfig.Workdir, "install_logs")
 		logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", installID))
+
+		// Read the log file
+		content, err := os.ReadFile(logfile)
+		if err != nil {
+			log.Errorf("Error reading log file: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read log file"})
+			return
+		}
+
+		// Return the file contents
+		c.Data(http.StatusOK, "text/plain", content)
 	}
 }
 
