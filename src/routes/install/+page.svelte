@@ -19,8 +19,9 @@
   const steps = ['deploymentDetails', 'variables'];
   let currentStepIndex = 0;
 
-  let applicationMetadata = {
-    deploymentName: ''
+  $: applicationMetadata = {
+    deploymentName: '',
+    baseVariables: { project: $config?.applicationConfig?.Project }
   };
 
   $: baseVariables = product?.DefaultDeployment?.Variables?.Values || {};
@@ -32,7 +33,9 @@
 <div class="container">
   <div>
     <div class="st-typography-header">
-      Installing Marketplace Application: <span>{product.DisplayName}</span>
+      Installing Marketplace Application: <span class="st-typography-displayBody"
+        >{product.DisplayName}</span
+      >
     </div>
   </div>
   <hr />
@@ -44,14 +47,14 @@
         <input class="st-input" bind:value={applicationMetadata.deploymentName} />
       </div>
     {:else if steps[currentStepIndex] === 'variables'}
-      <div class="st-typography-displayBody">Variables</div>
+      <div class="st-typography-small-caps">Variables</div>
       <div class="variablesForm">
         {#each Object.entries(baseVariables) as [key, value]}
           <div>
-            <div class="st-typography-label" style="text-transform: capitalize;">
-              {key.replace(/_/g, ' ')}
+            <div class="st-typography-label">
+              {key}
             </div>
-            <input class="st-input" placeholder={value} />
+            <input class="st-input" bind:value={applicationMetadata.baseVariables[key]} />
           </div>
         {/each}
       </div>
