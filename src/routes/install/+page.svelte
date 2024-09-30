@@ -28,8 +28,10 @@
 </script>
 
 <div class="container">
-  <div class="st-typography-header">Installing Marketplace Application:</div>
-  {product.DisplayName}
+  <div>
+    <div class="st-typography-header">Installing Marketplace Application:</div>
+    {product.DisplayName}
+  </div>
   <hr />
   <div class="wizardContainer">
     {#if steps[currentStepIndex] === 'deploymentDetails'}
@@ -40,9 +42,14 @@
       </div>
     {:else if steps[currentStepIndex] === 'variables'}
       <div class="st-typography-displayBody">Variables</div>
-      {#each Object.entries(baseVariables) as [key, value]}
-        <div>{key}</div>
-      {/each}
+      <div class="variablesForm">
+        {#each Object.entries(baseVariables) as [key, value]}
+          <div>
+            <div class="st-typography-label">{key}</div>
+            <input class="st-input" placeholder={value} />
+          </div>
+        {/each}
+      </div>
     {/if}
     <div>
       {#if currentStepIndex > 0}
@@ -77,5 +84,11 @@
   .wizardContainer {
     display: flex;
     flex-direction: column;
+  }
+
+  .variablesForm {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
 </style>
