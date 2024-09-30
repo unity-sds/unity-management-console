@@ -18,18 +18,22 @@
   const steps = ['deploymentDetails'];
   let currentStepIndex = 0;
 
+  let applicationMetadata = {
+    deploymentName: ''
+  };
+
   $: console.log(product);
 </script>
 
 <div class="container">
-  <div class="st-typography-displayH3">
+  <div class="st-typography-header">
     Installing Marketplace Application: {product.DisplayName}
   </div>
   <div class="wizardContainer">
     {#if steps[currentStepIndex] === 'deploymentDetails'}
       <div class="st-typography-header">Deployment Details</div>
       <div>
-        <input class="st-input" type="text" />
+        <input type="text" class="st-input" bind:value={applicationMetadata.deploymentName} />
       </div>
     {/if}
   </div>
@@ -38,7 +42,7 @@
       {#if product}
 
         <h1 class="my-4">{product.DisplayName} Installation</h1> -->
-  <SetupWizard />
+  <!-- <SetupWizard /> -->
   <!--       {:else}
         <p>Loading product...</p>
       {/if}
