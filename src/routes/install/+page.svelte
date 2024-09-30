@@ -19,13 +19,19 @@
   const steps = ['deploymentDetails', 'variables', 'summary'];
   let currentStepIndex = 0;
 
-  $: applicationMetadata = {
+  let applicationMetadata = {
     deploymentName: '',
-    baseVariables: {
-      project: $config?.applicationConfig?.Project,
-      venue: $config?.applicationConfig?.Venue
-    } as { [key: string]: string }
+    baseVariables: {} as { [key: string]: string }
   };
+
+  $: {
+    if ($config?.applicationConfig?.Project) {
+      applicationMetadata.baseVariables.project = $config?.applicationConfig?.Project;
+    }
+    if ($config?.applicationConfig?.Venue) {
+      applicationMetadata.baseVariables.venue = $config?.applicationConfig?.Venue;
+    }
+  }
 
   $: baseVariables = product?.DefaultDeployment?.Variables?.Values || {};
 
@@ -71,8 +77,8 @@
       <div>
         <div class="st-typography-label">Variables</div>
         {#each Object.entries(applicationMetadata.baseVariables) as [key, value]}
-          <div>
-            <div class="st-typography-label">{key}</div>
+          <div style="display: flex;">
+            <div class="st-typography-label">{key}:</div>
             <div class="st-typography-bold">{value}</div>
           </div>
         {/each}
