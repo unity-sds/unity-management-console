@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { get } from "svelte/store";
-  import type { NodeGroupType } from "../../data/entities";
-  import { productInstall } from "../../store/stores";
-  import SetupWizard from "../../components/SetupWizard.svelte";
+  import { get } from 'svelte/store';
+  import type { NodeGroupType } from '../../data/entities';
+  import { productInstall } from '../../store/stores';
+  import SetupWizard from '../../components/SetupWizard.svelte';
 
   let nodeGroups: NodeGroupType[] = [];
 
@@ -12,7 +12,10 @@
     return Object.keys(obj);
   }
 
-  $: managedDependenciesKeys = product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
+  $: managedDependenciesKeys =
+    product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
+
+  $: console.log(product);
 </script>
 
 <div class="container">

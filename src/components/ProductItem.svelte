@@ -62,13 +62,13 @@
           </dd>
         </div>
         <div class="px-4 py-6 sm:grid sm:grid-cols-1 sm:gap-4 sm:px-0">
-          <button
+          <!-- <button
             class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded float-right"
             on:click={handleInstallApp}
             id={`${product.Name}-v${product.Version}`}
           >
             Install Application
-          </button>
+          </button> -->
         </div>
       </div>
     </div>
