@@ -54,7 +54,7 @@
             <div class="st-typography-label">
               {key}
             </div>
-            <input class="st-input" bind:value={applicationMetadata.baseVariables[key] || ''} />
+            <input class="st-input" bind:value={applicationMetadata.baseVariables[key]} />
           </div>
         {/each}
       </div>
