@@ -7,6 +7,7 @@
   import type { MarketplaceMetadata } from '../../data/unity-cs-manager/protobuf/marketplace';
   import type { OrderLine } from '../../data/entities';
   import { fade, slide } from 'svelte/transition';
+  import { goto } from '$app/navigation';
 
   $: categories = ['All', ...new Set($marketplaceStore.map((p) => p.Category))];
   $: filteredProducts = $marketplaceStore.filter(
@@ -60,6 +61,13 @@
       }
     };
   }
+
+  function handleStartInstall(name: string) {
+    return () => {
+      console.log(selectedVersionsForProducts[name]);
+      // goto('/management/ui/install');
+    };
+  }
 </script>
 
 <div>
@@ -84,7 +92,7 @@
                   <option value={product.Version}>{product.Version}</option>
                 {/each}
               </select>
-              <button class="st-button tertiary">Uninstall </button>
+              <button class="st-button" on:click={handleStartInstall(name)}>Install</button>
             </div>
             <ProductItem
               product={selectedVersionsForProducts[name]}
