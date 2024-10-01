@@ -38,7 +38,7 @@
 
   const handleKeydown = (event: KeyboardEvent) => {
     if (event.ctrlKey && event.key === objectnumber.toString()) {
-      uninstallApp();
+      handleUninstall();
     } else if (event.key === objectnumber.toString()) {
       goto(link);
     }
@@ -75,17 +75,12 @@
           >Reapply Installation
         </button>
         {#if uninstallInProgress}
-          <button
-            on:click={uninstallApp}
-            on:keydown={handleKeydown}
-            class="st-button tertiary"
-            disabled
-            style="color: red; margin-top: 5px;"
+          <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
             >Uninstalling...
           </button>
         {:else}
           <button
-            on:click={uninstallApp}
+            on:click={handleUninstall}
             on:keydown={handleKeydown}
             class="st-button tertiary"
             style="color: red; margin-top: 5px;"
