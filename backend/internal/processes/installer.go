@@ -173,7 +173,7 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 
 	fetchAllApplications(db)
 
-	logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", deploymentID))
+	logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", fmt.Sprintf("%d", deploymentID)))
 	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
 
 	if err != nil {
