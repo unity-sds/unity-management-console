@@ -149,6 +149,14 @@ func handleGetApplicationInstallStatus(appConfig config.AppConfig, db database.D
 	}
 }
 
+func handleUninstallApplication(appConfig config.AppConfig, db database.Datastore) func (c *gin.Context) {
+	return func(c *gin.Context) {
+		deploymentName := c.Param("deploymentName")
+
+		err := processes.UninstallApplicationNew(appname, deploymentName, displayname, conf, store)
+	}
+}
+
 // func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 // 	fn := func(c *gin.Context) {
 // 		switch endpoint := c.Param("endpoint"); endpoint {

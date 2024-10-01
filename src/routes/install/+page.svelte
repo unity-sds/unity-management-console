@@ -52,6 +52,7 @@
 
   let installInProgress = false;
   let installComplete = false;
+  let installFailed = false;
   function startStatusPoller() {
     let poller = setInterval(async (_) => {
       const res = await fetch(`../api/install_application/status/${deploymentID}`);
@@ -64,6 +65,10 @@
         clearInterval(poller);
         installInProgress = false;
         installComplete = true;
+      } else if (json[0].status.includes('FAILED')) {
+        installInProgress = false;
+        installComplete = true;
+        installFailed = true;
       }
     }, 5000);
   }
@@ -96,7 +101,10 @@
       console.warn('Unable to get logs!');
       return;
     }
-    logs = await res.text();
+    const logStr = await res.text();
+    if (logStr) {
+      logs = logStr;
+    }
   }
 
   $: {
@@ -166,7 +174,9 @@
         <button class="st-button secondary" on:click={(_) => currentStepIndex--}>Back</button>
       {/if}
       {#if installInProgress}
-        <button class="st-button" disabled on:click={installApplication}>Installing...</button>
+        <button class="st-button" disabled>Installing...</button>
+      {:else if installFailed}
+        <button class="st-button" disabled style="color:red;">Install Failed!</button>
       {:else if installComplete}
         <button class="st-button" disabled on:click={installApplication}>Install Complete</button>
       {:else if currentStepIndex === steps.length - 1}
@@ -191,8 +201,6 @@
     {/if}
   </div>
 </div>
-
-<!-- <SetupWizard /> -->
 
 <style>
   .container {

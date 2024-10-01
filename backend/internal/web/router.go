@@ -110,6 +110,7 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 		api.POST("/install_application", gin.HandlerFunc(handleApplicationInstall(appConfig, store)))
 		api.GET("/install_application/status/:deploymentID", gin.HandlerFunc(handleGetApplicationInstallStatus(appConfig, store)))
 		api.GET("/install_application/logs/:deploymentID", gin.HandlerFunc(handleGetInstallLogs(appConfig)))
+		api.GET("/uninstall_application/:deploymentName", gin.HandlerFunc(handleUninstallApplication(appConfig, store)))
 	}
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
 

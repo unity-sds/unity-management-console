@@ -17,6 +17,8 @@
 
   let isUninstalling = false;
   const uninstallApp = () => {
+    console.log({ appName, appPackage, deployment });
+    return;
     isUninstalling = true;
     const httphandler = new HttpHandler();
     console.log('Uninstalling ' + appName);
