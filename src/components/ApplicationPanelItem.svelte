@@ -84,6 +84,7 @@
   let logs = '';
 
   async function getLogs(uninstall = false, updateInterval = false) {
+    showLogs = true;
     const url = uninstall
       ? `../api/uninstall_application/logs/${deployment}`
       : `../api/install_application/logs/${deployment}`;
