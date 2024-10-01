@@ -98,7 +98,9 @@
   let logInterval: any = null;
 
   async function getLogs() {
-    const res = await fetch(`../api/install_application/logs/${deploymentID}`);
+    const res = await fetch(
+      `../api/install_application/logs/${applicationMetadata.DeploymentName}`
+    );
     if (!res.ok) {
       console.warn('Unable to get logs!');
       return;
@@ -193,7 +195,7 @@
         >
       {/if}
     </div>
-    {#if showLogs}
+    {#if showLogs && logs}
       <div style="margin-top:10px">
         <hr />
         <pre>

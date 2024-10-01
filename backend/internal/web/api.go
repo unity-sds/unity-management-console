@@ -110,7 +110,15 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 
 func handleGetInstallLogs(appConfig config.AppConfig) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		deploymentID := c.Param("deploymentID")
+		deploymentName := c.Param("deploymentName")
+
+		deploymentID, err := db.FetchDeploymentIDByApplicationName(deploymentName)
+		if err != nil {
+			log.Errorf("Error getting deployment ID: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
+			return
+		}
+
 		logDir := filepath.Join(appConfig.Workdir, "install_logs")
 		logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", deploymentID))
 
@@ -164,9 +172,8 @@ func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db data
 		deploymentName := c.Param("deploymentName")
 
 		deploymentID, err := db.FetchDeploymentIDByApplicationName(deploymentName)
-
 		if err != nil {
-			log.Errorf("Error reading application status: %v", err)
+			log.Errorf("Error getting deployment ID: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
 			return
 		}
@@ -177,7 +184,7 @@ func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db data
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
 			return
 		}
-		
+
 		c.JSON(http.StatusOK, app)
 	}
 }
