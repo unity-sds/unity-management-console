@@ -80,6 +80,15 @@
   };
 
   let showLogs = false;
+  let logInterval: any = null;
+  async function getLogs() {
+    const res = await fetch(`../api/uninstall_application/status/${deployment}`);
+  }
+  $: if (showLogs && !logInterval) {
+    logInterval = setInterval((_) => {
+      getLogs();
+    }, 5000);
+  }
 </script>
 
 <div class="lg:w-1/3 md:w-1/2 mb-4">

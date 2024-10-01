@@ -14,7 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strconv"
+	// "strconv"
 )
 
 func handleHealthChecks(appConfig config.AppConfig) func(c *gin.Context) {
@@ -100,15 +100,14 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 			return
 		}
 
-
 		deploymentID, err := processes.InstallMarketplaceApplicationNew(&appConfig, location, &applicationInstallParams, &metadata, db)
 		log.Errorf("InstallID: %s", deploymentID)
 		c.JSON(http.StatusOK, gin.H{"deploymentID": deploymentID})
-		
+
 	}
 }
 
-func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
+func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore, uninstall bool) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		deploymentName := c.Param("deploymentName")
 
@@ -119,8 +118,19 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore) fun
 			return
 		}
 
-		logDir := filepath.Join(appConfig.Workdir, "install_logs")
-		logfile := filepath.Join(logDir, fmt.Sprintf("%d_install_log", deploymentID))
+		var logDir string
+		if uninstall {
+			logDir = filepath.Join(appConfig.Workdir, "uninstall_logs")
+		} else {
+			logDir = filepath.Join(appConfig.Workdir, "install_logs")
+		}
+
+		var logfile string
+		if uninstall {
+			logfile = filepath.Join(logDir, fmt.Sprintf("%d_uninstall_log", deploymentID))
+		} else {
+			logfile = filepath.Join(logDir, fmt.Sprintf("%d_install_log", deploymentID))
+		}
 
 		// Read the log file
 		content, err := os.ReadFile(logfile)
@@ -135,7 +145,7 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore) fun
 	}
 }
 
-func handleUninstallApplication(appConfig config.AppConfig, db database.Datastore) func (c *gin.Context) {
+func handleUninstallApplication(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		displayName := c.Param("displayName")
 		appName := c.Param("appName")

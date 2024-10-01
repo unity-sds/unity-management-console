@@ -107,7 +107,8 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 		api.GET("/health_checks", gin.HandlerFunc(handleHealthChecks(appConfig)))
 		api.POST("/uninstall", gin.HandlerFunc(handleUninstall(appConfig)))
 		api.POST("/install_application", gin.HandlerFunc(handleApplicationInstall(appConfig, store)))
-		api.GET("/install_application/logs/:deploymentName", gin.HandlerFunc(handleGetInstallLogs(appConfig, store)))
+		api.GET("/install_application/logs/:deploymentName", gin.HandlerFunc(handleGetInstallLogs(appConfig, store, false)))
+		api.GET("/uninstall_application/logs/:deploymentName", gin.HandlerFunc(handleGetInstallLogs(appConfig, store, true)))
 		api.GET("/uninstall_application/:displayName/:appName/:deployment", gin.HandlerFunc(handleUninstallApplication(appConfig, store)))
 		api.GET("/install_application/status/:deploymentName", gin.HandlerFunc(handleGetApplicationInstallStatusByName(appConfig, store)))
 	}
