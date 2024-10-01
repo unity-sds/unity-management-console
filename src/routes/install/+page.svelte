@@ -68,7 +68,7 @@
       console.log(res);
       return;
     }
-    const json = await res.json();
+    const json = await res.json() as StartApplicationInstallResponse;
     if (json.deploymentID) {
       startStatusPoller(json.deploymentID);
     } else {
