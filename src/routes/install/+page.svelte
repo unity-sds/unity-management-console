@@ -55,7 +55,7 @@
   let installFailed = false;
   function startStatusPoller() {
     let poller = setInterval(async (_) => {
-      const res = await fetch(`../api/install_application/status/${product.DisplayName}`);
+      const res = await fetch(`../api/install_application/status/${product.DeploymentName}`);
       if (!res.ok) {
         console.warn("Couldn't get status!");
         return;
