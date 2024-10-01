@@ -25,6 +25,17 @@
     httphandler.uninstallSoftware(appName, appPackage, deployment);
   };
 
+  let uninstallInProgress = false;
+  async function handleUninstall() {
+    const url = `../api/install_application/${appName}/${appPackage}/${deployment}`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn('Error uninstalling!');
+      return;
+    }
+    uninstallInProgress = true;
+  }
+
   const handleKeydown = (event: KeyboardEvent) => {
     if (event.ctrlKey && event.key === objectnumber.toString()) {
       uninstallApp();
@@ -63,13 +74,24 @@
         <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
           >Reapply Installation
         </button>
-        <button
-          on:click={uninstallApp}
-          on:keydown={handleKeydown}
-          class="st-button tertiary"
-          style="color: red; margin-top: 5px;"
-          >Uninstall
-        </button>
+        {#if uninstallInProgress}
+          <button
+            on:click={uninstallApp}
+            on:keydown={handleKeydown}
+            class="st-button tertiary"
+            disabled
+            style="color: red; margin-top: 5px;"
+            >Uninstalling...
+          </button>
+        {:else}
+          <button
+            on:click={uninstallApp}
+            on:keydown={handleKeydown}
+            class="st-button tertiary"
+            style="color: red; margin-top: 5px;"
+            >Uninstall
+          </button>
+        {/if}
       {/if}
     </div>
   </div>

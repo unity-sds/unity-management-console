@@ -151,9 +151,11 @@ func handleGetApplicationInstallStatus(appConfig config.AppConfig, db database.D
 
 func handleUninstallApplication(appConfig config.AppConfig, db database.Datastore) func (c *gin.Context) {
 	return func(c *gin.Context) {
-		deploymentName := c.Param("deploymentName")
+		displayName := c.Param("displayName")
+		appName := c.Param("appName")
+		deployment := c.Param("deployment")
 
-		err := processes.UninstallApplicationNew(appname, deploymentName, displayname, conf, store)
+		go processes.UninstallApplicationNew(appName, deployment, displayName, &conf, db)
 	}
 }
 
