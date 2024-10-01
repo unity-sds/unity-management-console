@@ -120,4 +120,5 @@ type Datastore interface {
 	FetchDeploymentNames() ([]string, error)
 	RemoveDeploymentByName(name string) error
 	RemoveApplicationByName(deploymentName string, applicationName string) error
+	FetchDeploymentIDByNameAlt(deploymentName string) (uint, error)
 }
