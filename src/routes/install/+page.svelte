@@ -15,6 +15,8 @@
 
   let product = get(productInstall);
 
+  let deploymentID: string;
+
   function getObjectKeys(obj: object): string[] {
     return Object.keys(obj);
   }
@@ -50,7 +52,7 @@
 
   let installInProgress = false;
   let installComplete = false;
-  function startStatusPoller(deploymentID: string) {
+  function startStatusPoller() {
     let poller = setInterval(async (_) => {
       const res = await fetch(`../api/install_application/status/${deploymentID}`);
       if (!res.ok) {
@@ -77,9 +79,24 @@
     }
     const json = (await res.json()) as StartApplicationInstallResponse;
     if (json.deploymentID) {
-      startStatusPoller(json.deploymentID);
+      deploymentID = json.deploymentID;
+      startStatusPoller();
     } else {
       console.error('No deploymentID received in the response');
+    }
+  }
+
+  let showLogs = false;
+  let logs: string;
+  async function toggleLogs() {
+    showLogs = !showLogs;
+    if (showLogs && !logs) {
+      const res = await fetch(`../api/install_application/logs/${deploymentID}`);
+      if (!res.ok) {
+        console.warn('Unable to get logs!');
+        return;
+      }
+      logs = await res.text();
     }
   }
 
@@ -148,7 +165,17 @@
       {:else}
         <button class="st-button" on:click={(_) => currentStepIndex++}>Next</button>
       {/if}
+
+      {#if installInProgress || installComplete}
+        <button class="st-button" on:click={toggleLogs}>{showLogs ? 'Hide' : 'Show'} Logs</button>
+      {/if}
     </div>
+    {#if showLogs}
+      <hr />
+      <pre>
+      {logs}
+    </pre>
+    {/if}
   </div>
 </div>
 
