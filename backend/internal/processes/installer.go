@@ -52,14 +52,14 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 			Creator:      "admin",
 			CreationDate: time.Time{},
 		}
-		return "", nil
 
 		deploymentID, err := db.StoreDeployment(deployment)
 		if err != nil {
 			db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "STAGINGFAILED")
-
 			return "", err
 		}
+
+		return "", nil
 
 		err = terraform.AddApplicationToStackNew(appConfig, location, meta, installParams, db, deploymentID)
 
