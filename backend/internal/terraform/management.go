@@ -251,11 +251,11 @@ func AddApplicationToStackNew(appConfig *config.AppConfig, location string, meta
 	}
 
 	log.Info("Generating header")
-	generateMetadataHeader(rootBody, u.String(), meta.Name, installParams.DisplayName, installParams.Version, "admin", deploymentID)
+	generateMetadataHeader(rootBody, u.String(), meta.Name, installParams.DeploymentName, installParams.Version, "admin", deploymentID)
 
 	log.Info("adding attributes")
 	attributes := map[string]cty.Value{
-		"deployment_name": cty.StringVal(installParams.DisplayName),
+		"deployment_name": cty.StringVal(installParams.DeploymentName),
 		"tags":            cty.MapValEmpty(cty.String), // Example of setting an empty map
 		"project":         cty.StringVal(appConfig.Project),
 		"venue":           cty.StringVal(appConfig.Venue),
@@ -278,7 +278,7 @@ func AddApplicationToStackNew(appConfig *config.AppConfig, location string, meta
 		randomChars[i] = chars[v]
 	}
 	log.Info("Appending block to body")
-	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", installParams.DisplayName, string(randomChars))}, path, attributes)
+	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars))}, path, attributes)
 
 	log.Info("Writing hcl file.")
 	_, err = tfFile.Write(hclFile.Bytes())
