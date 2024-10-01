@@ -111,12 +111,12 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore, uni
 	return func(c *gin.Context) {
 		deploymentName := c.Param("deploymentName")
 
-		deploymentID, err := db.FetchDeploymentIDByApplicationName(deploymentName)
-		if err != nil {
-			log.Errorf("Error getting deployment ID: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
-			return
-		}
+		// deploymentID, err := db.FetchDeploymentIDByApplicationName(deploymentName)
+		// if err != nil {
+		// 	log.Errorf("Error getting deployment ID: %v", err)
+		// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
+		// 	return
+		// }
 
 		var logDir string
 		if uninstall {
@@ -127,9 +127,9 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore, uni
 
 		var logfile string
 		if uninstall {
-			logfile = filepath.Join(logDir, fmt.Sprintf("%d_uninstall_log", deploymentID))
+			logfile = filepath.Join(logDir, fmt.Sprintf("%s_uninstall_log", deploymentName))
 		} else {
-			logfile = filepath.Join(logDir, fmt.Sprintf("%d_install_log", deploymentID))
+			logfile = filepath.Join(logDir, fmt.Sprintf("%s_install_log", deploymentName))
 		}
 
 		// Read the log file
