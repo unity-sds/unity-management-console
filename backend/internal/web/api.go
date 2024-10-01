@@ -108,7 +108,7 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 	}
 }
 
-func handleGetInstallLogs(appConfig config.AppConfig) func(c *gin.Context) {
+func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		deploymentName := c.Param("deploymentName")
 
