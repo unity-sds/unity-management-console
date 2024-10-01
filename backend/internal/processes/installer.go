@@ -41,7 +41,7 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 		app := models.Application{
 			Name:        installParams.Name,
 			Version:     installParams.Version,
-			DisplayName: installParams.DeploymentName,
+			DisplayName: installParams.DisplayName,
 			PackageName: meta.Name,
 			Source:      meta.Package,
 			Status:      "STAGED",
@@ -55,11 +55,9 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 
 		deploymentID, err := db.StoreDeployment(deployment)
 		if err != nil {
-			db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "STAGINGFAILED")
+			db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "STAGINGFAILED")
 			return "", err
 		}
-
-		return "", nil
 
 		err = terraform.AddApplicationToStackNew(appConfig, location, meta, installParams, db, deploymentID)
 
