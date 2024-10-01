@@ -113,6 +113,7 @@
 
   $: {
     if (showLogs && !logInterval) {
+      getLogs();
       logInterval = setInterval((_) => {
         getLogs();
       }, 5000);
