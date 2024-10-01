@@ -82,23 +82,32 @@
   let showLogs = false;
   let logInterval: any = null;
   let logs = '';
-  async function getLogs() {
-    const res = await fetch(`../api/uninstall_application/logs/${deployment}`);
+
+  async function getLogs(uninstall = false, updateInterval = false) {
+    const url = uninstall
+      ? `../api/uninstall_application/logs/${deployment}`
+      : `../api/install_application/logs/${deployment}`;
+    const res = await fetch(url);
     if (!res.ok) {
       console.warn("Can't get logs!");
-      clearInterval(logInterval);
+      if (logInterval) clearInterval(logInterval);
       return;
     }
     logs = await res.text();
+
+    if (updateInterval) {
+      logInterval = setInterval((_) => {
+        getLogs();
+      }, 5000);
+    }
   }
-  $: if (showLogs && !logInterval) {
-    logInterval = setInterval((_) => {
-      getLogs();
-    }, 5000);
+
+  $: if (!showLogs && logInterval) {
+    clearInterval(logInterval);
   }
 </script>
 
-<div class="lg:w-1/3 md:w-1/2 mb-4">
+<div class="lg:w-1/3 md:w-1/2 mb-4" style="flex: 0 0 auto;">
   <div class="bg-white border rounded shadow-md h-full">
     <div style="display: flex; flex-direction: column; align-items: center; padding: 5px;">
       <span class="st-typography-header">{title}</span>
@@ -143,12 +152,17 @@
           >Uninstall
         </button>
       {/if}
+      {#if uninstallInProgress || uninstallComplete || uninstallError}
+        <button
+          class="st-button secondary"
+          style="margin-top: 5px;"
+          on:click={() => getLogs(true, true)}
+          >Show Unnstall Logs
+        </button>
+      {/if}
       <!-- {/if} -->
-      <button
-        class="st-button secondary"
-        style="margin-top: 5px;"
-        on:click={(_) => (showLogs = !showLogs)}
-        >Show Logs
+      <button class="st-button secondary" style="margin-top: 5px;" on:click={getLogs}
+        >Show Install Logs
       </button>
     </div>
   </div>

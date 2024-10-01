@@ -163,7 +163,7 @@
         </div>
         <hr />
         <div>
-          <div class="st-typography-label">Variables</div>
+          <div class="st-typography-bold">Variables</div>
           {#each Object.entries(applicationMetadata.Variables) as [key, value]}
             <div style="display: flex;">
               <div class="st-typography-label">{key}:&nbsp;</div>
@@ -173,7 +173,7 @@
         </div>
       </div>
     {/if}
-    <hr />
+    <hr style="margin-top:10px" />
     <div style="margin-top:10px;">
       {#if currentStepIndex > 0}
         <button class="st-button secondary" on:click={(_) => currentStepIndex--}>Back</button>
