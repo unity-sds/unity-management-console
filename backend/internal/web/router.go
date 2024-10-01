@@ -87,6 +87,12 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router.RedirectTrailingSlash = false
 	conf = appConfig
 
+	store, err := database.NewGormDatastore()
+	if err != nil {
+		log.WithError(err).Error("Error creating datastore")
+		return err
+	}
+
 	/*authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
 		"admin": "unity",
 		"user":  "unity",
@@ -130,11 +136,6 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 // It creates a new datastore and uses it to handle install messages.
 func handleMessages() error {
 	log.Info("Creating message handler")
-	store, err := database.NewGormDatastore()
-	if err != nil {
-		log.WithError(err).Error("Error creating datastore")
-		return err
-	}
 
 	for message := range websocket2.WsManager.Broadcast {
 		// Unmarshal the message into a WebsocketMessage
