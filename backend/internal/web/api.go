@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 func handleHealthChecks(appConfig config.AppConfig) func(c *gin.Context) {
@@ -128,14 +129,23 @@ func handleGetInstallLogs(appConfig config.AppConfig) func(c *gin.Context) {
 
 func handleGetApplicationInstallStatus(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		deploymentID := c.Param("deploymentID")
-		app, err := db.FetchAllApplicationStatusByDeployment(deploymentID)
+		deploymentIDStr := c.Param("deploymentID")
+		deploymentID, err := strconv.ParseUint(deploymentIDStr, 10, 32)
+		if err != nil {
+			log.Errorf("Error parsing deploymentID: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid deploymentID"})
+			return
+		}
+
+		app, err := db.FetchAllApplicationStatusByDeployment(uint(deploymentID))
 
 		if err != nil {
 			log.Errorf("Error reading application status: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
-			return			
+			return
 		}
+
+		c.JSON(http.StatusOK, app)
 	}
 }
 
