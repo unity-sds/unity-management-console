@@ -83,7 +83,7 @@
   let logInterval: any = null;
   let logs = '';
   async function getLogs() {
-    const res = await fetch(`../api/uninstall_application/status/${deployment}`);
+    const res = await fetch(`../api/uninstall_application/logs/${deployment}`);
     if (!res.ok) {
       console.warn("Can't get logs!");
       clearInterval(logInterval);
