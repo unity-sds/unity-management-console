@@ -5,6 +5,10 @@
   import { productInstall } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
 
+  type StartApplicationInstallResponse = {
+    deploymentID: string;
+  };
+
   let nodeGroups: NodeGroupType[] = [];
 
   let product = get(productInstall);
