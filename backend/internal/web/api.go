@@ -163,7 +163,7 @@ func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db data
 	return func(c *gin.Context) {
 		deploymentName := c.Param("deploymentName")
 
-		app, err := db.FetchDeploymentIDByNameAlt(deploymentName)
+		deploymentID, err := db.FetchDeploymentIDByApplicationName(deploymentName)
 
 		if err != nil {
 			log.Errorf("Error reading application status: %v", err)
@@ -171,6 +171,13 @@ func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db data
 			return
 		}
 
+		app, err := db.FetchAllApplicationStatusByDeployment(deploymentID)
+		if err != nil {
+			log.Errorf("Error reading application status: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
+			return
+		}
+		
 		c.JSON(http.StatusOK, app)
 	}
 }
