@@ -25,6 +25,7 @@
     httphandler.uninstallSoftware(appName, appPackage, deployment);
   };
 
+  let uninstallComplete = false;
   let uninstallInProgress = false;
   async function handleUninstall() {
     const url = `../api/uninstall_application/${appName}/${appPackage}/${deployment}`;
@@ -34,6 +35,22 @@
       return;
     }
     uninstallInProgress = true;
+  }
+
+  let statusInterval: any = null;
+  $: {
+    if (uninstallInProgress && !uninstallComplete) {
+      statusInterval(async (_) => {
+        const res = await fetch(`../api/install_application/status/${deployment}`);
+        if (!res.ok) {
+          console.warn('Error getting status!');
+          clearInterval(statusInterval);
+        }
+        console.log(await res.json());
+      }, 5000);
+    } else {
+      clearInterval(statusInterval);
+    }
   }
 
   const handleKeydown = (event: KeyboardEvent) => {

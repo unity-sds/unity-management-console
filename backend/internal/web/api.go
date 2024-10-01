@@ -159,6 +159,22 @@ func handleUninstallApplication(appConfig config.AppConfig, db database.Datastor
 	}
 }
 
+func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		deploymentName := c.Param("deploymentName")
+
+		app, err := db.FetchDeploymentIDByName(deploymentName)
+
+		if err != nil {
+			log.Errorf("Error reading application status: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
+			return
+		}
+
+		c.JSON(http.StatusOK, app)
+	}
+}
+
 // func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 // 	fn := func(c *gin.Context) {
 // 		switch endpoint := c.Param("endpoint"); endpoint {
