@@ -9,6 +9,8 @@
     deploymentID: string;
   };
 
+  type ApplicationInstallStatus = [{ Status: string }];
+
   let nodeGroups: NodeGroupType[] = [];
 
   let product = get(productInstall);
@@ -55,7 +57,7 @@
         console.warn("Couldn't get status!");
         return;
       }
-      const json = await res.json();
+      const json = (await res.json()) as ApplicationInstallStatus;
       if (json[0].Status === 'COMPLETE') {
         clearInterval(poller);
         installInProgress = false;
