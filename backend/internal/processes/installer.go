@@ -155,8 +155,6 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 
 	executor := &terraform.RealTerraformExecutor{}
 
-	return nil
-
 	//m, err := fetchMandatoryVars()
 	//if err != nil {
 	//	return err
@@ -166,6 +164,8 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 	if err != nil {
 		return err
 	}
+
+	return nil
 	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "INSTALLING")
 	fetchAllApplications(db)
 
