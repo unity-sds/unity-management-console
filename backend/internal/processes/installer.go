@@ -59,6 +59,8 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 			return "", err
 		}
 
+		log.Errorf("Application name is: %s", installParams.Name)
+		return "", nil
 		err = terraform.AddApplicationToStackNew(appConfig, location, meta, installParams, db, deploymentID)
 
 		installID := terraform.GenerateRandomString(8)
