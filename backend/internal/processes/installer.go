@@ -52,9 +52,6 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 			Creator:      "admin",
 			CreationDate: time.Time{},
 		}
-		log.Errorf("app: %v", app)
-		log.Errorf("deployment: %v", deployment)
-		return "", nil
 
 		deploymentID, err := db.StoreDeployment(deployment)
 		if err != nil {

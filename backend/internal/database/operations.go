@@ -114,6 +114,7 @@ func FetchSSMParams() ([]models.SSMParameters, error) {
 }
 
 func (g GormDatastore) StoreDeployment(model models.Deployment) (uint, error) {
+	return 24, nil
 	if err := g.db.Save(&model).Error; err != nil {
 		// Handle error for Save
 		log.WithError(err).Error("Problem saving record to database")
