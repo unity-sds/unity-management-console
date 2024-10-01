@@ -165,7 +165,7 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 		return err
 	}
 
-	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "INSTALLING")
+	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "INSTALLING")
 
 	return nil
 	fetchAllApplications(db)
