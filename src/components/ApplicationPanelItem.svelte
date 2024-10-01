@@ -43,6 +43,11 @@
     if (uninstallInProgress && !uninstallComplete && !statusInterval) {
       statusInterval = setInterval(async () => {
         const res = await fetch(`../api/install_application/status/${deployment}`);
+        if (res.status === 404) {
+          uninstallInProgress = false;
+          uninstallComplete = true;
+          clearInterval(statusInterval);
+        }
         if (!res.ok) {
           console.warn('Error getting status!');
           clearInterval(statusInterval);
@@ -95,6 +100,10 @@
         {#if uninstallInProgress}
           <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
             >Uninstalling...
+          </button>
+        {:else if uninstallComplete}
+          <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
+            >Uninstall Complete!
           </button>
         {:else}
           <button

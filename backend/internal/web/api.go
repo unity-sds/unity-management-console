@@ -126,7 +126,7 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore) fun
 		content, err := os.ReadFile(logfile)
 		if err != nil {
 			log.Errorf("Error reading log file: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read log file"})
+			c.Status(http.StatusNotFound)
 			return
 		}
 
