@@ -3,6 +3,7 @@ package processes
 import (
 	"errors"
 	"fmt"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
@@ -67,7 +68,7 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 			return installID, executeNew(db, appConfig, meta, installParams, deploymentID, installID)
 		}()
 
-		return deploymentID, nil
+		return fmt.Sprintf("%d", deploymentID), nil
 
 	} else {
 		return "", errors.New("backend not implemented")
