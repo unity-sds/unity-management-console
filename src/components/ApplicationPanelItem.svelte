@@ -157,11 +157,11 @@
           class="st-button secondary"
           style="margin-top: 5px;"
           on:click={() => getLogs(true, true)}
-          >Show Unnstall Logs
+          >Show Uninstall Logs
         </button>
       {/if}
       <!-- {/if} -->
-      <button class="st-button secondary" style="margin-top: 5px;" on:click={getLogs}
+      <button class="st-button secondary" style="margin-top: 5px;" on:click={(_) => getLogs()}
         >Show Install Logs
       </button>
     </div>
