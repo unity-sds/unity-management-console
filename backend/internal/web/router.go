@@ -90,7 +90,6 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	store, err := database.NewGormDatastore()
 	if err != nil {
 		log.WithError(err).Error("Error creating datastore")
-		return err
 	}
 
 	/*authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
