@@ -134,7 +134,12 @@ func (g GormDatastore) FetchDeploymentIDByName(deploymentID string) (uint, error
 }
 
 func (g GormDatastore) FetchDeploymentIDByNameAlt(deploymentName string) (uint, error) {
-	var deployment models.Deployment
+	var application models.Application
+	result := g.db.Where("display_name = ?", deploymentName).First(&application)
+	if result.Error != nil {
+		return 0, fmt.Errorf("error finding application: %v", result.Error)
+	}
+	return application.DeploymentID, nil
 }
 
 func (g GormDatastore) UpdateApplicationStatus(deploymentID uint, targetAppName string, displayName string, newStatus string) error {
