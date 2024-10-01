@@ -61,8 +61,6 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 
 		err = terraform.AddApplicationToStackNew(appConfig, location, meta, installParams, db, deploymentID)
 
-		return "test", err
-
 		installID := terraform.GenerateRandomString(8)
 		return installID, executeNew(db, appConfig, meta, installParams, deploymentID, installID)
 
@@ -156,6 +154,8 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 	}
 
 	executor := &terraform.RealTerraformExecutor{}
+
+	return nil
 
 	//m, err := fetchMandatoryVars()
 	//if err != nil {
