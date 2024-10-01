@@ -88,7 +88,7 @@
 
   let showLogs = false;
   let logs: string;
-  let logInterval;
+  let logInterval: any = null;
 
   async function getLogs() {
     const res = await fetch(`../api/install_application/logs/${deploymentID}`);
