@@ -98,9 +98,11 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to fetch package"})
 			return
 		}
-		installID, err := processes.InstallMarketplaceApplicationNew(&appConfig, location, &applicationInstallParams, &metadata, db)
-		c.JSON(http.StatusOK, gin.H{"installID": installID})
-		return
+
+		
+		// installID, err := processes.InstallMarketplaceApplicationNew(&appConfig, location, &applicationInstallParams, &metadata, db)
+		// c.JSON(http.StatusOK, gin.H{"installID": installID})
+		// return
 	}
 }
 
