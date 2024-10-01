@@ -21,7 +21,6 @@ var clients = make(map[*websocket.Conn]bool)
 var broadcast = make(chan websocket2.ClientMessage)
 
 var appConf config.AppConfig
-var store database.Datastore
 
 // setupFeatureFlags sets up feature flags for the application.
 // It uses the username from the gin context to create a new user for the feature flag client.
@@ -88,10 +87,6 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	conf = appConfig
 
 	store, err := database.NewGormDatastore()
-	if err != nil {
-		log.WithError(err).Error("Error creating datastore")
-	}
-
 	/*authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
 		"admin": "unity",
 		"user":  "unity",
@@ -103,16 +98,9 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	})
 	router.StaticFS("/ui/", http.Dir("./build"))
 	router.GET("/ws", handleWebsocket)
-
-	api := router.Group("/api") 
-	{
-		api.GET("/health_checks", gin.HandlerFunc(handleHealthChecks(appConfig)))
-		// api.GET("/application_uninstall_status/:application_name/:deployment_id", handleGetApplicationInstallStatus(appConfig))
-		api.POST("/uninstall", gin.HandlerFunc(handleUninstall(appConfig)))
-		api.POST("/install_application",gin.HandlerFunc(handleApplicationInstall(appConfig, store)))
-		api.GET("/install_logs/:installID", gin.HandlerFunc(handleGetInstallLogs(appConfig)))
-	}
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
+	router.GET("/api/:endpoint", handleGetAPICall(appConfig))
+	router.POST("/api/:endpoint", handlePostAPICall(appConfig))
 
 	//router.Use(EnsureTrailingSlash())
 	router.Use(LoggingMiddleware())
@@ -135,6 +123,11 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 // It creates a new datastore and uses it to handle install messages.
 func handleMessages() error {
 	log.Info("Creating message handler")
+	store, err := database.NewGormDatastore()
+	if err != nil {
+		log.WithError(err).Error("Error creating datastore")
+		return err
+	}
 
 	for message := range websocket2.WsManager.Broadcast {
 		// Unmarshal the message into a WebsocketMessage
