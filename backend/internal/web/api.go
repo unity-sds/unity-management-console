@@ -101,9 +101,9 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 		}
 
 
-		installID, err := processes.InstallMarketplaceApplicationNew(&appConfig, location, &applicationInstallParams, &metadata, db)
-		log.Errorf("InstallID: %s", installID)
-		// c.JSON(http.StatusOK, gin.H{"installID": installID})
+		deploymentID, err := processes.InstallMarketplaceApplicationNew(&appConfig, location, &applicationInstallParams, &metadata, db)
+		log.Errorf("InstallID: %s", deploymentID)
+		c.JSON(http.StatusOK, gin.H{"deploymentID": deploymentID})
 		// return
 	}
 }

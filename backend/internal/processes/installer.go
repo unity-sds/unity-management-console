@@ -3,7 +3,6 @@ package processes
 import (
 	"errors"
 	"fmt"
-	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
@@ -64,8 +63,7 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 		go func() {
 			log.Errorf("Application name is: %s", installParams.Name)
 			err = terraform.AddApplicationToStackNew(appConfig, location, meta, installParams, db, deploymentID)
-			installID := terraform.GenerateRandomString(8)
-			return installID, executeNew(db, appConfig, meta, installParams, deploymentID, installID)
+			executeNew(db, appConfig, meta, installParams, deploymentID)
 		}()
 
 		return fmt.Sprintf("%d", deploymentID), nil
@@ -152,7 +150,7 @@ func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketpla
 	return nil
 }
 
-func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams, deploymentID uint, installID string) error {
+func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams, deploymentID uint) error {
 	// Create install_logs directory if it doesn't exist
 	logDir := filepath.Join(appConfig.Workdir, "install_logs")
 	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
@@ -175,7 +173,7 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 
 	fetchAllApplications(db)
 
-	logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", installID))
+	logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", deploymentID))
 	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
 
 	if err != nil {
