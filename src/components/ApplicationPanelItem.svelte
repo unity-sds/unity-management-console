@@ -40,8 +40,8 @@
 
   let statusInterval: any = null;
   $: {
-    if (uninstallInProgress && !uninstallComplete) {
-      statusInterval(async () => {
+    if (uninstallInProgress && !uninstallComplete && !statusInterval) {
+      statusInterval = setInterval(async () => {
         const res = await fetch(`../api/install_application/status/${deployment}`);
         if (!res.ok) {
           console.warn('Error getting status!');
