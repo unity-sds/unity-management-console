@@ -34,6 +34,7 @@
       console.warn('Error uninstalling!');
       return;
     }
+    console.log('Starting uninstall!');
     uninstallInProgress = true;
   }
 
