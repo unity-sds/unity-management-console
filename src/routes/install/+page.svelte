@@ -88,15 +88,24 @@
 
   let showLogs = false;
   let logs: string;
-  async function toggleLogs() {
-    showLogs = !showLogs;
-    if (showLogs && !logs) {
-      const res = await fetch(`../api/install_application/logs/${deploymentID}`);
-      if (!res.ok) {
-        console.warn('Unable to get logs!');
-        return;
-      }
-      logs = await res.text();
+  let logInterval;
+
+  async function getLogs() {
+    const res = await fetch(`../api/install_application/logs/${deploymentID}`);
+    if (!res.ok) {
+      console.warn('Unable to get logs!');
+      return;
+    }
+    logs = await res.text();
+  }
+
+  $: {
+    if (showLogs && !logInterval) {
+      logInterval = setInterval((_) => {
+        getLogs();
+      }, 5000);
+    } else if (!showLogs) {
+      clearInterval(logInterval);
     }
   }
 
@@ -167,7 +176,9 @@
       {/if}
 
       {#if installInProgress || installComplete}
-        <button class="st-button" on:click={toggleLogs}>{showLogs ? 'Hide' : 'Show'} Logs</button>
+        <button class="st-button" on:click={(_) => (showLogs = !showLogs)}
+          >{showLogs ? 'Hide' : 'Show'} Logs</button
+        >
       {/if}
     </div>
     {#if showLogs}
