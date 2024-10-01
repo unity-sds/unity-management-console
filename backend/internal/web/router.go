@@ -108,8 +108,8 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 		// api.GET("/application_uninstall_status/:application_name/:deployment_id", handleGetApplicationInstallStatus(appConfig))
 		api.POST("/uninstall", gin.HandlerFunc(handleUninstall(appConfig)))
 		api.POST("/install_application", gin.HandlerFunc(handleApplicationInstall(appConfig, store)))
-		api.GET("/install_application/status/:deploymentID", gin.HandlerFunc(handleGetApplicationInstallStatus(appConfig, store)))
-		// api.GET("/install_application/logs/:deploymentID", gin.HandlerFunc(handleGetInstallLogs(appConfig)))
+		// api.GET("/install_application/status/:deploymentID", gin.HandlerFunc(handleGetApplicationInstallStatus(appConfig, store)))
+		api.GET("/install_application/logs/:deploymentID", gin.HandlerFunc(handleGetInstallLogs(appConfig)))
 		api.GET("/uninstall_application/:displayName/:appName/:deployment", gin.HandlerFunc(handleUninstallApplication(appConfig, store)))
 		api.GET("/install_application/status/:deploymentName", gin.HandlerFunc(handleGetApplicationInstallStatusByName(appConfig, store)))
 	}
