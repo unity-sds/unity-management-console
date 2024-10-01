@@ -65,7 +65,7 @@
         clearInterval(poller);
         installInProgress = false;
         installComplete = true;
-      } else if (json[0].status.includes('FAILED')) {
+      } else if (json[0].Status.includes('FAILED')) {
         installInProgress = false;
         installComplete = true;
         installFailed = true;
