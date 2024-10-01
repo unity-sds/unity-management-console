@@ -65,7 +65,11 @@
       return;
     }
     const json = await res.json();
-    startStatusPoller(res.deploymentID);
+    if (json.deploymentID) {
+      startStatusPoller(json.deploymentID);
+    } else {
+      console.error('No deploymentID received in the response');
+    }
   }
 
   $: console.log(product);
