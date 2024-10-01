@@ -110,9 +110,9 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 
 func handleGetInstallLogs(appConfig config.AppConfig) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		install_application := c.Param("install_application")
+		deploymentID := c.Param("deploymentID")
 		logDir := filepath.Join(appConfig.Workdir, "install_logs")
-		logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", install_application))
+		logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", deploymentID))
 
 		// Read the log file
 		content, err := os.ReadFile(logfile)
