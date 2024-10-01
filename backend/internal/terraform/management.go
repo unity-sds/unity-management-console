@@ -234,6 +234,8 @@ func AddApplicationToStackNew(appConfig *config.AppConfig, location string, meta
 
 	directory := filepath.Join(appConfig.Workdir, "workspace")
 	filename := fmt.Sprintf("%v%v%v", installParams.Name, s, ".tf")
+
+	log.Errorf("Creating file with the name: %s", filename)
 	tfFile, err := createFile(directory, filename, 0755)
 	if err != nil {
 		log.WithError(err).Error("Problem creating tf file")
@@ -278,7 +280,6 @@ func AddApplicationToStackNew(appConfig *config.AppConfig, location string, meta
 		randomChars[i] = chars[v]
 	}
 	log.Info("Appending block to body")
-	log.Errorf("DEPLOYMENT NAME: %s", fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars)))
 	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars))}, path, attributes)
 
 	log.Info("Writing hcl file.")
