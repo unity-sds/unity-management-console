@@ -171,6 +171,9 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 
 	logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", installID))
 	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
+
+	return nil
+	
 	if err != nil {
 		db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "FAILED")
 		fetchAllApplications(db)
