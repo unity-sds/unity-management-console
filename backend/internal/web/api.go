@@ -126,7 +126,7 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore) fun
 		content, err := os.ReadFile(logfile)
 		if err != nil {
 			log.Errorf("Error reading log file: %v", err)
-			c.Status(http.StatusNotFound)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read log file"})
 			return
 		}
 
@@ -149,7 +149,7 @@ func handleGetApplicationInstallStatus(appConfig config.AppConfig, db database.D
 
 		if err != nil {
 			log.Errorf("Error reading application status: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
+			c.Status(http.StatusNotFound)
 			return
 		}
 
