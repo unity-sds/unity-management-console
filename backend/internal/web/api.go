@@ -99,7 +99,7 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 			return
 		}
 
-
+		log.Errorf("location: %v", location)
 		log.Errorf("db: %v", store)
 
 		// installID, err := processes.InstallMarketplaceApplicationNew(&appConfig, location, &applicationInstallParams, &metadata, db)
