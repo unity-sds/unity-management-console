@@ -174,20 +174,20 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 				p := path.Join(filepath, file.Name())
 				log.Infof("Attempting to delete file: %s", p)
 				err = os.Remove(p)
+				id, err := store.FetchDeploymentIDByName(deploymentname)
 				if err != nil {
-					id, err := store.FetchDeploymentIDByName(deploymentname)
 					log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
 					err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL FAILED")
 					log.WithError(err).Error("Failed to update application status removing application")
 					return err
 				}
-				logfile := path.Join(logDir, fmt.Sprintf("%d_install_log", deploymentname))
+				logfile := path.Join(logDir, fmt.Sprintf("%d_uninstall_log", id))
 				err = terraform.RunTerraformLogOutToFile(conf, logfile, executor, "")
 				if err != nil {
 					return err
 				}
 
-				err := store.RemoveApplicationByName(deploymentname, appname)
+				err = store.RemoveApplicationByName(deploymentname, appname)
 				if err != nil {
 					id, err := store.FetchDeploymentIDByName(deploymentname)
 					log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
