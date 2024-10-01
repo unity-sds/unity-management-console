@@ -45,7 +45,7 @@
   async function installApplication() {
     const outObj = { Name: product.Name, Version: product.Version, ...applicationMetadata };
     console.log(outObj);
-    const url = '../../api/install_application';
+    const url = '../api/install_application';
     const res = await fetch(url, { method: 'POST', body: JSON.stringify(outObj) });
     if (!res.ok) {
       console.log(res);
