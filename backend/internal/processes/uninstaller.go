@@ -181,7 +181,7 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 					log.WithError(err).Error("Failed to update application status removing application")
 					return err
 				}
-				err := store.RemoveApplicationByName(deploymentname, appname)
+				// err := store.RemoveApplicationByName(deploymentname, appname)
 				if err != nil {
 					id, err := store.FetchDeploymentIDByName(deploymentname)
 					log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
@@ -195,10 +195,10 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 				}
 				logfile := path.Join(logDir, fmt.Sprintf("%d_install_log", deploymentname))
 				err = terraform.RunTerraformLogOutToFile(conf, logfile, executor, "")
-				// err = terraform.RunTerraform(conf, conn, userid, executor, "")
 				if err != nil {
 					return err
 				}
+				err := store.RemoveApplicationByName(deploymentname, appname)
 				return nil
 			}
 		}
