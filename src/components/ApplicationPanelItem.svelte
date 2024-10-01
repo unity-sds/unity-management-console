@@ -1,5 +1,6 @@
 <script lang="ts">
   import ScaleOut from './common/ScaleOut.svelte';
+  import Modal from './common/Modal.svelte';
   import { HttpHandler, reapplyApplication } from '../data/httpHandler';
   import { goto } from '$app/navigation';
 
@@ -77,6 +78,8 @@
     console.log('Reapplying: ' + title);
     reapplyApplication(title, appName, deployment);
   };
+
+  let showLogs = false;
 </script>
 
 <div class="lg:w-1/3 md:w-1/2 mb-4">
@@ -93,38 +96,68 @@
       </div>
     </div>
     <div class="p-4 border-t" style="text-align: center;">
-      {#if isUninstalling}
+      <!--       {#if isUninstalling}
         <div style="display: flex; gap: 5px; align-items: center; justify-content: center;">
           <span class="st-typography-medium">Uninstalling....</span>
           <ScaleOut size={20} />
         </div>
-      {:else}
-        <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
-        <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
-          >Reapply Installation
+      {:else} -->
+      <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
+      <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
+        >Reapply Installation
+      </button>
+      {#if uninstallInProgress}
+        <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
+          >Uninstalling...
         </button>
-        {#if uninstallInProgress}
-          <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
-            >Uninstalling...
-          </button>
-        {:else if uninstallComplete}
-          <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
-            >Uninstall Complete!
-          </button>
-        {:else if uninstallError}
-          <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
-            >Uninstall Error
-          </button>
-        {:else}
-          <button
-            on:click={handleUninstall}
-            on:keydown={handleKeydown}
-            class="st-button tertiary"
-            style="color: red; margin-top: 5px;"
-            >Uninstall
-          </button>
-        {/if}
+      {:else if uninstallComplete}
+        <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
+          >Uninstall Complete!
+        </button>
+      {:else if uninstallError}
+        <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
+          >Uninstall Error
+        </button>
+      {:else}
+        <button
+          on:click={handleUninstall}
+          on:keydown={handleKeydown}
+          class="st-button tertiary"
+          style="color: red; margin-top: 5px;"
+          >Uninstall
+        </button>
       {/if}
+      <!-- {/if} -->
+      <button
+        class="st-button secondary"
+        style="margin-top: 5px;"
+        on:click={(_) => (showLogs = !showLogs)}
+        >Uninstall Error
+      </button>
     </div>
   </div>
 </div>
+
+<Modal bind:showLogs>
+  <h2 slot="header">
+    modal
+    <small><em>adjective</em> mod·al \ˈmō-dəl\</small>
+  </h2>
+
+  <ol class="definition-list">
+    <li>of or relating to modality in logic</li>
+    <li>
+      containing provisions as to the mode of procedure or the manner of taking effect —used of a
+      contract or legacy
+    </li>
+    <li>of or relating to a musical mode</li>
+    <li>of or relating to structure as opposed to substance</li>
+    <li>
+      of, relating to, or constituting a grammatical form or category characteristically indicating
+      predication
+    </li>
+    <li>of or relating to a statistical mode</li>
+  </ol>
+
+  <a href="https://www.merriam-webster.com/dictionary/modal">merriam-webster.com</a>
+</Modal>

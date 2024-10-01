@@ -135,28 +135,6 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore) fun
 	}
 }
 
-func handleGetApplicationInstallStatus(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		deploymentIDStr := c.Param("deploymentID")
-		deploymentID, err := strconv.ParseUint(deploymentIDStr, 10, 32)
-		if err != nil {
-			log.Errorf("Error parsing deploymentID: %v", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid deploymentID"})
-			return
-		}
-
-		app, err := db.FetchAllApplicationStatusByDeployment(uint(deploymentID))
-
-		if err != nil {
-			log.Errorf("Error reading application status: %v", err)
-			c.Status(http.StatusNotFound)
-			return
-		}
-
-		c.JSON(http.StatusOK, app)
-	}
-}
-
 func handleUninstallApplication(appConfig config.AppConfig, db database.Datastore) func (c *gin.Context) {
 	return func(c *gin.Context) {
 		displayName := c.Param("displayName")
@@ -181,7 +159,7 @@ func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db data
 		app, err := db.FetchAllApplicationStatusByDeployment(deploymentID)
 		if err != nil {
 			log.Errorf("Error reading application status: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
+			c.Status(http.StatusNotFound)
 			return
 		}
 
