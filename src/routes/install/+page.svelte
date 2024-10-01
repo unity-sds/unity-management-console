@@ -171,10 +171,12 @@
       {/if}
     </div>
     {#if showLogs}
-      <hr />
-      <pre>
+      <div style="margin-top:10px">
+        <hr />
+        <pre>
       {logs}
     </pre>
+      </div>
     {/if}
   </div>
 </div>
