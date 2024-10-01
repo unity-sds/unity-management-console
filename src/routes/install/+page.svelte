@@ -47,15 +47,20 @@
   }
 
   let installInProgress = false;
+  let installComplete = false;
   function startStatusPoller(deploymentID: string) {
     let poller = setInterval(async (_) => {
       const res = await fetch(`../api/install_application/status/${deploymentID}`);
       if (!res.ok) {
-        console.log("Couldn't get status!");
+        console.warn("Couldn't get status!");
         return;
       }
       const json = await res.json();
-      console.log(json);
+      if (json[0].Status === 'COMPLETE') {
+        clearInterval(poller);
+        installInProgress = false;
+        installComplete = true;
+      }
     }, 5000);
   }
 
@@ -132,10 +137,12 @@
       {#if currentStepIndex > 0}
         <button class="st-button secondary" on:click={(_) => currentStepIndex--}>Back</button>
       {/if}
-      {#if currentStepIndex === steps.length - 1}
-        <button class="st-button" on:click={installApplication}>Install</button>
-      {:else if installInProgress}
+      {#if installInProgress}
         <button class="st-button" disabled on:click={installApplication}>Installing...</button>
+      {:else if installComplete}
+        <button class="st-button" disabled on:click={installApplication}>Install Complete</button>
+      {:else if currentStepIndex === steps.length - 1}
+        <button class="st-button" on:click={installApplication}>Install</button>
       {:else}
         <button class="st-button" on:click={(_) => currentStepIndex++}>Next</button>
       {/if}
