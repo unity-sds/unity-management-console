@@ -182,13 +182,13 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 					return err
 				}
 				// err := store.RemoveApplicationByName(deploymentname, appname)
-				if err != nil {
-					id, err := store.FetchDeploymentIDByName(deploymentname)
-					log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
-					err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL FAILED")
-					log.WithError(err).Error("Failed to update application status removing application")
-					return err
-				}
+				// if err != nil {
+				// 	id, err := store.FetchDeploymentIDByName(deploymentname)
+				// 	log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
+				// 	err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL FAILED")
+				// 	log.WithError(err).Error("Failed to update application status removing application")
+				// 	return err
+				// }
 				err = fetchAllApplications(store)
 				if err != nil {
 					return err
@@ -198,7 +198,16 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 				if err != nil {
 					return err
 				}
+
 				err := store.RemoveApplicationByName(deploymentname, appname)
+				if err != nil {
+					id, err := store.FetchDeploymentIDByName(deploymentname)
+					log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
+					err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL FAILED")
+					log.WithError(err).Error("Failed to update application status removing application")
+					return err
+				}
+
 				return nil
 			}
 		}
