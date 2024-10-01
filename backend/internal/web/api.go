@@ -120,7 +120,7 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore) fun
 		}
 
 		logDir := filepath.Join(appConfig.Workdir, "install_logs")
-		logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", deploymentID))
+		logfile := filepath.Join(logDir, fmt.Sprintf("%d_install_log", deploymentID))
 
 		// Read the log file
 		content, err := os.ReadFile(logfile)
