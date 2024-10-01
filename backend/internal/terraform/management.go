@@ -278,7 +278,7 @@ func AddApplicationToStackNew(appConfig *config.AppConfig, location string, meta
 		randomChars[i] = chars[v]
 	}
 	log.Info("Appending block to body")
-	log.Errorf("DEPLOYMENT NAME: %s", installParams.DeploymentName)
+	log.Errorf("DEPLOYMENT NAME: %s", fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars)))
 	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars))}, path, attributes)
 
 	log.Info("Writing hcl file.")
