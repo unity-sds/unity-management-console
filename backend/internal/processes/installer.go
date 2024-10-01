@@ -165,8 +165,9 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 		return err
 	}
 
-	return nil
 	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "INSTALLING")
+
+	return nil
 	fetchAllApplications(db)
 
 	logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", installID))
