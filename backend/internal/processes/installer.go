@@ -173,21 +173,21 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
 
 	if err != nil {
-		db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "FAILED")
+		db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "FAILED")
 		fetchAllApplications(db)
 		return err
 	}
-	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "INSTALLED")
+	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "INSTALLED")
 	fetchAllApplications(db)
 	err = runPostInstallNew(appConfig, meta, installParams)
 
 	if err != nil {
-		db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "POSTINSTALL FAILED")
+		db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "POSTINSTALL FAILED")
 		fetchAllApplications(db)
 
 		return err
 	}
-	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "COMPLETE")
+	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "COMPLETE")
 	fetchAllApplications(db)
 
 	return nil
