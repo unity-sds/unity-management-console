@@ -47,7 +47,7 @@
   }
 
   let installInProgress = false;
-  function startStatusPoller(deploymentID) {
+  function startStatusPoller(deploymentID: string) {
     let poller = setInterval(async (_) => {
       const res = await fetch(`../api/install_application/status/${deploymentID}`);
       if (!res.ok) {
@@ -68,7 +68,7 @@
       console.log(res);
       return;
     }
-    const json = await res.json() as StartApplicationInstallResponse;
+    const json = (await res.json()) as StartApplicationInstallResponse;
     if (json.deploymentID) {
       startStatusPoller(json.deploymentID);
     } else {
