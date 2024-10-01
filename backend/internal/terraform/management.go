@@ -233,6 +233,7 @@ func AddApplicationToStackNew(appConfig *config.AppConfig, location string, meta
 	hclFile := hclwrite.NewEmptyFile()
 
 	directory := filepath.Join(appConfig.Workdir, "workspace")
+	log.Errorf("Application name: %s", installParams.Name)
 	filename := fmt.Sprintf("%v%v%v", installParams.Name, s, ".tf")
 
 	log.Errorf("Creating file with the name: %s", filename)
