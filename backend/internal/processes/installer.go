@@ -172,8 +172,6 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 	logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", installID))
 	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
 
-	return nil
-	
 	if err != nil {
 		db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DisplayName, "FAILED")
 		fetchAllApplications(db)
@@ -320,7 +318,7 @@ func runPreInstallNew(appConfig *config.AppConfig, meta *marketplace.Marketplace
 		// }
 		cmd.Env = append(cmd.Env, fmt.Sprintf("DEPLOYMENTNAME=%s", installParams.DeploymentName))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", appConfig.Workdir))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", installParams.DisplayName))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", installParams.DeploymentName))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("APPNAME=%s", installParams.Name))
 		if err := cmd.Run(); err != nil {
 			log.WithError(err).Error("Error running pre install script")
