@@ -27,6 +27,7 @@
 
   let uninstallComplete = false;
   let uninstallInProgress = false;
+  let uninstallError = false;
   async function handleUninstall() {
     const url = `../api/uninstall_application/${appName}/${appPackage}/${deployment}`;
     const res = await fetch(url);
@@ -52,7 +53,12 @@
           console.warn('Error getting status!');
           clearInterval(statusInterval);
         }
-        console.log(await res.json());
+        const json = await res.json();
+        if (json[0].Status === 'UNINSTALL FAILED') {
+          clearInterval(statusInterval);
+          uninstallInProgress = false;
+          uninstallError = true;
+        }
       }, 5000);
     } else {
       clearInterval(statusInterval);
@@ -104,6 +110,10 @@
         {:else if uninstallComplete}
           <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
             >Uninstall Complete!
+          </button>
+        {:else if uninstallError}
+          <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
+            >Uninstall Error
           </button>
         {:else}
           <button
