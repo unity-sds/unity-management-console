@@ -138,7 +138,7 @@
   </div>
 </div>
 
-<Modal bind:showLogs>
+<Modal bind:showModal={showLogs}>
   <h2 slot="header">
     modal
     <small><em>adjective</em> mod·al \ˈmō-dəl\</small>
