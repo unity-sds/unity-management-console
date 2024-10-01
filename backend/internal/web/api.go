@@ -94,7 +94,7 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 
 		location, err := processes.FetchPackage(&metadata, &conf)
 		if err != nil {
-			log.Errorf("Unable to fetch pagkage for application: %s, %v", applicationInstallParams.Name, err)
+			log.Errorf("Unable to fetch package for application: %s, %v", applicationInstallParams.Name, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to fetch package"})
 			return
 		}
