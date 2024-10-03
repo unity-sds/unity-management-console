@@ -195,6 +195,7 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 				// 	log.WithError(err).Error("Failed to update application status removing application")
 				// 	return err
 				// }
+				id, err := store.FetchDeploymentIDByName(deploymentname)
 				err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALLED")
 				err = fetchAllApplications(store)
 				if err != nil {
