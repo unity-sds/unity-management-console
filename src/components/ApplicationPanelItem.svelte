@@ -162,6 +162,9 @@
         </button>
       {/if}
       <!-- {/if} -->
+      <select class="st-select" on:change={(e) => console.log(e)}>
+        <option value="installlLogs">Show Install Logs</option>
+      </select>
       <button class="st-button secondary" style="margin-top: 5px;" on:click={(_) => getLogs()}
         >Show Install Logs
       </button>
@@ -171,7 +174,9 @@
 
 <Modal bind:showModal={showLogs}>
   <h2 slot="header">
-    Install Logs for {title}
+    <span class="st-typography-bold">
+      Install Logs for {title}
+    </span>
   </h2>
 
   {#if logs}
