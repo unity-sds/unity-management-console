@@ -142,6 +142,10 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 
 	for _, file := range files {
 		log.Infof("Checking file %s has prefix: %s", file.Name(), appname)
+
+		id, _ := store.FetchDeploymentIDByName(deploymentname)
+		store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL IN PROGRESS")
+
 		if strings.HasPrefix(file.Name(), appname) {
 			log.Infof("File was a match")
 			// Open the file
@@ -181,13 +185,16 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 					log.WithError(err).Error("Failed to update application status removing application")
 					return err
 				}
+
+				id, err := store.FetchDeploymentIDByName(deploymentname)
+				err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL TERRAFORM RUNNING")
 				logfile := path.Join(logDir, fmt.Sprintf("%s_uninstall_log", deploymentname))
 				err = terraform.RunTerraformLogOutToFile(conf, logfile, executor, "")
 				if err != nil {
 					return err
 				}
 
-				err := store.RemoveApplicationByName(deploymentname, appname)
+				err = store.RemoveApplicationByName(deploymentname, appname)
 				if err != nil {
 					id, err := store.FetchDeploymentIDByName(deploymentname)
 					log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")

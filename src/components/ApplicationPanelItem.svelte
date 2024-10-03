@@ -170,11 +170,10 @@
 </div>
 
 <Modal bind:showModal={showLogs}>
-  <!-- <h2 slot="header">
-    modal
-    <small><em>adjective</em> mod·al \ˈmō-dəl\</small>
+  <h2 slot="header">
+    Install Logs for {title}
   </h2>
- -->
+
   {#if logs}
     <pre>
   {logs}
