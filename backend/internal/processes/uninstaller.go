@@ -175,16 +175,16 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 			// Check applicationName from the comments and delete the file if it matches
 			log.Infof("Check if appname %s == %s", metadata["applicationName"], displayname)
 			if metadata["applicationName"] == displayname {
-				p := path.Join(filepath, file.Name())
-				log.Infof("Attempting to delete file: %s", p)
-				err = os.Remove(p)
-				if err != nil {
-					id, err := store.FetchDeploymentIDByName(deploymentname)
-					log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
-					err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL FAILED")
-					log.WithError(err).Error("Failed to update application status removing application")
-					return err
-				}
+				// p := path.Join(filepath, file.Name())
+				// log.Infof("Attempting to delete file: %s", p)
+				// err = os.Remove(p)
+				// if err != nil {
+				// 	id, err := store.FetchDeploymentIDByName(deploymentname)
+				// 	log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
+				// 	err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL FAILED")
+				// 	log.WithError(err).Error("Failed to update application status removing application")
+				// 	return err
+				// }
 
 				id, err := store.FetchDeploymentIDByName(deploymentname)
 				err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALL TERRAFORM RUNNING")
