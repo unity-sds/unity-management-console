@@ -95,6 +95,9 @@
       return;
     }
     logs = await res.text();
+    if (uninstallComplete && logs) {
+      clearInterval(logInterval);
+    }
 
     if (updateInterval) {
       logInterval = setInterval((_) => {
@@ -126,6 +129,8 @@
         <span class="st-typography-bold">Installation Status:</span>
         {#if status === 'COMPLETE'}
           <span class="st-typography-small-caps" style="color: green;">Done</span>
+        {:else if uninstallInProgress}
+          <span class="st-typography-small-caps" style="color: red;">Uninstalling</span>
         {:else}
           <span class="st-typography-small-caps" style="color:red;">{status}</span>
         {/if}
