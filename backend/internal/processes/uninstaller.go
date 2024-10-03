@@ -184,6 +184,7 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 				logfile := path.Join(logDir, fmt.Sprintf("%s_uninstall_log", deploymentname))
 				err = terraform.RunTerraformLogOutToFile(conf, logfile, executor, "")
 				if err != nil {
+					log.WithError(err).Error("Failed to uninstall application")
 					return err
 				}
 
