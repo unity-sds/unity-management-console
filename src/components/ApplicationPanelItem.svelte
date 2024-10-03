@@ -167,7 +167,7 @@
           >Show Uninstall Logs
         </button>
       {/if}
-      <select class="st-select" bind:selected={selectedLogOption}>
+      <select class="st-select" bind:value={selectedLogOption}>
         <option value="">Show Logs:</option>
         <option value="uninstall">Install</option>
         <option value="uninstall">Uninstall</option>
