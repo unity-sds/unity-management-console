@@ -139,7 +139,10 @@
     {#if steps[currentStepIndex] === 'deploymentDetails'}
       <div class="st-typography-displayBody">Deployment Details</div>
       <div class="variablesForm">
-        <div class="st-typography-label">Deployment Name</div>
+        <div class="st-typography-label">
+          Deployment Name (this should be a unique identifier for this installation of the
+          Marketplace item)
+        </div>
         <input class="st-input" bind:value={applicationMetadata.DeploymentName} />
       </div>
     {:else if steps[currentStepIndex] === 'variables'}

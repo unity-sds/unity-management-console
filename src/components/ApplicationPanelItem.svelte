@@ -106,6 +106,16 @@
   $: if (!showLogs && logInterval) {
     clearInterval(logInterval);
   }
+
+  let selectedLogOption = '';
+  $: {
+    switch (selectedLogOption) {
+      case 'install':
+        getLogs();
+      case 'uninstall':
+        getLogs(true, true);
+    }
+  }
 </script>
 
 <div class="lg:w-1/3 md:w-1/2 mb-4" style="flex: 0 0 auto;">
@@ -136,15 +146,11 @@
         <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
           >Uninstalling...
         </button>
-      {:else if uninstallComplete}
-        <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
-          >Uninstall Complete!
-        </button>
       {:else if uninstallError}
         <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
           >Uninstall Error
         </button>
-      {:else}
+      {:else if !uninstallComplete}
         <button
           on:click={handleUninstall}
           on:keydown={handleKeydown}
@@ -160,6 +166,14 @@
           on:click={() => getLogs(true, true)}
           >Show Uninstall Logs
         </button>
+      {/if}
+      <select class="st-select" bind:selected={selectedLogOption}>
+        <option value="">Show Logs:</option>
+        <option value="uninstall">Install</option>
+        <option value="uninstall">Uninstall</option>
+      </select>
+      {#if uninstallComplete}
+        <div class="st-typography-small-caps">Uninstall Complete!</div>
       {/if}
       <!-- {/if} -->
       <button class="st-button secondary" style="margin-top: 5px;" on:click={(_) => getLogs()}
