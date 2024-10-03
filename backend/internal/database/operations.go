@@ -133,6 +133,16 @@ func (g GormDatastore) FetchDeploymentIDByName(deploymentID string) (uint, error
 	return deployment.ID, nil
 }
 
+func (g GormDatastore) GetInstalledApplicationByName(name string) (*models.InstalledMarketplaceApplication, error) {
+	var application models.InstalledMarketplaceApplication
+	result := g.db.Where("name = ?", name).First(&application)
+	if result.Error != nil {
+		log.WithError(result.Error).Error("Error finding application")
+		return nil, result.Error
+	}
+	return &application, nil
+}
+
 func (g GormDatastore) FetchDeploymentIDByApplicationName(deploymentName string) (uint, error) {
 	var application models.Application
 	result := g.db.Where("display_name = ?", deploymentName).First(&application)
@@ -232,5 +242,28 @@ func (g GormDatastore) RemoveApplicationByName(deploymentName string, applicatio
 		return fmt.Errorf("error deleting application: %v", err)
 	}
 
+	return nil
+}
+
+func (g GormDatastore) StoreInstalledMarketplaceApplication(model models.InstalledMarketplaceApplication) (error) {
+	if err := g.db.Save(&model).Error; err != nil {
+		// Handle error for Save
+		log.WithError(err).Error("Problem saving record to database")
+		return err
+	}
+	return nil
+}
+
+func (g GormDatastore) UpdateInstalledMarketplaceApplicationStatusByName(appName string, status string) (error) {
+	var app models.InstalledMarketplaceApplication
+	
+	g.db.Where("name = ?", appName).First(&app)
+	app.Status = status
+
+	if err := g.db.Save(&app).Error; err != nil {
+		// Handle error for Save
+		log.WithError(err).Error("Problem saving record to database")
+		return err
+	}
 	return nil
 }

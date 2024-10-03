@@ -121,4 +121,7 @@ type Datastore interface {
 	RemoveDeploymentByName(name string) error
 	RemoveApplicationByName(deploymentName string, applicationName string) error
 	FetchDeploymentIDByApplicationName(deploymentName string) (uint, error)
+	GetInstalledApplicationByName(name string) (*models.InstalledMarketplaceApplication, error)
+	StoreInstalledMarketplaceApplication(model models.InstalledMarketplaceApplication) error
+	UpdateInstalledMarketplaceApplicationStatusByName(appName string, status string) error
 }

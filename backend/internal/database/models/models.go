@@ -44,3 +44,14 @@ type Deployment struct {
 	Creator      string
 	CreationDate time.Time
 }
+
+type InstalledMarketplaceApplication struct {
+	gorm.Model
+	Name         string
+	DisplayName  string
+	Version      string
+	Source       string
+	Status       string
+	DeploymentID uint
+	PackageName  string	
+}

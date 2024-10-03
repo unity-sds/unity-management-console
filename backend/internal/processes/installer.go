@@ -73,6 +73,33 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 	}
 }
 
+func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore) error {
+	if meta.Backend == "terraform" {
+		application := models.InstalledMarketplaceApplication{
+			Name:        installParams.Name,
+			Version:     installParams.Version,
+			DisplayName: installParams.DeploymentName,
+			PackageName: meta.Name,
+			Source:      meta.Package,
+			Status:      "STAGED",
+		}
+
+		db.StoreInstalledMarketplaceApplication(application)
+		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "INSTALLING")
+
+		go func() {
+			log.Errorf("Application name is: %s", installParams.Name)
+			terraform.AddApplicationToStackNewV2(appConfig, location, meta, installParams, db)
+			executeNewV2(db, appConfig, meta, installParams)
+		}()
+
+		return nil
+
+	} else {
+		return errors.New("backend not implemented")
+	}
+}
+
 func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid string, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, location string, install *marketplace.Install, db database.Datastore) error {
 
 	if meta.Backend == "terraform" {
@@ -192,6 +219,53 @@ func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *market
 		return err
 	}
 	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "COMPLETE")
+	fetchAllApplications(db)
+
+	return nil
+}
+
+func executeNewV2(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams) error {
+	// Create install_logs directory if it doesn't exist
+	logDir := filepath.Join(appConfig.Workdir, "install_logs")
+	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
+		return fmt.Errorf("failed to create install_logs directory: %w", err)
+	}
+
+	executor := &terraform.RealTerraformExecutor{}
+
+	//m, err := fetchMandatoryVars()
+	//if err != nil {
+	//	return err
+	//}
+	//terraform.WriteTFVars(m, appConfig)
+	err := runPreInstallNew(appConfig, meta, installParams)
+	if err != nil {
+		return err
+	}
+
+	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "INSTALLING")
+
+	fetchAllApplications(db)
+
+	logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", installParams.DeploymentName))
+	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
+
+	if err != nil {
+		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "FAILED")
+		fetchAllApplications(db)
+		return err
+	}
+	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "INSTALLED")
+	fetchAllApplications(db)
+	err = runPostInstallNew(appConfig, meta, installParams)
+
+	if err != nil {
+		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "POSTINSTALL FAILED")
+		fetchAllApplications(db)
+
+		return err
+	}
+	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "COMPLETE")
 	fetchAllApplications(db)
 
 	return nil

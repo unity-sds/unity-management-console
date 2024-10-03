@@ -79,21 +79,28 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 
 		log.Errorf("Got JSON: %v", applicationInstallParams)
 
-		valid, metadata, err := processes.ValidateMarketplaceInstallation(applicationInstallParams.Name, applicationInstallParams.Version, &appConfig)
-
-		if !valid {
-			log.Errorf("Marketplace item invalid for application: %s, %v", applicationInstallParams.Name, err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to get application metadata"})
-			return
-		}
-
+		// First check if this application is already installed.
+		existingApplication, err := db.GetInstalledApplicationByName(applicationInstallParams.Name)
 		if err != nil {
-			log.Errorf("Unable to get application metadata for application: %s, %v", applicationInstallParams.Name, err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to get application metadata"})
+			log.WithError(err).Error("Error finding applications")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to search applcation list"})	
+		}
+		if existingApplication != nil {
+			errMsg := fmt.Sprintf("Application with name %s already exists.", applicationInstallParams.Name)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": errMsg})	
 			return
 		}
 
-		location, err := processes.FetchPackage(&metadata, &conf)
+		// OK to start installing, get the metadata for this application
+		metadata, err := processes.FetchMarketplaceMetadata(applicationInstallParams.Name, applicationInstallParams.Version, &appConfig)
+		if err != nil {
+			log.Errorf("Unable to fetch metadata for application: %s, %v", applicationInstallParams.Name, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to fetch package"})
+			return
+		}
+
+		// Install the application package files
+		location, err := processes.FetchPackage(&metadata, &appConfig)
 		if err != nil {
 			log.Errorf("Unable to fetch package for application: %s, %v", applicationInstallParams.Name, err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to fetch package"})
