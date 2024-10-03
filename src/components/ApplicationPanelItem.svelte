@@ -162,9 +162,6 @@
         </button>
       {/if}
       <!-- {/if} -->
-      <select class="st-select" on:change={(e) => console.log(e)}>
-        <option value="installlLogs">Show Install Logs</option>
-      </select>
       <button class="st-button secondary" style="margin-top: 5px;" on:click={(_) => getLogs()}
         >Show Install Logs
       </button>
