@@ -194,7 +194,9 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 					return err
 				}
 
-				
+				err = store.UpdateApplicationStatus(id, appname, displayname, "UNINSTALLED")
+
+
 
 				// err = store.RemoveApplicationByName(deploymentname, appname)
 				// if err != nil {
