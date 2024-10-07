@@ -273,7 +273,7 @@ func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName st
 	err := g.db.Where("Name = ? AND deployment_name = ?", appName, deploymentName).First(&application).Error
 	if err != nil {
 		log.WithError(err).Error("Problem getting application status")
-		return "", err
+		return nil, err
 	}
 	return application, nil
 }
