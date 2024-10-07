@@ -46,7 +46,9 @@
   $: {
     if (uninstallInProgress && !uninstallComplete && !statusInterval) {
       statusInterval = setInterval(async () => {
-        const res = await fetch(`../api/install_application/status/${deployment}`);
+        const res = await fetch(
+          `../api/install_application/status/${appPackage}/version/${appName}`
+        );
         if (res.status === 404) {
           uninstallInProgress = false;
           uninstallComplete = true;
