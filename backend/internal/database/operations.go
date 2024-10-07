@@ -136,7 +136,7 @@ func (g GormDatastore) FetchDeploymentIDByName(deploymentID string) (uint, error
 
 func (g GormDatastore) GetInstalledApplicationByName(name string) (*models.InstalledMarketplaceApplication, error) {
 	var application models.InstalledMarketplaceApplication
-	result := g.db.Where("name = ?", name).First(&application)
+	result := g.db.Where("name = ?", name).Where("status != 'UNINSTALLED'").First(&application)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound){
 			return nil, nil
