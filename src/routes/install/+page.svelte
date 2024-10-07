@@ -63,11 +63,11 @@
         return;
       }
       const json = (await res.json()) as ApplicationInstallStatus;
-      if (json[0].Status === 'COMPLETE') {
+      if (json.Status === 'COMPLETE') {
         clearInterval(poller);
         installInProgress = false;
         installComplete = true;
-      } else if (json[0].Status.includes('FAILED')) {
+      } else if (json.Status.includes('FAILED')) {
         installInProgress = false;
         installComplete = true;
         installFailed = true;

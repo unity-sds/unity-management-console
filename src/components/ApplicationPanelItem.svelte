@@ -32,7 +32,7 @@
   let uninstallInProgress = false;
   let uninstallError = false;
   async function handleUninstall() {
-    const url = `../api/uninstall_application/${appPackage}/version/${deployment}`;
+    const url = `../api/uninstall_application/${appName}/version/${deployment}`;
     const res = await fetch(url);
     if (!res.ok) {
       console.warn('Error uninstalling!');
@@ -47,7 +47,7 @@
     if (uninstallInProgress && !uninstallComplete && !statusInterval) {
       statusInterval = setInterval(async () => {
         const res = await fetch(
-          `../api/install_application/status/${appPackage}/version/${deployment}`
+          `../api/install_application/status/${appName}/version/${deployment}`
         );
         if (res.status === 404) {
           uninstallInProgress = false;
@@ -59,7 +59,7 @@
           clearInterval(statusInterval);
         }
         const json = await res.json();
-        if (json[0].Status === 'UNINSTALL FAILED') {
+        if (json.Status === 'UNINSTALL FAILED') {
           clearInterval(statusInterval);
           uninstallInProgress = false;
           uninstallError = true;
