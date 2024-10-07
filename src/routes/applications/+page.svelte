@@ -12,7 +12,7 @@
   type InstalledMarketplaceApplication = {
     DisplayName: string;
     PackageName: string;
-    ApplicationName: string;
+    Name: string;
     Source: string;
     Version: string;
     Status: string;
