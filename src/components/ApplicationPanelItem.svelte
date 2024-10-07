@@ -140,55 +140,57 @@
         {/if}
       </div>
     </div>
-    <div class="p-4 border-t" style="text-align: center;">
-      <!--       {#if isUninstalling}
+    {#if status !== 'UNINSTALLED'}
+      <div class="p-4 border-t" style="text-align: center;">
+        <!--       {#if isUninstalling}
         <div style="display: flex; gap: 5px; align-items: center; justify-content: center;">
           <span class="st-typography-medium">Uninstalling....</span>
           <ScaleOut size={20} />
         </div>
       {:else} -->
-      <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
-      <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
-        >Reapply Installation
-      </button>
-      {#if uninstallInProgress}
-        <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
-          >Uninstalling...
+        <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
+        <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
+          >Reapply Installation
         </button>
-      {:else if uninstallError}
-        <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
-          >Uninstall Error
+        {#if uninstallInProgress}
+          <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
+            >Uninstalling...
+          </button>
+        {:else if uninstallError}
+          <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
+            >Uninstall Error
+          </button>
+        {:else if !uninstallComplete}
+          <button
+            on:click={handleUninstall}
+            on:keydown={handleKeydown}
+            class="st-button tertiary"
+            style="color: red; margin-top: 5px;"
+            >Uninstall
+          </button>
+        {/if}
+        {#if uninstallInProgress || uninstallComplete || uninstallError}
+          <button
+            class="st-button secondary"
+            style="margin-top: 5px;"
+            on:click={() => getLogs(true, true)}
+            >Show Uninstall Logs
+          </button>
+        {/if}
+        <select class="st-select" bind:value={selectedLogOption}>
+          <option value="">Show Logs:</option>
+          <option value="uninstall">Install</option>
+          <option value="uninstall">Uninstall</option>
+        </select>
+        {#if uninstallComplete}
+          <div class="st-typography-small-caps">Uninstall Complete!</div>
+        {/if}
+        <!-- {/if} -->
+        <button class="st-button secondary" style="margin-top: 5px;" on:click={(_) => getLogs()}
+          >Show Install Logs
         </button>
-      {:else if !uninstallComplete}
-        <button
-          on:click={handleUninstall}
-          on:keydown={handleKeydown}
-          class="st-button tertiary"
-          style="color: red; margin-top: 5px;"
-          >Uninstall
-        </button>
-      {/if}
-      {#if uninstallInProgress || uninstallComplete || uninstallError}
-        <button
-          class="st-button secondary"
-          style="margin-top: 5px;"
-          on:click={() => getLogs(true, true)}
-          >Show Uninstall Logs
-        </button>
-      {/if}
-      <select class="st-select" bind:value={selectedLogOption}>
-        <option value="">Show Logs:</option>
-        <option value="uninstall">Install</option>
-        <option value="uninstall">Uninstall</option>
-      </select>
-      {#if uninstallComplete}
-        <div class="st-typography-small-caps">Uninstall Complete!</div>
-      {/if}
-      <!-- {/if} -->
-      <button class="st-button secondary" style="margin-top: 5px;" on:click={(_) => getLogs()}
-        >Show Install Logs
-      </button>
-    </div>
+      </div>
+    {/if}
   </div>
 </div>
 
