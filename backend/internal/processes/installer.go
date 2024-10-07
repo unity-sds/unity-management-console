@@ -78,7 +78,7 @@ func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location st
 		application := models.InstalledMarketplaceApplication{
 			Name:        installParams.Name,
 			Version:     installParams.Version,
-			DisplayName: installParams.DeploymentName,
+			DeploymentName: installParams.DeploymentName,
 			PackageName: meta.Name,
 			Source:      meta.Package,
 			Status:      "STAGED",
@@ -247,7 +247,7 @@ func executeNewV2(db database.Datastore, appConfig *config.AppConfig, meta *mark
 
 	fetchAllApplications(db)
 
-	logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", installParams.DeploymentName))
+	logfile := filepath.Join(logDir, fmt.Sprintf("%s_%s_install_log", installParams.Name, installParams.DeploymentName))
 	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
 
 	if err != nil {

@@ -116,6 +116,7 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 
 func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore, uninstall bool) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		appName := c.Param("appName")
 		deploymentName := c.Param("deploymentName")
 
 		// deploymentID, err := db.FetchDeploymentIDByApplicationName(deploymentName)
@@ -134,9 +135,9 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore, uni
 
 		var logfile string
 		if uninstall {
-			logfile = filepath.Join(logDir, fmt.Sprintf("%s_uninstall_log", deploymentName))
+			logfile = filepath.Join(logDir, fmt.Sprintf("%s_%s_uninstall_log", appName, deploymentName))
 		} else {
-			logfile = filepath.Join(logDir, fmt.Sprintf("%s_install_log", deploymentName))
+			logfile = filepath.Join(logDir, fmt.Sprintf("%s_%s_install_log", appName, deploymentName))
 		}
 
 		// Read the log file
@@ -165,8 +166,8 @@ func handleUninstallApplication(appConfig config.AppConfig, db database.Datastor
 func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		appName := c.Param("appName")
-		displayName := c.Param("displayName")
-		app, err := db.GetInstalledMarketplaceApplicationStatusByName(appName, displayName)
+		deploymentName := c.Param("deploymentName")
+		app, err := db.GetInstalledMarketplaceApplicationStatusByName(appName, deploymentName)
 
 		if err != nil {
 			log.Errorf("Error reading application status: %v", err)

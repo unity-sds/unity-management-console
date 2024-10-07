@@ -130,7 +130,7 @@
   <div>
     <div class="st-typography-header">
       Installing Marketplace Application: <span class="st-typography-displayBody"
-        >{product.DisplayName}</span
+        >{product.DeploymentName}</span
       >
     </div>
   </div>

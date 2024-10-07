@@ -48,10 +48,9 @@ type Deployment struct {
 type InstalledMarketplaceApplication struct {
 	gorm.Model
 	Name         string
-	DisplayName  string
+	DeploymentName  string
 	Version      string
 	Source       string
 	Status       string
-	DeploymentID uint
 	PackageName  string	
 }
