@@ -123,6 +123,7 @@
   <div style="width:90%; display: flex; gap:20px; margin-top: 10px; flex-wrap: wrap;">
     {#each applications as card, index (card.DisplayName)}
       <ApplicationPanelItem
+        title={card.DisplayName}
         description={card.Source}
         status={card.Status}
         appPackage={card.PackageName}
