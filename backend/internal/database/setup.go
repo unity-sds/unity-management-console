@@ -131,4 +131,5 @@ type Datastore interface {
 	StoreInstalledMarketplaceApplication(model models.InstalledMarketplaceApplication) error
 	UpdateInstalledMarketplaceApplicationStatusByName(appName string, status string) error
 	RemoveInstalledMarketplaceApplicationByName(appName string) error
+	GetInstalledMarketplaceApplicationStatusByName(appName) (string, error)
 }
