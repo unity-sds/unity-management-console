@@ -90,8 +90,8 @@
   async function getLogs(uninstall = false, updateInterval = false) {
     showLogs = true;
     const url = uninstall
-      ? `../api/uninstall_application/logs/${deployment}`
-      : `../api/install_application/logs/${deployment}`;
+      ? `../api/uninstall_application/logs/${appName}/${deployment}`
+      : `../api/install_application/logs/${appName}/${deployment}`;
     const res = await fetch(url);
     if (!res.ok) {
       console.warn("Can't get logs!");
