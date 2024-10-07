@@ -32,7 +32,7 @@
   let uninstallInProgress = false;
   let uninstallError = false;
   async function handleUninstall() {
-    const url = `../api/uninstall_application/${appName}/${appPackage}/${deployment}`;
+    const url = `../api/uninstall_application/${appPackage}/version/${appName}`;
     const res = await fetch(url);
     if (!res.ok) {
       console.warn('Error uninstalling!');
