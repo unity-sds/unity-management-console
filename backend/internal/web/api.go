@@ -85,7 +85,7 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 			log.WithError(err).Error("Error finding applications")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to search applcation list"})	
 		}
-		if existingApplication != nil {
+		if existingApplication != nil && existingApplication.Status != "UNINSTALLED" {
 			errMsg := fmt.Sprintf("Application with name %s already exists.", applicationInstallParams.Name)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": errMsg})	
 			return
