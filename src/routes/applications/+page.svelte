@@ -20,6 +20,7 @@
   }
 
   onMount(async () => {
+    await getInstalledApplications();
     await fetchDeployedApplications();
   });
 
