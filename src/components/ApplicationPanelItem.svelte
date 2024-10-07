@@ -92,46 +92,40 @@
   let showLogs = false;
   let logInterval: any = null;
   let logs = '';
+  let selectedLogOption = '';
+  async function getLogs() {
+    if (!selectedLogOption) {
+      clearInterval(logInterval);
+      showLogs = false;
+      return;
+    }
 
-  async function getLogs(uninstall = false, updateInterval = false) {
-    console.log({ uninstall });
     showLogs = true;
-    const url = uninstall
-      ? `../api/uninstall_application/logs/${appName}/${deployment}`
-      : `../api/install_application/logs/${appName}/${deployment}`;
+    const url =
+      selectedLogOption === 'uninstall'
+        ? `../api/uninstall_application/logs/${appName}/${deployment}`
+        : `../api/install_application/logs/${appName}/${deployment}`;
     const res = await fetch(url);
     if (!res.ok) {
       console.warn("Can't get logs!");
       if (logInterval) clearInterval(logInterval);
       return;
     }
+
     logs = await res.text();
     if (uninstallComplete && logs) {
       clearInterval(logInterval);
     }
 
-    if (updateInterval) {
+    if (selectedLogOption === 'uninstall') {
       logInterval = setInterval((_) => {
-        getLogs(uninstall, updateInterval);
+        getLogs();
       }, 5000);
     }
   }
 
   $: if (!showLogs && logInterval) {
     clearInterval(logInterval);
-  }
-
-  let selectedLogOption = '';
-  $: {
-    switch (selectedLogOption) {
-      case 'install':
-        getLogs();
-      case 'uninstall':
-        getLogs(true, true);
-      default:
-        showLogs = false;
-        clearInterval(logInterval);
-    }
   }
 </script>
 
