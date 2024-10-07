@@ -93,7 +93,7 @@
 
   async function getLogs() {
     const res = await fetch(
-      `../api/install_application/logs/${applicationMetadata.DeploymentName}`
+      `../api/install_application/logs/${product.Name}/${applicationMetadata.DeploymentName}`
     );
     if (!res.ok) {
       console.warn('Unable to get logs!');

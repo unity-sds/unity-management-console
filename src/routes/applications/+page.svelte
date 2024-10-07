@@ -10,7 +10,7 @@
   let project = '';
 
   type InstalledMarketplaceApplication = {
-    DisplayName: string;
+    DeploymentName: string;
     PackageName: string;
     Name: string;
     Source: string;
@@ -121,14 +121,14 @@
 <div style="margin-left: 20px">
   <div class="st-typography-displayH3">Installed Applications</div>
   <div style="width:90%; display: flex; gap:20px; margin-top: 10px; flex-wrap: wrap;">
-    {#each applications as card, index (card.DisplayName)}
+    {#each applications as card, index (card.DeploymentName)}
       <ApplicationPanelItem
-        title={card.DisplayName}
+        title={card.DeploymentName}
         description={card.Source}
         status={card.Status}
         appPackage={card.PackageName}
         appName={card.Name}
-        deployment={card.DisplayName}
+        deployment={card.DeploymentName}
         objectnumber={index + 1}
       />
     {/each}
