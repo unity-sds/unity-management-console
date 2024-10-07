@@ -19,7 +19,7 @@ func ValidateMarketplaceInstallation(name string, version string, appConfig *con
 	// Validate installation
 
 	// Check Marketplace Installation Exists
-	meta, err := fetchMarketplaceMetadata(name, version, appConfig)
+	meta, err := FetchMarketplaceMetadata(name, version, appConfig)
 	if err != nil {
 		return false, meta, err
 	}

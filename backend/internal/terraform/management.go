@@ -10,6 +10,7 @@ import (
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
+	"github.com/unity-sds/unity-management-console/backend/types"
 	"github.com/zclconf/go-cty/cty"
 	"math/rand"
 	"os"
@@ -103,7 +104,21 @@ func generateMetadataHeader(cloudenv *hclwrite.Body, id string, application stri
 	cloudenv.AppendUnstructuredTokens(comment)
 }
 
-func generateRandomString(length int) string {
+
+func generateMetadataHeaderNew(cloudenv *hclwrite.Body, id string, application string, applicationName string, version string, creator string) {
+	currentTime := time.Now()
+	dateString := currentTime.Format("2006-01-02")
+	comment := hclwrite.Tokens{
+		&hclwrite.Token{
+			Type:         hclsyntax.TokenComment,
+			Bytes:        []byte(fmt.Sprintf("# id: %v\n# application: %v\n# applicationName: %v\n# version: %v\n# creator: %v\n# creationDate: %v\n", id, application, applicationName, version, creator, dateString)),
+			SpacesBefore: 0,
+		},
+	}
+	cloudenv.AppendUnstructuredTokens(comment)
+}
+
+func GenerateRandomString(length int) string {
 	charset := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, length)
 	for i := range b {
@@ -150,7 +165,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	log.Infof("Adding application to stack. Location: %v, meta %v, install: %v, deploymentID: %v", location, meta, install, deploymentID)
 	rand.Seed(time.Now().UnixNano())
 
-	s := generateRandomString(8)
+	s := GenerateRandomString(8)
 	hclFile := hclwrite.NewEmptyFile()
 
 	directory := filepath.Join(appConfig.Workdir, "workspace")
@@ -209,6 +224,149 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	}
 	log.Info("Appending block to body")
 	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", install.Applications.Displayname, string(randomChars))}, path, attributes)
+
+	log.Info("Writing hcl file.")
+	_, err = tfFile.Write(hclFile.Bytes())
+	if err != nil {
+		log.WithError(err).Error("error writing hcl file")
+		return err
+	}
+
+	return nil
+}
+
+
+// AddApplicationToStack adds the given application configuration to the stack.
+// It takes care of creating the necessary workspace directory, generating the
+// HCL file, and writing the required attributes.
+func AddApplicationToStackNew(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams, db database.Datastore, deploymentID uint) error {
+	log.Infof("Adding application to stack. Location: %v, meta %v, install: %v, deploymentID: %v", location, meta, installParams, deploymentID)
+	rand.Seed(time.Now().UnixNano())
+
+	s := GenerateRandomString(8)
+	hclFile := hclwrite.NewEmptyFile()
+
+	directory := filepath.Join(appConfig.Workdir, "workspace")
+	log.Errorf("Application name: %s", installParams.Name)
+	filename := fmt.Sprintf("%v%v%v", installParams.Name, s, ".tf")
+
+	log.Errorf("Creating file with the name: %s", filename)
+	tfFile, err := createFile(directory, filename, 0755)
+	if err != nil {
+		log.WithError(err).Error("Problem creating tf file")
+		return err
+	}
+
+	path := filepath.Join(location, meta.WorkDirectory)
+	// initialize the body of the new file object
+	rootBody := hclFile.Body()
+
+	u, err := uuid.NewRandom()
+	if err != nil {
+		log.WithError(err).Error("Failed to generate UUID")
+		return err
+	}
+
+	log.Info("Generating header")
+	generateMetadataHeader(rootBody, u.String(), meta.Name, installParams.DeploymentName, installParams.Version, "admin", deploymentID)
+
+	log.Info("adding attributes")
+	attributes := map[string]cty.Value{
+		"deployment_name": cty.StringVal(installParams.DeploymentName),
+		"tags":            cty.MapValEmpty(cty.String), // Example of setting an empty map
+		"project":         cty.StringVal(appConfig.Project),
+		"venue":           cty.StringVal(appConfig.Venue),
+		"installprefix":   cty.StringVal(appConfig.InstallPrefix),
+	}
+
+	log.Info("Organising variable replacement")
+	if installParams.Variables != nil {
+		for key, element := range installParams.Variables {
+			log.Infof("Adding variable: %s, %s", key, element)
+			attributes[key] = cty.StringVal(element)
+		}
+	}
+	// log.Info("Parsing advanced vars")
+	// parseAdvancedVariables(install, &attributes)
+	rand.Seed(time.Now().UnixNano())
+	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	randomChars := make([]byte, 5)
+	for i, v := range rand.Perm(52)[:5] {
+		randomChars[i] = chars[v]
+	}
+	log.Info("Appending block to body")
+	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars))}, path, attributes)
+
+	log.Info("Writing hcl file.")
+	_, err = tfFile.Write(hclFile.Bytes())
+	if err != nil {
+		log.WithError(err).Error("error writing hcl file")
+		return err
+	}
+
+	return nil
+}
+
+// AddApplicationToStack adds the given application configuration to the stack.
+// It takes care of creating the necessary workspace directory, generating the
+// HCL file, and writing the required attributes.
+func AddApplicationToStackNewV2(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams, db database.Datastore) error {
+	log.Infof("Adding application to stack. Location: %v, meta %v, install: %v, deploymentID: %v", location, meta, installParams)
+	rand.Seed(time.Now().UnixNano())
+
+	s := GenerateRandomString(8)
+	hclFile := hclwrite.NewEmptyFile()
+
+	directory := filepath.Join(appConfig.Workdir, "workspace")
+	log.Errorf("Application name: %s", installParams.Name)
+	filename := fmt.Sprintf("%v%v%v", installParams.Name, s, ".tf")
+
+	log.Errorf("Creating file with the name: %s", filename)
+	tfFile, err := createFile(directory, filename, 0755)
+	if err != nil {
+		log.WithError(err).Error("Problem creating tf file")
+		return err
+	}
+
+	path := filepath.Join(location, meta.WorkDirectory)
+	// initialize the body of the new file object
+	rootBody := hclFile.Body()
+
+	u, err := uuid.NewRandom()
+	if err != nil {
+		log.WithError(err).Error("Failed to generate UUID")
+		return err
+	}
+
+	log.Info("Generating header")
+	generateMetadataHeaderNew(rootBody, u.String(), meta.Name, installParams.DeploymentName, installParams.Version, "admin")
+
+	log.Info("adding attributes")
+	attributes := map[string]cty.Value{
+		"deployment_name": cty.StringVal(installParams.DeploymentName),
+		"tags":            cty.MapValEmpty(cty.String), // Example of setting an empty map
+		"project":         cty.StringVal(appConfig.Project),
+		"venue":           cty.StringVal(appConfig.Venue),
+		"installprefix":   cty.StringVal(appConfig.InstallPrefix),
+	}
+
+	log.Info("Organising variable replacement")
+	if installParams.Variables != nil {
+		for key, element := range installParams.Variables {
+			log.Infof("Adding variable: %s, %s", key, element)
+			attributes[key] = cty.StringVal(element)
+		}
+	}
+	// log.Info("Parsing advanced vars")
+	// parseAdvancedVariables(install, &attributes)
+	rand.Seed(time.Now().UnixNano())
+	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	randomChars := make([]byte, 5)
+	for i, v := range rand.Perm(52)[:5] {
+		randomChars[i] = chars[v]
+	}
+	log.Info("Appending block to body")
+	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars))}, path, attributes)
 
 	log.Info("Writing hcl file.")
 	_, err = tfFile.Write(hclFile.Bytes())

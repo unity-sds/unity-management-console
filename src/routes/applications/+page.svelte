@@ -9,8 +9,43 @@
 
   let project = '';
 
+  type InstalledMarketplaceApplication = {
+    DeploymentName: string;
+    PackageName: string;
+    Name: string;
+    Source: string;
+    Version: string;
+    Status: string;
+  };
+
+  let applications: InstalledMarketplaceApplication[] = [];
+
+  async function getInstalledApplications() {
+    const res = await fetch('../api/installed_applications');
+    if (!res.ok) {
+      console.warn('Unable to get application list!');
+      return;
+    }
+    applications = await res.json();
+    // json.forEach((app: InstalledMarketplaceApplication[] = []) => {
+    //   const newCard: CardItem = {
+    //     title: app.displayName,
+    //     packageName: app.PackageName,
+    //     applicationName: app.Name,
+    //     source: app.Source,
+    //     version: app.Version,
+    //     status: app.Status,
+    //     link: '',
+    //     deploymentName: app.DisplayName
+    //   };
+    //   cardData = cardData.concat([newCard]);
+    // });
+    // console.log(json);
+  }
+
   onMount(async () => {
-    await fetchDeployedApplications();
+    await getInstalledApplications();
+    // await fetchDeployedApplications();
   });
 
   type CardItem = {
@@ -85,16 +120,22 @@
 
 <div style="margin-left: 20px">
   <div class="st-typography-displayH3">Installed Applications</div>
-  <div style="width:90%; display: flex; gap:20px; margin-top: 10px;">
-    {#each cardData as card, index (card.title)}
+  <div
+    style="
+      width: 90%;
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+    "
+  >
+    {#each applications as card, index (card.DeploymentName)}
       <ApplicationPanelItem
-        title={card.title}
-        description={card.source}
-        status={card.status}
-        link={card.link}
-        appPackage={card.packageName}
-        appName={card.applicationName}
-        deployment={card.deploymentName}
+        title={card.DeploymentName}
+        description={card.Source}
+        status={card.Status}
+        appPackage={card.PackageName}
+        appName={card.Name}
+        deployment={card.DeploymentName}
         objectnumber={index + 1}
       />
     {/each}
