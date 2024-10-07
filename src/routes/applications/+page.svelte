@@ -16,7 +16,7 @@
       return;
     }
     const json = await res.json();
-    json.forEach((app) => {
+    json.forEach((app: any[] = []) => {
       const newCard: CardItem = {
         title: app.displayName,
         packageName: app.PackageName,
