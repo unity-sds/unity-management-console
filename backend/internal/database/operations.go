@@ -267,3 +267,10 @@ func (g GormDatastore) UpdateInstalledMarketplaceApplicationStatusByName(appName
 	}
 	return nil
 }
+
+func (g GormDatastore) RemoveInstalledMarketplaceApplicationByName(appName string) (error) {
+	if err := g.db.Where("name != ?", appName).Delete(&models.InstalledMarketplaceApplication{}).Error; err != nil {
+		return err
+	}
+	return nil
+}

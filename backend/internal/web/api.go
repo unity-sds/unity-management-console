@@ -154,11 +154,11 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore, uni
 
 func handleUninstallApplication(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		displayName := c.Param("displayName")
 		appName := c.Param("appName")
-		deployment := c.Param("deployment")
+		version := c.Param("version")
+		displayName := c.Param("displayName")
 
-		go processes.UninstallApplicationNew(appName, deployment, displayName, &conf, db)
+		go processes.UninstallApplicationNewV2(appName, version, displayName, &conf, db)
 	}
 }
 
