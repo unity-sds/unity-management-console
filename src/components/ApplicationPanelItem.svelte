@@ -62,19 +62,19 @@
           clearInterval(statusInterval);
         }
         const json = await res.json();
+        latestStatus = json.Status;
         if (json.Status === 'UNINSTALL FAILED') {
           clearInterval(statusInterval);
           uninstallInProgress = false;
           uninstallError = true;
         }
-        latestStatus = json.Status;
       }, 5000);
     } else {
       clearInterval(statusInterval);
     }
   }
 
-  $: console.log(combinedStatus);
+  $: console.log({ combinedStatus });
 
   const handleKeydown = (event: KeyboardEvent) => {
     if (event.ctrlKey && event.key === objectnumber.toString()) {
@@ -138,8 +138,6 @@
         <span class="st-typography-bold">Installation Status:</span>
         {#if combinedStatus === 'COMPLETE'}
           <span class="st-typography-small-caps" style="color: green;">Done</span>
-        {:else if uninstallInProgress}
-          <span class="st-typography-small-caps" style="color: red;">Uninstalling</span>
         {:else}
           <span class="st-typography-small-caps" style="color:red;">{combinedStatus}</span>
         {/if}
