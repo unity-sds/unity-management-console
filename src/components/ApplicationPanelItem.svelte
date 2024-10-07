@@ -93,14 +93,8 @@
   let logInterval: any = null;
   let logs = '';
   let selectedLogOption = '';
-  async function getLogs() {
-    if (!selectedLogOption) {
-      clearInterval(logInterval);
-      showLogs = false;
-      return;
-    }
 
-    showLogs = true;
+  async function fetchLogs() {
     const url =
       selectedLogOption === 'uninstall'
         ? `../api/uninstall_application/logs/${appName}/${deployment}`
@@ -116,10 +110,21 @@
     if (uninstallComplete && logs) {
       clearInterval(logInterval);
     }
+  }
+
+  async function getLogs() {
+    if (!selectedLogOption) {
+      clearInterval(logInterval);
+      showLogs = false;
+      return;
+    }
+
+    await fetchLogs();
+    showLogs = true;
 
     if (selectedLogOption === 'uninstall') {
       logInterval = setInterval((_) => {
-        getLogs();
+        fetchLogs();
       }, 5000);
     }
   }
@@ -152,9 +157,9 @@
         </div>
       {:else} -->
         <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
-        <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
+        <!-- <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
           >Reapply Installation
-        </button>
+        </button> -->
         {#if uninstallInProgress}
           <button class="st-button tertiary" disabled style="color: red; margin-top: 5px;"
             >Uninstalling...
