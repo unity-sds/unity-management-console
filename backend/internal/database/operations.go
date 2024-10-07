@@ -7,6 +7,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 	"gorm.io/gorm/clause"
+	"gorm.io/gorm"
 )
 
 // StoreConfig stores the given configuration in the database. It uses a
@@ -137,6 +138,10 @@ func (g GormDatastore) GetInstalledApplicationByName(name string) (*models.Insta
 	var application models.InstalledMarketplaceApplication
 	result := g.db.Where("name = ?", name).First(&application)
 	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound){
+			return nil, nil
+		}
+
 		log.WithError(result.Error).Error("Error finding application")
 		return nil, result.Error
 	}
