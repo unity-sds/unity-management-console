@@ -164,16 +164,9 @@ func handleUninstallApplication(appConfig config.AppConfig, db database.Datastor
 
 func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		deploymentName := c.Param("deploymentName")
+		appName := c.Param("appName")
+		app, err := db.GetInstalledMarketplaceApplicationStatusByName(appName)
 
-		deploymentID, err := db.FetchDeploymentIDByApplicationName(deploymentName)
-		if err != nil {
-			log.Errorf("Error getting deployment ID: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reading application status"})
-			return
-		}
-
-		app, err := db.FetchAllApplicationStatusByDeployment(deploymentID)
 		if err != nil {
 			log.Errorf("Error reading application status: %v", err)
 			c.Status(http.StatusNotFound)
