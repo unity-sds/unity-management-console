@@ -14,6 +14,8 @@
   export let appName = '';
   export let deployment = '';
 
+  let installStatus;
+
   console.log({ appPackage, appName, deployment });
 
   export let objectnumber = 0;
@@ -64,7 +66,7 @@
           uninstallInProgress = false;
           uninstallError = true;
         }
-        status = json.Status;
+        installStatus = json.Status;
       }, 5000);
     } else {
       clearInterval(statusInterval);
@@ -124,6 +126,8 @@
         getLogs(true, true);
     }
   }
+
+  $: console.log(installStatus);
 </script>
 
 <div class="lg:w-1/3 md:w-1/2 mb-4" style="flex: 0 0 auto;">
@@ -132,16 +136,16 @@
       <span class="st-typography-header">{title}</span>
       <div style="display:flex; gap: 10px; margin: 10px; justify-content: center;">
         <span class="st-typography-bold">Installation Status:</span>
-        {#if status === 'COMPLETE'}
+        {#if installStatus === 'COMPLETE'}
           <span class="st-typography-small-caps" style="color: green;">Done</span>
         {:else if uninstallInProgress}
           <span class="st-typography-small-caps" style="color: red;">Uninstalling</span>
         {:else}
-          <span class="st-typography-small-caps" style="color:red;">{status}</span>
+          <span class="st-typography-small-caps" style="color:red;">{installStatus}</span>
         {/if}
       </div>
     </div>
-    {#if status !== 'UNINSTALLED'}
+    {#if installStatus !== 'UNINSTALLED'}
       <div class="p-4 border-t" style="text-align: center;">
         <!--       {#if isUninstalling}
         <div style="display: flex; gap: 5px; align-items: center; justify-content: center;">

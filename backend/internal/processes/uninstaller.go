@@ -211,7 +211,7 @@ func UninstallApplicationNew(appname string, deploymentname string, displayname 
 	return nil
 }
 
-func UninstallApplicationNewV2(appName string, version string, displayName string, conf *config.AppConfig, store database.Datastore) error {
+func UninstallApplicationNewV2(appName string, version string, deploymentName string, conf *config.AppConfig, store database.Datastore) error {
 	// Create uninstall_logs directory if it doesn't exist
 	logDir := path.Join(conf.Workdir, "uninstall_logs")
 	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
@@ -256,19 +256,19 @@ func UninstallApplicationNewV2(appName string, version string, displayName strin
 			f.Close()
 
 			// Check applicationName from the comments and delete the file if it matches
-			log.Infof("Check if appname %s == %s", metadata["applicationName"], displayName)
-			if metadata["applicationName"] == displayName {
+			log.Infof("Check if appname %s == %s", metadata["applicationName"], deploymentName)
+			if metadata["applicationName"] == deploymentName {
 				p := path.Join(filepath, file.Name())
 				log.Infof("Attempting to delete file: %s", p)
 				err = os.Remove(p)
 				// if err != nil {
 				// 	log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
-				// 	err = store.UpdateApplicationStatus(id, appname, displayName, "UNINSTALL FAILED")
+				// 	err = store.UpdateApplicationStatus(id, appname, deploymentName, "UNINSTALL FAILED")
 				// 	log.WithError(err).Error("Failed to update application status removing application")
 				// 	return err
 				// }
-				store.UpdateInstalledMarketplaceApplicationStatusByName(appName, displayName, "STARTING UNINSTALL")
-				logfile := path.Join(logDir, fmt.Sprintf("%s_uninstall_log", appName))
+				store.UpdateInstalledMarketplaceApplicationStatusByName(appName, deploymentName, "STARTING UNINSTALL")
+				logfile := path.Join(logDir, fmt.Sprintf("%s_%s_uninstall_log", appName))
 				err = terraform.RunTerraformLogOutToFile(conf, logfile, executor, "")
 				if err != nil {
 					log.WithError(err).Error("Failed to uninstall application")
@@ -281,12 +281,12 @@ func UninstallApplicationNewV2(appName string, version string, displayName strin
 				// if err != nil {
 				// 	id, err := store.FetchDeploymentIDByName(deploymentname)
 				// 	log.WithError(err).Error("Failed to fetch deployment ID by name when removing application")
-				// 	err = store.UpdateApplicationStatus(id, appname, displayName, "UNINSTALL FAILED")
+				// 	err = store.UpdateApplicationStatus(id, appname, deploymentName, "UNINSTALL FAILED")
 				// 	log.WithError(err).Error("Failed to update application status removing application")
 				// 	return err
 				// }
 				// id, err := store.FetchDeploymentIDByName(deploymentname)
-				err = store.UpdateInstalledMarketplaceApplicationStatusByName(appName, displayName, "UNINSTALLED")
+				err = store.UpdateInstalledMarketplaceApplicationStatusByName(appName, deploymentName, "UNINSTALLED")
 				err = fetchAllApplications(store)
 				if err != nil {
 					return err
