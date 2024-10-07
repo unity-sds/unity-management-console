@@ -79,7 +79,7 @@
     const outObj = { Name: product.Name, Version: product.Version, ...applicationMetadata };
     installInProgress = true;
     const url = '../api/install_application';
-    // const res = await fetch(url, { method: 'POST', body: JSON.stringify(outObj) });
+    const res = await fetch(url, { method: 'POST', body: JSON.stringify(outObj) });
     if (!res.ok) {
       console.log(res);
       return;
