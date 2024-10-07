@@ -94,6 +94,7 @@
   let logs = '';
 
   async function getLogs(uninstall = false, updateInterval = false) {
+    console.log({ uninstall });
     showLogs = true;
     const url = uninstall
       ? `../api/uninstall_application/logs/${appName}/${deployment}`
@@ -127,6 +128,9 @@
         getLogs();
       case 'uninstall':
         getLogs(true, true);
+      default:
+        showLogs = false;
+        clearInterval(logInterval);
     }
   }
 </script>
@@ -184,7 +188,7 @@
             >Show Uninstall Logs
           </button>
         {/if} -->
-        <select class="st-select" bind:value={selectedLogOption}>
+        <select class="st-select" bind:value={selectedLogOption} style="height:34px;">
           <option value="">Show Logs:</option>
           <option value="install">Install</option>
           <option value="uninstall">Uninstall</option>
