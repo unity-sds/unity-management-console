@@ -85,13 +85,6 @@
       return;
     }
     startStatusPoller();
-    // const json = (await res.json()) as StartApplicationInstallResponse;
-    // if (json.deploymentID) {
-    //   deploymentID = json.deploymentID;
-
-    // } else {
-    //   console.error('No deploymentID received in the response');
-    // }
   }
 
   let showLogs = false;
