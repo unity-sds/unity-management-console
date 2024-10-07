@@ -14,7 +14,7 @@
   export let appName = '';
   export let deployment = '';
 
-  let installStatus;
+  let installStatus = '';
 
   console.log({ appPackage, appName, deployment });
 
