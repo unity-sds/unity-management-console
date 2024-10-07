@@ -268,7 +268,7 @@ func (g GormDatastore) StoreInstalledMarketplaceApplication(model models.Install
 	return nil
 }
 
-func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName string, deploymentName string) (string, error) {
+func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName string, deploymentName string) (models.InstalledMarketplaceApplication, error) {
 	var application models.InstalledMarketplaceApplication
 	err := g.db.Where("Name = ? AND deployment_name = ?", appName, deploymentName).First(&application).Error
 	if err != nil {
