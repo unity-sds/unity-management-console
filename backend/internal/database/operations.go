@@ -275,7 +275,7 @@ func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName st
 		log.WithError(err).Error("Problem getting application status")
 		return nil, err
 	}
-	return application, nil
+	return &application, nil
 }
 
 func (g GormDatastore) UpdateInstalledMarketplaceApplicationStatusByName(appName string, deploymentName string, status string) (error) {
