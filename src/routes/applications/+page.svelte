@@ -27,8 +27,8 @@
         link: '',
         deploymentName: app.DisplayName
       };
+      cardData = cardData.concat([newCard]);
     });
-    cardData = cardData.concat([newCard]);
     console.log(json);
   }
 
