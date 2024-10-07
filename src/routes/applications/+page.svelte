@@ -9,6 +9,16 @@
 
   let project = '';
 
+  async function getInstalledApplications() {
+    const res = await fetch('../api/installed_applications');
+    if (!res.ok) {
+      console.warn('Unable to get application list!');
+      return;
+    }
+    const json = await res.json();
+    console.log(json);
+  }
+
   onMount(async () => {
     await fetchDeployedApplications();
   });

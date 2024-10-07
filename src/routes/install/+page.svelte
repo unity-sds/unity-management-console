@@ -79,18 +79,18 @@
     const outObj = { Name: product.Name, Version: product.Version, ...applicationMetadata };
     installInProgress = true;
     const url = '../api/install_application';
-    const res = await fetch(url, { method: 'POST', body: JSON.stringify(outObj) });
+    // const res = await fetch(url, { method: 'POST', body: JSON.stringify(outObj) });
     if (!res.ok) {
       console.log(res);
       return;
     }
-    const json = (await res.json()) as StartApplicationInstallResponse;
-    if (json.deploymentID) {
-      deploymentID = json.deploymentID;
-      startStatusPoller();
-    } else {
-      console.error('No deploymentID received in the response');
-    }
+    // const json = (await res.json()) as StartApplicationInstallResponse;
+    // if (json.deploymentID) {
+    //   deploymentID = json.deploymentID;
+    //   startStatusPoller();
+    // } else {
+    //   console.error('No deploymentID received in the response');
+    // }
   }
 
   let showLogs = false;

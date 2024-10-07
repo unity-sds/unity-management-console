@@ -191,6 +191,15 @@ func (g GormDatastore) FetchAllApplicationStatus() ([]models.Deployment, error) 
 	return deployments, nil
 }
 
+func (g GormDatastore) FetchAllInstalledMarketplaceApplications() ([]models.InstalledMarketplaceApplication, error) {
+	var applications []models.InstalledMarketplaceApplication
+	result := g.db.Find(&applications)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return applications, nil
+}
+
 func (g GormDatastore) FetchAllApplicationStatusByDeployment(deploymentid uint) ([]models.Application, error) {
 	var deployments models.Deployment
 	result := g.db.Preload("Applications").First(&deployments, deploymentid)

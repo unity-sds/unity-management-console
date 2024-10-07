@@ -177,6 +177,18 @@ func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db data
 	}
 }
 
+func getInstalledApplications(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		applications, err := db.FetchAllInstalledMarketplaceApplications()
+		if err != nil {
+			log.Errorf("Error getting application list: %v", err)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		c.JSON(http.StatusOK, applications)
+	}
+}
+
 // func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 // 	fn := func(c *gin.Context) {
 // 		switch endpoint := c.Param("endpoint"); endpoint {
