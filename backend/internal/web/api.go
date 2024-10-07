@@ -157,9 +157,9 @@ func handleUninstallApplication(appConfig config.AppConfig, db database.Datastor
 	return func(c *gin.Context) {
 		appName := c.Param("appName")
 		version := c.Param("version")
-		displayName := c.Param("displayName")
+		deploymentName := c.Param("deploymentName")
 
-		go processes.UninstallApplicationNewV2(appName, version, displayName, &conf, db)
+		go processes.UninstallApplicationNewV2(appName, version, deploymentName, &conf, db)
 	}
 }
 

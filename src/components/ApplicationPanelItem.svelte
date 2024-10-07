@@ -64,6 +64,7 @@
           uninstallInProgress = false;
           uninstallError = true;
         }
+        status = json.Status;
       }, 5000);
     } else {
       clearInterval(statusInterval);
