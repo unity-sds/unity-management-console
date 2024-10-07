@@ -220,6 +220,8 @@ func RunTerraformLogOutToFile(appconf *config.AppConfig, logfile string, executo
 	tf.SetStderr(writerStderr)
 	tf.SetLogger(log.StandardLogger())
 
+	file.WriteString("Starting Terraform")
+
 	err = executor.Init(context.Background(), tfexec.Upgrade(true), tfexec.BackendConfig(bucket), tfexec.BackendConfig(key), tfexec.BackendConfig(region))
 
 	if err != nil {

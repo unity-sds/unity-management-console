@@ -86,6 +86,10 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router.RedirectTrailingSlash = false
 	conf = appConfig
 
+	store, err := database.NewGormDatastore()
+	if err != nil {
+		log.WithError(err).Error("Unable to create datastore")
+	}
 	/*authorized := router.Group("/", gin.BasicAuth(gin.Accounts{
 		"admin": "unity",
 		"user":  "unity",
@@ -97,9 +101,19 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	})
 	router.StaticFS("/ui/", http.Dir("./build"))
 	router.GET("/ws", handleWebsocket)
+
+	api := router.Group("/api") 
+	{
+		api.GET("/health_checks", gin.HandlerFunc(handleHealthChecks(appConfig)))
+		api.GET("/installed_applications", gin.HandlerFunc(getInstalledApplications(appConfig, store)))
+		api.POST("/uninstall", gin.HandlerFunc(handleUninstall(appConfig)))
+		api.POST("/install_application", gin.HandlerFunc(handleApplicationInstall(appConfig, store)))
+		api.GET("/install_application/logs/:appName/:deploymentName", gin.HandlerFunc(handleGetInstallLogs(appConfig, store, false)))
+		api.GET("/uninstall_application/logs/:appName/:deploymentName", gin.HandlerFunc(handleGetInstallLogs(appConfig, store, true)))
+		api.GET("/uninstall_application/:appName/:version/:deploymentName", gin.HandlerFunc(handleUninstallApplication(appConfig, store)))
+		api.GET("/install_application/status/:appName/:version/:deploymentName", gin.HandlerFunc(handleGetApplicationInstallStatusByName(appConfig, store)))
+	}
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
-	router.GET("/api/:endpoint", handleGetAPICall(appConfig))
-	router.POST("/api/:endpoint", handlePostAPICall(appConfig))
 
 	//router.Use(EnsureTrailingSlash())
 	router.Use(LoggingMiddleware())

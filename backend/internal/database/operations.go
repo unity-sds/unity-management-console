@@ -7,6 +7,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 	"gorm.io/gorm/clause"
+	"gorm.io/gorm"
 )
 
 // StoreConfig stores the given configuration in the database. It uses a
@@ -133,6 +134,29 @@ func (g GormDatastore) FetchDeploymentIDByName(deploymentID string) (uint, error
 	return deployment.ID, nil
 }
 
+func (g GormDatastore) GetInstalledApplicationByName(name string) (*models.InstalledMarketplaceApplication, error) {
+	var application models.InstalledMarketplaceApplication
+	result := g.db.Where("name = ?", name).Where("status != 'UNINSTALLED'").First(&application)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound){
+			return nil, nil
+		}
+
+		log.WithError(result.Error).Error("Error finding application")
+		return nil, result.Error
+	}
+	return &application, nil
+}
+
+func (g GormDatastore) FetchDeploymentIDByApplicationName(deploymentName string) (uint, error) {
+	var application models.Application
+	result := g.db.Where("display_name = ?", deploymentName).First(&application)
+	if result.Error != nil {
+		return 0, fmt.Errorf("error finding application: %v", result.Error)
+	}
+	return application.DeploymentID, nil
+}
+
 func (g GormDatastore) UpdateApplicationStatus(deploymentID uint, targetAppName string, displayName string, newStatus string) error {
 	var deployment models.Deployment
 	result := g.db.Preload("Applications").First(&deployment, deploymentID)
@@ -165,6 +189,15 @@ func (g GormDatastore) FetchAllApplicationStatus() ([]models.Deployment, error) 
 		return nil, result.Error
 	}
 	return deployments, nil
+}
+
+func (g GormDatastore) FetchAllInstalledMarketplaceApplications() ([]models.InstalledMarketplaceApplication, error) {
+	var applications []models.InstalledMarketplaceApplication
+	result := g.db.Find(&applications)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return applications, nil
 }
 
 func (g GormDatastore) FetchAllApplicationStatusByDeployment(deploymentid uint) ([]models.Application, error) {
@@ -223,5 +256,45 @@ func (g GormDatastore) RemoveApplicationByName(deploymentName string, applicatio
 		return fmt.Errorf("error deleting application: %v", err)
 	}
 
+	return nil
+}
+
+func (g GormDatastore) StoreInstalledMarketplaceApplication(model models.InstalledMarketplaceApplication) (error) {
+	if err := g.db.Save(&model).Error; err != nil {
+		// Handle error for Save
+		log.WithError(err).Error("Problem saving record to database")
+		return err
+	}
+	return nil
+}
+
+func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName string, deploymentName string) (*models.InstalledMarketplaceApplication, error) {
+	var application models.InstalledMarketplaceApplication
+	err := g.db.Where("Name = ? AND deployment_name = ?", appName, deploymentName).First(&application).Error
+	if err != nil {
+		log.WithError(err).Error("Problem getting application status")
+		return nil, err
+	}
+	return &application, nil
+}
+
+func (g GormDatastore) UpdateInstalledMarketplaceApplicationStatusByName(appName string, deploymentName string, status string) (error) {
+	var app models.InstalledMarketplaceApplication
+	
+	g.db.Where("name = ? AND deployment_name = ?", appName, deploymentName).First(&app)
+	app.Status = status
+
+	if err := g.db.Save(&app).Error; err != nil {
+		// Handle error for Save
+		log.WithError(err).Error("Problem saving record to database")
+		return err
+	}
+	return nil
+}
+
+func (g GormDatastore) RemoveInstalledMarketplaceApplicationByName(appName string) (error) {
+	if err := g.db.Where("name != ?", appName).Delete(&models.InstalledMarketplaceApplication{}).Error; err != nil {
+		return err
+	}
 	return nil
 }

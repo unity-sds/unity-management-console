@@ -100,6 +100,12 @@ func NewGormDatastore() (Datastore, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	err = db.AutoMigrate(&models.InstalledMarketplaceApplication{})
+	if err != nil {
+		return nil, err
+	}
+
 	return &GormDatastore{
 		db: db,
 	}, nil
@@ -120,4 +126,11 @@ type Datastore interface {
 	FetchDeploymentNames() ([]string, error)
 	RemoveDeploymentByName(name string) error
 	RemoveApplicationByName(deploymentName string, applicationName string) error
+	FetchDeploymentIDByApplicationName(deploymentName string) (uint, error)
+	GetInstalledApplicationByName(name string) (*models.InstalledMarketplaceApplication, error)
+	StoreInstalledMarketplaceApplication(model models.InstalledMarketplaceApplication) error
+	UpdateInstalledMarketplaceApplicationStatusByName(appName string,displayName  string, status string) error
+	RemoveInstalledMarketplaceApplicationByName(appName string) error
+	GetInstalledMarketplaceApplicationStatusByName(appName string, displayName string) (*models.InstalledMarketplaceApplication, error)
+	FetchAllInstalledMarketplaceApplications() ([]models.InstalledMarketplaceApplication, error)
 }

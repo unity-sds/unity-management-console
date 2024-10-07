@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-func fetchMarketplaceMetadata(name string, version string, appConfig *config.AppConfig) (marketplace.MarketplaceMetadata, error) {
+func FetchMarketplaceMetadata(name string, version string, appConfig *config.AppConfig) (marketplace.MarketplaceMetadata, error) {
 
 	log.Infof("Fetching marketplace metadata for, %s, %s", name, version)
 	url := fmt.Sprintf("%sunity-sds/unity-marketplace/main/applications/%s/%s/metadata.json", appConfig.MarketplaceBaseUrl, name, version)
