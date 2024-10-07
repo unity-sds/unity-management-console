@@ -9,27 +9,38 @@
 
   let project = '';
 
+  type InstalledMarketplaceApplication = {
+    DisplayName: string;
+    PackageName: string;
+    ApplicationName: string;
+    Source: string;
+    Version: string;
+    Status: string;
+  };
+
+  let applications: InstalledMarketplaceApplication[] = [];
+
   async function getInstalledApplications() {
     const res = await fetch('../api/installed_applications');
     if (!res.ok) {
       console.warn('Unable to get application list!');
       return;
     }
-    const json = await res.json();
-    json.forEach((app: any[] = []) => {
-      const newCard: CardItem = {
-        title: app.displayName,
-        packageName: app.PackageName,
-        applicationName: app.Name,
-        source: app.Source,
-        version: app.Version,
-        status: app.Status,
-        link: '',
-        deploymentName: app.DisplayName
-      };
-      cardData = cardData.concat([newCard]);
-    });
-    console.log(json);
+    applications = await res.json();
+    // json.forEach((app: InstalledMarketplaceApplication[] = []) => {
+    //   const newCard: CardItem = {
+    //     title: app.displayName,
+    //     packageName: app.PackageName,
+    //     applicationName: app.Name,
+    //     source: app.Source,
+    //     version: app.Version,
+    //     status: app.Status,
+    //     link: '',
+    //     deploymentName: app.DisplayName
+    //   };
+    //   cardData = cardData.concat([newCard]);
+    // });
+    // console.log(json);
   }
 
   onMount(async () => {
@@ -110,15 +121,13 @@
 <div style="margin-left: 20px">
   <div class="st-typography-displayH3">Installed Applications</div>
   <div style="width:90%; display: flex; gap:20px; margin-top: 10px; flex-wrap: wrap;">
-    {#each cardData as card, index (card.title)}
+    {#each applications as card, index (card.DisplayName)}
       <ApplicationPanelItem
-        title={card.title}
-        description={card.source}
-        status={card.status}
-        link={card.link}
-        appPackage={card.packageName}
-        appName={card.applicationName}
-        deployment={card.deploymentName}
+        description={card.Source}
+        status={card.Status}
+        appPackage={card.PackageName}
+        appName={card.ApplicationName}
+        deployment={card.DisplayName}
         objectnumber={index + 1}
       />
     {/each}
