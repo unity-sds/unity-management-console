@@ -14,6 +14,11 @@ type SSMParameter struct {
 	Value string `mapstructure:"value"`
 }
 
+type MarketplaceItem struct {
+	Name    string `mapstructure:"name"`
+	Version string `mapstructure:"version"`
+}
+
 type AppConfig struct {
 	GithubToken          string
 	MarketplaceBaseUrl   string
@@ -28,6 +33,7 @@ type AppConfig struct {
 	InstallPrefix        string
 	Project              string
 	Venue                string
+	MarketplaceItems     []MarketplaceItem `mapstructure:"MarketplaceItems"` 
 }
 
 type FeatureFlagClient interface {

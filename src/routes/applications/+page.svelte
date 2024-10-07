@@ -120,7 +120,14 @@
 
 <div style="margin-left: 20px">
   <div class="st-typography-displayH3">Installed Applications</div>
-  <div style="width:90%; display: flex; gap:20px; margin-top: 10px; flex-wrap: wrap;">
+  <div
+    style="
+      width: 90%;
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+    "
+  >
     {#each applications as card, index (card.DeploymentName)}
       <ApplicationPanelItem
         title={card.DeploymentName}
