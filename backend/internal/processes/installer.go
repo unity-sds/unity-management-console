@@ -85,7 +85,7 @@ func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location st
 		}
 
 		db.StoreInstalledMarketplaceApplication(application)
-		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "INSTALLING")
+		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "INSTALLING")
 
 		go func() {
 			log.Errorf("Application name is: %s", installParams.Name)
@@ -243,7 +243,7 @@ func executeNewV2(db database.Datastore, appConfig *config.AppConfig, meta *mark
 		return err
 	}
 
-	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "INSTALLING")
+	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "INSTALLING")
 
 	fetchAllApplications(db)
 
@@ -251,21 +251,21 @@ func executeNewV2(db database.Datastore, appConfig *config.AppConfig, meta *mark
 	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
 
 	if err != nil {
-		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "FAILED")
+		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "FAILED")
 		fetchAllApplications(db)
 		return err
 	}
-	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "INSTALLED")
+	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "INSTALLED")
 	fetchAllApplications(db)
 	err = runPostInstallNew(appConfig, meta, installParams)
 
 	if err != nil {
-		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "POSTINSTALL FAILED")
+		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "POSTINSTALL FAILED")
 		fetchAllApplications(db)
 
 		return err
 	}
-	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, "COMPLETE")
+	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "COMPLETE")
 	fetchAllApplications(db)
 
 	return nil

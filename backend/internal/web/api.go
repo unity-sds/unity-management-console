@@ -165,7 +165,8 @@ func handleUninstallApplication(appConfig config.AppConfig, db database.Datastor
 func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		appName := c.Param("appName")
-		app, err := db.GetInstalledMarketplaceApplicationStatusByName(appName)
+		displayName := c.Param("displayName")
+		app, err := db.GetInstalledMarketplaceApplicationStatusByName(appName, displayName)
 
 		if err != nil {
 			log.Errorf("Error reading application status: %v", err)

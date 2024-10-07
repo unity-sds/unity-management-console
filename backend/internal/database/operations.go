@@ -268,9 +268,9 @@ func (g GormDatastore) StoreInstalledMarketplaceApplication(model models.Install
 	return nil
 }
 
-func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName string) (string, error) {
+func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName string, displayName string) (string, error) {
 	var application models.InstalledMarketplaceApplication
-	err := g.db.Where("name = ?", appName).First(&application).Error
+	err := g.db.Where("Name = ?, DisplayName = ?", appName, displayName).First(&application).Error
 	if err != nil {
 		log.WithError(err).Error("Problem getting application status")
 		return "", err
@@ -278,7 +278,7 @@ func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName st
 	return application.Status, nil
 }
 
-func (g GormDatastore) UpdateInstalledMarketplaceApplicationStatusByName(appName string, status string) (error) {
+func (g GormDatastore) UpdateInstalledMarketplaceApplicationStatusByName(appName string, displayName string, status string) (error) {
 	var app models.InstalledMarketplaceApplication
 	
 	g.db.Where("name = ?", appName).First(&app)

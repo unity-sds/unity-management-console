@@ -267,7 +267,7 @@ func UninstallApplicationNewV2(appName string, version string, displayName strin
 				// 	log.WithError(err).Error("Failed to update application status removing application")
 				// 	return err
 				// }
-				store.UpdateInstalledMarketplaceApplicationStatusByName(appName, "STARTING UNINSTALL")
+				store.UpdateInstalledMarketplaceApplicationStatusByName(appName, displayName, "STARTING UNINSTALL")
 				logfile := path.Join(logDir, fmt.Sprintf("%s_uninstall_log", appName))
 				err = terraform.RunTerraformLogOutToFile(conf, logfile, executor, "")
 				if err != nil {
@@ -286,7 +286,7 @@ func UninstallApplicationNewV2(appName string, version string, displayName strin
 				// 	return err
 				// }
 				// id, err := store.FetchDeploymentIDByName(deploymentname)
-				err = store.UpdateInstalledMarketplaceApplicationStatusByName(appName, "UNINSTALLED")
+				err = store.UpdateInstalledMarketplaceApplicationStatusByName(appName, displayName, "UNINSTALLED")
 				err = fetchAllApplications(store)
 				if err != nil {
 					return err
