@@ -80,14 +80,14 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 		log.Errorf("Got JSON: %v", applicationInstallParams)
 
 		// First check if this application is already installed.
-		existingApplication, err := db.GetInstalledApplicationByName(applicationInstallParams.Name)
+		app, err := db.GetInstalledMarketplaceApplicationStatusByName(applicationInstallParams.Name, applicationInstallParams.DeploymentName)
 		if err != nil {
 			log.WithError(err).Error("Error finding applications")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to search applcation list"})	
 		}
-		fmt.Sprintf("")
+		
 		if existingApplication != nil && existingApplication.Status != "UNINSTALLED" {
-			errMsg := fmt.Sprintf("Application with name %s already exists. Status: %s", applicationInstallParams.Name,existingApplication.Status)
+			errMsg := fmt.Sprintf("Application with name %s already exists. Status: %s", applicationInstallParams.Name, existingApplication.Status)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": errMsg})	
 			return
 		}
