@@ -194,6 +194,80 @@ func RunTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id stri
 	return nil
 }
 
+func RunTerraformLogOutToFile(appconf *config.AppConfig, logfile string, executor TerraformExecutor, target string) error {
+	bucket := fmt.Sprintf("bucket=%s", appconf.BucketName)
+	key := fmt.Sprintf("key=%s-%s-tfstate", appconf.Project, appconf.Venue)
+	region := fmt.Sprintf("region=%s", appconf.AWSRegion)
+
+	p := filepath.Join(appconf.Workdir, "workspace")
+	tf, err := executor.NewTerraform(p, "/usr/local/bin/terraform")
+	if err != nil {
+		log.Fatalf("error running NewTerraform: %s", err)
+	}
+
+	// Open the log file in append mode
+	file, err := os.OpenFile(logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("error opening log file: %s", err)
+	}
+	defer file.Close()
+
+	// Create a multi-writer that writes to both file and stdout
+	writerStdout := io.MultiWriter(os.Stdout, file)
+	writerStderr := io.MultiWriter(os.Stderr, file)
+
+	tf.SetStdout(writerStdout)
+	tf.SetStderr(writerStderr)
+	tf.SetLogger(log.StandardLogger())
+
+	file.WriteString("Starting Terraform")
+
+	err = executor.Init(context.Background(), tfexec.Upgrade(true), tfexec.BackendConfig(bucket), tfexec.BackendConfig(key), tfexec.BackendConfig(region))
+
+	if err != nil {
+		log.WithError(err).Error("error initialising terraform")
+		file.WriteString(fmt.Sprintf("Error initialising terraform: %s\n", err))
+		return err
+	}
+
+	file.WriteString("Waiting 60 seconds for the state to settle\n")
+	time.Sleep(60 * time.Second)
+
+	change := false
+	if target != "" {
+		log.Infof("Running terraform with target: %s", target)
+		file.WriteString(fmt.Sprintf("Running terraform with target: %s\n", target))
+		change, err = executor.Plan(context.Background(), tfexec.Target(target))
+	} else {
+		change, err = executor.Plan(context.Background())
+	}
+
+	if err != nil {
+		log.WithError(err).Error("error running plan")
+		file.WriteString(fmt.Sprintf("Error running plan: %s\n", err))
+		return err
+	}
+
+	if change {
+		if target != "" {
+			log.Infof("Running terraform with target: %s", target)
+			file.WriteString(fmt.Sprintf("Running terraform with target: %s\n", target))
+			err = executor.Apply(context.Background(), tfexec.Target(target))
+		} else {
+			err = executor.Apply(context.Background())
+		}
+
+		if err != nil {
+			log.WithError(err).Error("error running apply")
+			file.WriteString(fmt.Sprintf("Error running apply: %s\n", err))
+			return err
+		}
+	}
+
+	file.WriteString("Terraform operation completed successfully\n")
+	return nil
+}
+
 func DestroyAllTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string, executor TerraformExecutor) error {
 	p := filepath.Join(appconf.Workdir, "workspace")
 

@@ -3,10 +3,11 @@
   import ProductItem from '../../components/ProductItem.svelte';
   import CategoryList from '../../components/CategoryList.svelte';
   import Header from '../../components/Header.svelte';
-  import { marketplaceStore, selectedCategory, order } from '../../store/stores';
+  import { marketplaceStore, selectedCategory, order, productInstall } from '../../store/stores';
   import type { MarketplaceMetadata } from '../../data/unity-cs-manager/protobuf/marketplace';
   import type { OrderLine } from '../../data/entities';
   import { fade, slide } from 'svelte/transition';
+  import { goto } from '$app/navigation';
 
   $: categories = ['All', ...new Set($marketplaceStore.map((p) => p.Category))];
   $: filteredProducts = $marketplaceStore.filter(
@@ -60,6 +61,14 @@
       }
     };
   }
+
+  function handleStartInstall(name: string) {
+    return () => {
+      const product = selectedVersionsForProducts[name];
+      productInstall.set(product);
+      goto('/management/ui/install', { replaceState: true });
+    };
+  }
 </script>
 
 <div>
@@ -84,6 +93,7 @@
                   <option value={product.Version}>{product.Version}</option>
                 {/each}
               </select>
+              <button class="st-button" on:click={handleStartInstall(name)}>Install</button>
             </div>
             <ProductItem
               product={selectedVersionsForProducts[name]}
