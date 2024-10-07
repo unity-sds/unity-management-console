@@ -14,6 +14,8 @@
   export let appName = '';
   export let deployment = '';
 
+  console.log({ appPackage, appName, deployment });
+
   export let objectnumber = 0;
 
   let isUninstalling = false;
