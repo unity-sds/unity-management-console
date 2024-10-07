@@ -16,12 +16,25 @@
       return;
     }
     const json = await res.json();
+    json.forEach((app) => {
+      const newCard: CardItem = {
+        title: app.displayName,
+        packageName: app.PackageName,
+        applicationName: app.Name,
+        source: app.Source,
+        version: app.Version,
+        status: app.Status,
+        link: '',
+        deploymentName: app.DisplayName
+      };
+    });
+    cardData = cardData.concat([CardItem]);
     console.log(json);
   }
 
   onMount(async () => {
     await getInstalledApplications();
-    await fetchDeployedApplications();
+    // await fetchDeployedApplications();
   });
 
   type CardItem = {
