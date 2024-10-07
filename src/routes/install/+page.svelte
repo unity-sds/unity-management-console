@@ -9,7 +9,7 @@
     deploymentID: string;
   };
 
-  type ApplicationInstallStatus = [{ Status: string }];
+  type ApplicationInstallStatus = { Status: string };
 
   let nodeGroups: NodeGroupType[] = [];
 
