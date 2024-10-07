@@ -100,6 +100,12 @@ func NewGormDatastore() (Datastore, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	err = db.AutoMigrate(&models.InstalledMarketplaceApplication{})
+	if err != nil {
+		return nil, err
+	}
+
 	return &GormDatastore{
 		db: db,
 	}, nil
