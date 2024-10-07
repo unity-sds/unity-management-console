@@ -127,7 +127,7 @@
         description={card.Source}
         status={card.Status}
         appPackage={card.PackageName}
-        appName={card.ApplicationName}
+        appName={card.Name}
         deployment={card.DisplayName}
         objectnumber={index + 1}
       />
