@@ -268,7 +268,7 @@ func UninstallApplicationNewV2(appName string, version string, deploymentName st
 				// 	return err
 				// }
 				store.UpdateInstalledMarketplaceApplicationStatusByName(appName, deploymentName, "STARTING UNINSTALL")
-				logfile := path.Join(logDir, fmt.Sprintf("%s_%s_uninstall_log", appName))
+				logfile := path.Join(logDir, fmt.Sprintf("%s_%s_uninstall_log", appName, deploymentName))
 				err = terraform.RunTerraformLogOutToFile(conf, logfile, executor, "")
 				if err != nil {
 					log.WithError(err).Error("Failed to uninstall application")

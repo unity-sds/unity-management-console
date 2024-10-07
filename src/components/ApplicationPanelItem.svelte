@@ -172,26 +172,26 @@
             >Uninstall
           </button>
         {/if}
-        {#if uninstallInProgress || uninstallComplete || uninstallError}
+        <!--         {#if uninstallInProgress || uninstallComplete || uninstallError}
           <button
             class="st-button secondary"
             style="margin-top: 5px;"
             on:click={() => getLogs(true, true)}
             >Show Uninstall Logs
           </button>
-        {/if}
+        {/if} -->
         <select class="st-select" bind:value={selectedLogOption}>
           <option value="">Show Logs:</option>
-          <option value="uninstall">Install</option>
+          <option value="install">Install</option>
           <option value="uninstall">Uninstall</option>
         </select>
         {#if uninstallComplete}
           <div class="st-typography-small-caps">Uninstall Complete!</div>
         {/if}
         <!-- {/if} -->
-        <button class="st-button secondary" style="margin-top: 5px;" on:click={(_) => getLogs()}
+        <!-- <button class="st-button secondary" style="margin-top: 5px;" on:click={(_) => getLogs()}
           >Show Install Logs
-        </button>
+        </button> -->
       </div>
     {/if}
   </div>
