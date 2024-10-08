@@ -4,7 +4,7 @@ import (
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
-	"github.com/unity-sds/unity-cs-manager/marketplace"
+	// "github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
@@ -221,18 +221,26 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 
 	simplevars := make(map[string]string)
 	simplevars["mgmt_dns"] = appConfig.ConsoleHost
-	variables := marketplace.Install_Variables{Values: simplevars}
-	applications := marketplace.Install_Applications{
-		Name:        name,
-		Version:     version,
-		Variables:   &variables,
-		Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
-	}
-	install := marketplace.Install{
-		Applications:   &applications,
-		DeploymentName: "Core Mgmt Gateway",
-	}
-	err := TriggerInstall(nil, "", store, &install, appConfig)
+	// variables := marketplace.Install_Variables{Values: simplevars}
+	// applications := marketplace.Install_Applications{
+	// 	Name:        name,
+	// 	Version:     version,
+	// 	Variables:   &variables,
+	// 	Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
+	// }
+	// install := marketplace.Install{
+	// 	Applications:   &applications,
+	// 	DeploymentName: "Core Mgmt Gateway",
+	// }
+
+    installParams := types.ApplicationInstallParams{
+        Name:           name,
+        Version:        version,
+        Variables:      simplevars,
+        DisplayName:    "Unity Health Status Lambda",
+        DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
+    }
+	err := TriggerInstallNew(store, &installParams, appConfig)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Mgmt Gateway")
 		return err
@@ -264,8 +272,8 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 		Name:           name,
 		Version:        version,
 		Variables:      nil,
-		DisplayName:    fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
-		DeploymentName: "Core API Gateway",
+		DisplayName:    "Core API Gateway",
+		DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
 	}
 
 	err := TriggerInstallNew(store, &installParams, appConfig)
@@ -343,8 +351,8 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
         Name:           name,
         Version:        version,
         Variables:      varmap,
-        DisplayName:    name,
-        DeploymentName: "Unity Cloud Environment",
+        DisplayName:    "Unity Cloud Environment",
+        DeploymentName: name,
     }
 
 	err = TriggerInstallNew(store, &installParams, appConfig)
@@ -391,8 +399,8 @@ func installHealthStatusLambda(store database.Datastore, appConfig *config.AppCo
         Name:           name,
         Version:        version,
         Variables:      nil,
-        DisplayName:    fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
-        DeploymentName: "Unity Health Status Lambda",
+        DisplayName:    "Unity Health Status Lambda",
+        DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
     }
 
 	err := TriggerInstallNew(store, &installParams, appConfig)
