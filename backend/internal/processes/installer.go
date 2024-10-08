@@ -76,12 +76,12 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore) error {
 	if meta.Backend == "terraform" {
 		application := models.InstalledMarketplaceApplication{
-			Name:        installParams.Name,
-			Version:     installParams.Version,
+			Name:           installParams.Name,
+			Version:        installParams.Version,
 			DeploymentName: installParams.DeploymentName,
-			PackageName: meta.Name,
-			Source:      meta.Package,
-			Status:      "STAGED",
+			PackageName:    meta.Name,
+			Source:         meta.Package,
+			Status:         "STAGED",
 		}
 
 		db.StoreInstalledMarketplaceApplication(application)
@@ -426,6 +426,36 @@ func TriggerInstall(wsManager *websocket.WebSocketManager, userid string, store 
 	}
 
 	return nil
+}
+
+func TriggerInstallNew(store database.Datastore, applicationInstallParams *types.ApplicationInstallParams, conf *config.AppConfig) error {
+	// First check if this application is already installed.
+	existingApplication, err := store.GetInstalledMarketplaceApplicationStatusByName(applicationInstallParams.Name, applicationInstallParams.DeploymentName)
+	if err != nil {
+		log.WithError(err).Error("Error finding applications")
+		return errors.New("Unable to search applcation list")
+	}
+
+	if existingApplication != nil && existingApplication.Status != "UNINSTALLED" {
+		errMsg := fmt.Sprintf("Application with name %s already exists. Status: %s", applicationInstallParams.Name, existingApplication.Status)
+		return errors.New(errMsg)
+	}
+
+	// OK to start installing, get the metadata for this application
+	metadata, err := FetchMarketplaceMetadata(applicationInstallParams.Name, applicationInstallParams.Version, conf)
+	if err != nil {
+		log.Errorf("Unable to fetch metadata for application: %s, %v", applicationInstallParams.Name, err)
+		return errors.New("Unable to fetch package")
+	}
+
+	// Install the application package files
+	location, err := FetchPackage(&metadata, conf)
+	if err != nil {
+		log.Errorf("Unable to fetch package for application: %s, %v", applicationInstallParams.Name, err)
+		return errors.New("Unable to fetch package")
+	}
+
+	return InstallMarketplaceApplicationNewV2(conf, location, applicationInstallParams, &metadata, store)
 }
 
 func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Uninstall, conf *config.AppConfig) error {
