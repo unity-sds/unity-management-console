@@ -314,7 +314,7 @@ func AddApplicationToStackNewV2(appConfig *config.AppConfig, location string, me
 	log.Infof("Adding application to stack. Location: %v, meta %v, install: %v, deploymentID: %v", location, meta, installParams)
 	rand.Seed(time.Now().UnixNano())
 
-	s := GenerateRandomString(8)
+	// s := GenerateRandomString(8)
 	hclFile := hclwrite.NewEmptyFile()
 
 	directory := filepath.Join(appConfig.Workdir, "workspace")
