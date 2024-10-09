@@ -319,7 +319,7 @@ func AddApplicationToStackNewV2(appConfig *config.AppConfig, location string, me
 
 	directory := filepath.Join(appConfig.Workdir, "workspace")
 	log.Errorf("Application name: %s", installParams.Name)
-	filename := fmt.Sprintf("%v%v%v", installParams.Name, s, ".tf")
+	filename := fmt.Sprintf("%v-%v.tf", installParams.Name,  installParams.DeploymentName)
 
 	log.Errorf("Creating file with the name: %s", filename)
 	tfFile, err := createFile(directory, filename, 0755)
