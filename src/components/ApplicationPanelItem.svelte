@@ -199,7 +199,7 @@
           style="height: 34px"
           on:change={getLogs}
         >
-          <option value="">Show Logs:</option>
+          <option value="">Show Logs</option>
           <option value="install">Install</option>
           <option value="uninstall">Uninstall</option>
         </select>
