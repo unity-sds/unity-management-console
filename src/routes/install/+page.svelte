@@ -106,6 +106,7 @@
   }
 
   $: {
+    console.log({ showLogs, logInterval });
     if (showLogs && !logInterval) {
       getLogs();
       logInterval = setInterval((_) => {
@@ -113,6 +114,7 @@
       }, 5000);
     } else if (!showLogs) {
       clearInterval(logInterval);
+      logInterval = null;
     }
   }
 

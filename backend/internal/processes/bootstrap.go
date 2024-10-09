@@ -238,7 +238,7 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 		Version:        version,
 		Variables:      simplevars,
 		DisplayName:    "Unity Health Status Lambda",
-		DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
+		DeploymentName: fmt.Sprintf("%s-%s-%s", appConfig.Project, appConfig.Venue, name),
 	}
 	err := TriggerInstallNew(store, &installParams, appConfig, true)
 	if err != nil {
@@ -273,7 +273,7 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 		Version:        version,
 		Variables:      nil,
 		DisplayName:    "Core API Gateway",
-		DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
+		DeploymentName: fmt.Sprintf("%s-%s-%s", appConfig.Project, appConfig.Venue, name),
 	}
 
 	err := TriggerInstallNew(store, &installParams, appConfig, true)
@@ -352,7 +352,7 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 		Version:        version,
 		Variables:      varmap,
 		DisplayName:    "Unity Cloud Environment",
-		DeploymentName: name,
+		DeploymentName: fmt.Sprintf("%s-%s-%s", appConfig.Project, appConfig.Venue, name),
 	}
 
 	err = TriggerInstallNew(store, &installParams, appConfig, true)
@@ -400,7 +400,7 @@ func installHealthStatusLambda(store database.Datastore, appConfig *config.AppCo
 		Version:        version,
 		Variables:      nil,
 		DisplayName:    "Unity Health Status Lambda",
-		DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
+		DeploymentName: fmt.Sprintf("%s-%s-%s", appConfig.Project, appConfig.Venue, name),
 	}
 
 	err := TriggerInstallNew(store, &installParams, appConfig, true)
