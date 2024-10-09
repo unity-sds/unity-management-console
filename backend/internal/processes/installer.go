@@ -73,7 +73,13 @@ func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location stri
 	}
 }
 
-func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore) error {
+func startApplicationInstallTerraform(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore) {
+	log.Errorf("Application name is: %s", installParams.Name)
+	terraform.AddApplicationToStackNewV2(appConfig, location, meta, installParams, db)
+	executeNewV2(db, appConfig, meta, installParams)
+}
+
+func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore, sync bool) error {
 	if meta.Backend == "terraform" {
 		application := models.InstalledMarketplaceApplication{
 			Name:           installParams.Name,
@@ -87,11 +93,45 @@ func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location st
 		db.StoreInstalledMarketplaceApplication(application)
 		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "INSTALLING")
 
-		go func() {
-			log.Errorf("Application name is: %s", installParams.Name)
-			terraform.AddApplicationToStackNewV2(appConfig, location, meta, installParams, db)
-			executeNewV2(db, appConfig, meta, installParams)
-		}()
+		if sync {
+			startApplicationInstallTerraform(appConfig, location, installParams, meta, db)
+			return nil
+		} else {
+			go startApplicationInstallTerraform(appConfig, location, installParams, meta, db)
+			return nil
+
+		}
+
+		// go func() {
+		// 	log.Errorf("Application name is: %s", installParams.Name)
+		// 	terraform.AddApplicationToStackNewV2(appConfig, location, meta, installParams, db)
+		// 	executeNewV2(db, appConfig, meta, installParams)
+		// }()
+
+		// return nil
+
+	} else {
+		return errors.New("backend not implemented")
+	}
+}
+
+func InstallMarketplaceApplicationNewV2Sync(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore) error {
+	if meta.Backend == "terraform" {
+		application := models.InstalledMarketplaceApplication{
+			Name:           installParams.Name,
+			Version:        installParams.Version,
+			DeploymentName: installParams.DeploymentName,
+			PackageName:    meta.Name,
+			Source:         meta.Package,
+			Status:         "STAGED",
+		}
+
+		db.StoreInstalledMarketplaceApplication(application)
+		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "INSTALLING")
+
+		log.Errorf("Application name is: %s", installParams.Name)
+		terraform.AddApplicationToStackNewV2(appConfig, location, meta, installParams, db)
+		executeNewV2(db, appConfig, meta, installParams)
 
 		return nil
 
@@ -428,7 +468,7 @@ func TriggerInstall(wsManager *websocket.WebSocketManager, userid string, store 
 	return nil
 }
 
-func TriggerInstallNew(store database.Datastore, applicationInstallParams *types.ApplicationInstallParams, conf *config.AppConfig) error {
+func TriggerInstallNew(store database.Datastore, applicationInstallParams *types.ApplicationInstallParams, conf *config.AppConfig, sync bool) error {
 	// First check if this application is already installed.
 	existingApplication, err := store.GetInstalledMarketplaceApplicationStatusByName(applicationInstallParams.Name, applicationInstallParams.DeploymentName)
 	if err != nil {
@@ -455,7 +495,7 @@ func TriggerInstallNew(store database.Datastore, applicationInstallParams *types
 		return errors.New("Unable to fetch package")
 	}
 
-	return InstallMarketplaceApplicationNewV2(conf, location, applicationInstallParams, &metadata, store)
+	return InstallMarketplaceApplicationNewV2(conf, location, applicationInstallParams, &metadata, store, sync)
 }
 
 func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Uninstall, conf *config.AppConfig) error {

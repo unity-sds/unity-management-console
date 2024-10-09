@@ -233,14 +233,14 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 	// 	DeploymentName: "Core Mgmt Gateway",
 	// }
 
-    installParams := types.ApplicationInstallParams{
-        Name:           name,
-        Version:        version,
-        Variables:      simplevars,
-        DisplayName:    "Unity Health Status Lambda",
-        DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
-    }
-	err := TriggerInstallNew(store, &installParams, appConfig)
+	installParams := types.ApplicationInstallParams{
+		Name:           name,
+		Version:        version,
+		Variables:      simplevars,
+		DisplayName:    "Unity Health Status Lambda",
+		DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
+	}
+	err := TriggerInstallNew(store, &installParams, appConfig, true)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Mgmt Gateway")
 		return err
@@ -276,7 +276,7 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 		DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
 	}
 
-	err := TriggerInstallNew(store, &installParams, appConfig)
+	err := TriggerInstallNew(store, &installParams, appConfig, true)
 	if err != nil {
 		log.WithError(err).Error("Issue installing API Gateway")
 		return err
@@ -347,15 +347,15 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 	// 	DeploymentName: "Unity Cloud Environment",
 	// }
 
-    installParams := types.ApplicationInstallParams{
-        Name:           name,
-        Version:        version,
-        Variables:      varmap,
-        DisplayName:    "Unity Cloud Environment",
-        DeploymentName: name,
-    }
+	installParams := types.ApplicationInstallParams{
+		Name:           name,
+		Version:        version,
+		Variables:      varmap,
+		DisplayName:    "Unity Cloud Environment",
+		DeploymentName: name,
+	}
 
-	err = TriggerInstallNew(store, &installParams, appConfig)
+	err = TriggerInstallNew(store, &installParams, appConfig, true)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Unity Cloud Env")
 		return err
@@ -395,15 +395,15 @@ func installHealthStatusLambda(store database.Datastore, appConfig *config.AppCo
 	// 	DeploymentName: "Unity Health Status Lambda",
 	// }
 
-    installParams := types.ApplicationInstallParams{
-        Name:           name,
-        Version:        version,
-        Variables:      nil,
-        DisplayName:    "Unity Health Status Lambda",
-        DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
-    }
+	installParams := types.ApplicationInstallParams{
+		Name:           name,
+		Version:        version,
+		Variables:      nil,
+		DisplayName:    "Unity Health Status Lambda",
+		DeploymentName: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
+	}
 
-	err := TriggerInstallNew(store, &installParams, appConfig)
+	err := TriggerInstallNew(store, &installParams, appConfig, true)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Unity Health Status Lambda")
 		return err
