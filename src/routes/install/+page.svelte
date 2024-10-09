@@ -106,7 +106,6 @@
   }
 
   $: {
-    console.log({ showLogs, logInterval });
     if (showLogs && !logInterval) {
       getLogs();
       logInterval = setInterval((_) => {

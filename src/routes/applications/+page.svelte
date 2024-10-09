@@ -126,6 +126,7 @@
       display: flex;
       gap: 20px;
       margin-top: 10px;
+      flex-wrap: wrap;
     "
   >
     {#each applications as card, index (card.DeploymentName)}
