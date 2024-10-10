@@ -5,6 +5,7 @@
   import { goto } from '$app/navigation';
 
   import checkIcon from '../icons/check.svg';
+  import closeIcon from '../icons/close.svg';
 
   export let title = '';
   export let description = '';
@@ -147,6 +148,8 @@
       <span class="st-typography-header">{title}</span>
       <span class="st-typography-bold">Application: {appName}</span>
       <div style="display: flex; gap: 10px; margin: 10px; justify-content: center">
+        <closeIcon />
+
         <span class="st-typography-bold">Installation Status:</span>
         {#if combinedStatus === 'COMPLETE'}
           <span class="st-typography-small-caps" style="color: green">Done</span>
