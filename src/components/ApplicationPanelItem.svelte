@@ -147,8 +147,9 @@
         align-items: center;
         padding: 5px;
       "
+      class="card-container"
     >
-      <img height="16" width="16" src={TrashIcon} style="align-self: flex-end;" />
+      <img height="16" width="16" src={TrashIcon} style="align-self: flex-end;" id="closeIcon" />
       <span class="st-typography-header">{title}</span>
       <span class="st-typography-bold">Application: 1{appName}</span>
       <div style="display: flex; gap: 10px; margin: 10px; justify-content: center">
@@ -231,3 +232,9 @@
 </pre>
   {/if}
 </Modal>
+
+<style>
+  .card-container:hover #closeIcon {
+    display: none;
+  }
+</style>
