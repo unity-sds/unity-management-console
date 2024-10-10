@@ -138,6 +138,7 @@
         appName={card.Name}
         deployment={card.DeploymentName}
         objectnumber={index + 1}
+        on:refreshApplicationList={getInstalledApplications}
       />
     {/each}
   </div>

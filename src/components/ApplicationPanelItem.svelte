@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
   import ScaleOut from './common/ScaleOut.svelte';
   import Modal from './common/Modal.svelte';
   import { HttpHandler, reapplyApplication } from '../data/httpHandler';
@@ -15,6 +16,8 @@
   export let appName = '';
   export let deployment = '';
 
+  const dispatch = createEventDispatcher();
+
   let latestStatus = '';
   $: combinedStatus = latestStatus || status;
 
@@ -23,15 +26,6 @@
   export let objectnumber = 0;
 
   let isUninstalling = false;
-  const uninstallApp = () => {
-    console.log({ appName, appPackage, deployment });
-    return;
-    isUninstalling = true;
-    const httphandler = new HttpHandler();
-    console.log('Uninstalling ' + appName);
-    httphandler.uninstallSoftware(appName, appPackage, deployment);
-  };
-
   let uninstallComplete = false;
   let uninstallInProgress = false;
   let uninstallError = false;
@@ -133,6 +127,15 @@
   $: if (!showLogs && logInterval) {
     clearInterval(logInterval);
   }
+
+  async function deleteApplication() {
+    const res = await fetch(`../api/application/${appName}/${deployment}`, { method: 'DELETE' });
+    if (!res.ok) {
+      console.warn('Error deleting application!');
+      return;
+    }
+    dispatch('refreshApplicationList');
+  }
 </script>
 
 <div class="lg:w-1/3 md:w-1/2 mb-4" style="flex: 0 0 auto">
@@ -145,7 +148,7 @@
         padding: 5px;
       "
     >
-      <img height="16" width="16" src={CloseIcon} style="justify-self: flex-end;" />
+      <img height="16" width="16" src={CloseIcon} style="align-self: flex-end;" />
       <span class="st-typography-header">{title}</span>
       <span class="st-typography-bold">Application: 1{appName}</span>
       <div style="display: flex; gap: 10px; margin: 10px; justify-content: center">
