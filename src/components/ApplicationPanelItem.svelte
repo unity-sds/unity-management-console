@@ -6,7 +6,7 @@
   import { goto } from '$app/navigation';
 
   import checkIcon from '../icons/check.svg';
-  import CloseIcon from '../icons/close.svg';
+  import TrashIcon from '../icons/trash.svg';
 
   export let title = '';
   export let description = '';
@@ -148,7 +148,7 @@
         padding: 5px;
       "
     >
-      <img height="16" width="16" src={CloseIcon} style="align-self: flex-end;" />
+      <img height="16" width="16" src={TrashIcon} style="align-self: flex-end;" />
       <span class="st-typography-header">{title}</span>
       <span class="st-typography-bold">Application: 1{appName}</span>
       <div style="display: flex; gap: 10px; margin: 10px; justify-content: center">
