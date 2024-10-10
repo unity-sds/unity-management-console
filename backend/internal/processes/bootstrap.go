@@ -238,7 +238,7 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 		Version:        version,
 		Variables:      simplevars,
 		DisplayName:    "Unity Health Status Lambda",
-		DeploymentName: fmt.Sprintf("%s-%s-%s", appConfig.Project, appConfig.Venue, name),
+		DeploymentName: fmt.Sprintf("%s-%s", name, name),
 	}
 	err := TriggerInstallNew(store, &installParams, appConfig, true)
 	if err != nil {
