@@ -146,7 +146,7 @@
       "
     >
       <span class="st-typography-header">{title}</span>
-      <span class="st-typography-bold">Application: {appName}</span>
+      <span class="st-typography-bold">Application: 1{appName}</span>
       <div style="display: flex; gap: 10px; margin: 10px; justify-content: center">
         <image height="32" width="32" src={CloseIcon} />
         <span class="st-typography-bold">Installation Status:</span>
