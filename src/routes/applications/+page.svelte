@@ -126,6 +126,7 @@
       display: flex;
       gap: 20px;
       margin-top: 10px;
+      flex-wrap: wrap;
     "
   >
     {#each applications as card, index (card.DeploymentName)}
@@ -137,6 +138,7 @@
         appName={card.Name}
         deployment={card.DeploymentName}
         objectnumber={index + 1}
+        on:refreshApplicationList={getInstalledApplications}
       />
     {/each}
   </div>

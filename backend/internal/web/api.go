@@ -192,6 +192,27 @@ func getInstalledApplications(appConfig config.AppConfig, db database.Datastore)
 	}
 }
 
+func handleDeleteApplication(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		appName := c.Param("appName")
+		deploymentName := c.Param("deploymentName")
+
+		existingApplication, err := db.GetInstalledMarketplaceApplicationStatusByName(appName, deploymentName)
+		if existingApplication == nil {
+			log.Errorf("Unable to find application %s and deployment %s", appName, deploymentName)
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Application or deployment name doesn't exist."})
+			return
+		}
+
+		err = db.RemoveInstalledMarketplaceApplication(appName, deploymentName)
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		c.Status(http.StatusOK)
+	}
+}
+
 // func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
 // 	fn := func(c *gin.Context) {
 // 		switch endpoint := c.Param("endpoint"); endpoint {

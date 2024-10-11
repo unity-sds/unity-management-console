@@ -95,10 +95,8 @@ func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location st
 
 		if sync {
 			startApplicationInstallTerraform(appConfig, location, installParams, meta, db)
-			return nil
 		} else {
 			go startApplicationInstallTerraform(appConfig, location, installParams, meta, db)
-			return nil
 
 		}
 
@@ -108,37 +106,14 @@ func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location st
 		// 	executeNewV2(db, appConfig, meta, installParams)
 		// }()
 
-		// return nil
-
-	} else {
-		return errors.New("backend not implemented")
-	}
-}
-
-func InstallMarketplaceApplicationNewV2Sync(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore) error {
-	if meta.Backend == "terraform" {
-		application := models.InstalledMarketplaceApplication{
-			Name:           installParams.Name,
-			Version:        installParams.Version,
-			DeploymentName: installParams.DeploymentName,
-			PackageName:    meta.Name,
-			Source:         meta.Package,
-			Status:         "STAGED",
-		}
-
-		db.StoreInstalledMarketplaceApplication(application)
-		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "INSTALLING")
-
-		log.Errorf("Application name is: %s", installParams.Name)
-		terraform.AddApplicationToStackNewV2(appConfig, location, meta, installParams, db)
-		executeNewV2(db, appConfig, meta, installParams)
-
 		return nil
 
 	} else {
 		return errors.New("backend not implemented")
 	}
 }
+
+
 
 func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid string, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, location string, install *marketplace.Install, db database.Datastore) error {
 

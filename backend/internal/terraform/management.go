@@ -314,12 +314,12 @@ func AddApplicationToStackNewV2(appConfig *config.AppConfig, location string, me
 	log.Infof("Adding application to stack. Location: %v, meta %v, install: %v, deploymentID: %v", location, meta, installParams)
 	rand.Seed(time.Now().UnixNano())
 
-	s := GenerateRandomString(8)
+	// s := GenerateRandomString(8)
 	hclFile := hclwrite.NewEmptyFile()
 
 	directory := filepath.Join(appConfig.Workdir, "workspace")
 	log.Errorf("Application name: %s", installParams.Name)
-	filename := fmt.Sprintf("%v%v%v", installParams.Name, s, ".tf")
+	filename := fmt.Sprintf("%v-%v.tf", installParams.Name,  installParams.DeploymentName)
 
 	log.Errorf("Creating file with the name: %s", filename)
 	tfFile, err := createFile(directory, filename, 0755)
