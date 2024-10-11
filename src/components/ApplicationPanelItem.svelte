@@ -149,7 +149,15 @@
       "
       class="card-container"
     >
-      <img height="16" width="16" src={TrashIcon} style="align-self: flex-end;" id="closeIcon" />
+      <div style="min-height: 16px;">
+        <img
+          height="16"
+          width="16"
+          src={TrashIcon}
+          style="align-self: flex-end;display: none;"
+          id="closeIcon"
+        />
+      </div>
       <span class="st-typography-header">{title}</span>
       <span class="st-typography-bold">Application: 1{appName}</span>
       <div style="display: flex; gap: 10px; margin: 10px; justify-content: center">
@@ -235,6 +243,6 @@
 
 <style>
   .card-container:hover #closeIcon {
-    display: none;
+    display: block;
   }
 </style>
