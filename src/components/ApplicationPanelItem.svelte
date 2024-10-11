@@ -149,7 +149,7 @@
       "
       class="card-container"
     >
-      <div style="min-height: 16px;">
+      <div style="min-height: 16px;" class="icon-container">
         <img height="16" width="16" src={TrashIcon} style="align-self: flex-end;" id="closeIcon" />
       </div>
       <span class="st-typography-header">{title}</span>
@@ -236,6 +236,12 @@
 </Modal>
 
 <style>
+  .icon-container {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+  }
+
   .card-container #closeIcon {
     display: none;
   }
