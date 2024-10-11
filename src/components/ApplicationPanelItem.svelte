@@ -154,7 +154,7 @@
           height="16"
           width="16"
           src={TrashIcon}
-          style="align-self: flex-end;display: none;"
+          style="align-self: flex-end; display: none;"
           id="closeIcon"
         />
       </div>
@@ -242,7 +242,7 @@
 </Modal>
 
 <style>
-  .card-container:hover #closeIcon {
+  .card-container:hover div #closeIcon {
     display: block;
   }
 </style>
