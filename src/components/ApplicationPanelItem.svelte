@@ -150,16 +150,10 @@
       class="card-container"
     >
       <div style="min-height: 16px;">
-        <img
-          height="16"
-          width="16"
-          src={TrashIcon}
-          style="align-self: flex-end; display: none;"
-          id="closeIcon"
-        />
+        <img height="16" width="16" src={TrashIcon} style="align-self: flex-end;" id="closeIcon" />
       </div>
       <span class="st-typography-header">{title}</span>
-      <span class="st-typography-bold">Application: 1{appName}</span>
+      <span class="st-typography-bold">Application: {appName}</span>
       <div style="display: flex; gap: 10px; margin: 10px; justify-content: center">
         <span class="st-typography-bold">Installation Status:</span>
         {#if combinedStatus === 'COMPLETE'}
@@ -242,7 +236,11 @@
 </Modal>
 
 <style>
-  .card-container:hover div #closeIcon {
+  .card-container #closeIcon {
+    display: none;
+  }
+
+  .card-container:hover #closeIcon {
     display: block;
   }
 </style>
