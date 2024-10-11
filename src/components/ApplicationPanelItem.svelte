@@ -150,7 +150,15 @@
       class="card-container"
     >
       <div style="min-height: 16px;" class="icon-container">
-        <img height="16" width="16" src={TrashIcon} style="align-self: flex-end;" id="closeIcon" />
+        <a on:click={deleteApplication}
+          ><img
+            height="16"
+            width="16"
+            src={TrashIcon}
+            style="align-self: flex-end;"
+            id="closeIcon"
+          /></a
+        >
       </div>
       <span class="st-typography-header">{title}</span>
       <span class="st-typography-bold">Application: {appName}</span>
