@@ -275,7 +275,7 @@ func UninstallApplicationNewV2(appName string, version string, deploymentName st
 					return err
 				}
 
-				err = store.RemoveInstalledMarketplaceApplicationByName(appName)
+				// err = store.RemoveInstalledMarketplaceApplicationByName(appName)
 
 				// err := store.RemoveApplicationByName(deploymentname, appname)
 				// if err != nil {

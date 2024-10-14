@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { createEventDispatcher } from 'svelte';
   import ScaleOut from './common/ScaleOut.svelte';
   import Modal from './common/Modal.svelte';
   import { HttpHandler, reapplyApplication } from '../data/httpHandler';
   import { goto } from '$app/navigation';
 
   import checkIcon from '../icons/check.svg';
+  import TrashIcon from '../icons/trash.svg';
 
   export let title = '';
   export let description = '';
@@ -14,6 +16,8 @@
   export let appName = '';
   export let deployment = '';
 
+  const dispatch = createEventDispatcher();
+
   let latestStatus = '';
   $: combinedStatus = latestStatus || status;
 
@@ -22,15 +26,6 @@
   export let objectnumber = 0;
 
   let isUninstalling = false;
-  const uninstallApp = () => {
-    console.log({ appName, appPackage, deployment });
-    return;
-    isUninstalling = true;
-    const httphandler = new HttpHandler();
-    console.log('Uninstalling ' + appName);
-    httphandler.uninstallSoftware(appName, appPackage, deployment);
-  };
-
   let uninstallComplete = false;
   let uninstallInProgress = false;
   let uninstallError = false;
@@ -132,6 +127,15 @@
   $: if (!showLogs && logInterval) {
     clearInterval(logInterval);
   }
+
+  async function deleteApplication() {
+    const res = await fetch(`../api/application/${appName}/${deployment}`, { method: 'DELETE' });
+    if (!res.ok) {
+      console.warn('Error deleting application!');
+      return;
+    }
+    dispatch('refreshApplicationList');
+  }
 </script>
 
 <div class="lg:w-1/3 md:w-1/2 mb-4" style="flex: 0 0 auto">
@@ -143,7 +147,21 @@
         align-items: center;
         padding: 5px;
       "
+      class="card-container"
     >
+      {#if combinedStatus === 'UNINSTALLED'}
+        <div style="min-height: 16px;" class="icon-container">
+          <a on:click={deleteApplication}
+            ><img
+              height="16"
+              width="16"
+              src={TrashIcon}
+              style="align-self: flex-end;"
+              id="closeIcon"
+            /></a
+          >
+        </div>
+      {/if}
       <span class="st-typography-header">{title}</span>
       <span class="st-typography-bold">Application: {appName}</span>
       <div style="display: flex; gap: 10px; margin: 10px; justify-content: center">
@@ -199,7 +217,7 @@
           style="height: 34px"
           on:change={getLogs}
         >
-          <option value="">Show Logs:</option>
+          <option value="">Show Logs</option>
           <option value="install">Install</option>
           <option value="uninstall">Uninstall</option>
         </select>
@@ -226,3 +244,19 @@
 </pre>
   {/if}
 </Modal>
+
+<style>
+  .icon-container {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .card-container #closeIcon {
+    display: none;
+  }
+
+  .card-container:hover #closeIcon {
+    display: block;
+  }
+</style>

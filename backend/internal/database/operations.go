@@ -6,8 +6,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
-	"gorm.io/gorm/clause"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // StoreConfig stores the given configuration in the database. It uses a
@@ -138,7 +138,7 @@ func (g GormDatastore) GetInstalledApplicationByName(name string) (*models.Insta
 	var application models.InstalledMarketplaceApplication
 	result := g.db.Where("name = ?", name).Where("status != 'UNINSTALLED'").First(&application)
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound){
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 
@@ -259,7 +259,7 @@ func (g GormDatastore) RemoveApplicationByName(deploymentName string, applicatio
 	return nil
 }
 
-func (g GormDatastore) StoreInstalledMarketplaceApplication(model models.InstalledMarketplaceApplication) (error) {
+func (g GormDatastore) StoreInstalledMarketplaceApplication(model models.InstalledMarketplaceApplication) error {
 	if err := g.db.Save(&model).Error; err != nil {
 		// Handle error for Save
 		log.WithError(err).Error("Problem saving record to database")
@@ -281,9 +281,9 @@ func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName st
 	return &application, nil
 }
 
-func (g GormDatastore) UpdateInstalledMarketplaceApplicationStatusByName(appName string, deploymentName string, status string) (error) {
+func (g GormDatastore) UpdateInstalledMarketplaceApplicationStatusByName(appName string, deploymentName string, status string) error {
 	var app models.InstalledMarketplaceApplication
-	
+
 	g.db.Where("name = ? AND deployment_name = ?", appName, deploymentName).First(&app)
 	app.Status = status
 
@@ -295,8 +295,8 @@ func (g GormDatastore) UpdateInstalledMarketplaceApplicationStatusByName(appName
 	return nil
 }
 
-func (g GormDatastore) RemoveInstalledMarketplaceApplicationByName(appName string) (error) {
-	if err := g.db.Where("name != ?", appName).Delete(&models.InstalledMarketplaceApplication{}).Error; err != nil {
+func (g GormDatastore) RemoveInstalledMarketplaceApplication(appName string, deploymentName string) error {
+	if err := g.db.Where("name = ? AND deployment_name = ?", appName, deploymentName).Delete(&models.InstalledMarketplaceApplication{}).Error; err != nil {
 		return err
 	}
 	return nil

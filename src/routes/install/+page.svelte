@@ -113,6 +113,7 @@
       }, 5000);
     } else if (!showLogs) {
       clearInterval(logInterval);
+      logInterval = null;
     }
   }
 
