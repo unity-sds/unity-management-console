@@ -177,7 +177,7 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 			]
 		}`, bucket, bucket)
 
-		_, perr := s3client.PutBucketPolicy(context.TODO(), &s3.PutBucketPolicyInput{
+		_, perr = s3client.PutBucketPolicy(context.TODO(), &s3.PutBucketPolicyInput{
 			Bucket: aws.String(bucket),
 			Policy: aws.String(sslPolicy),
 		})
