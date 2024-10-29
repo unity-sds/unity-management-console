@@ -91,6 +91,27 @@ func parseAdvancedVariables(install *marketplace.Install, cloudenv *map[string]c
 	}
 }
 
+func parseAdvancedVariablesV2(advancedVars *types.AdvancedValue, cloudenv *map[string]cty.Value) {
+	if advancedVars == nil {
+		return
+	}
+
+	for key, value := range *advancedVars {
+		switch v := value.(type) {
+		case types.AdvancedValue:
+			// Create a new map for nested structure
+			nestedMap := make(map[string]cty.Value)
+			// Recursively process nested AdvancedValue
+			parseAdvancedVariablesV2(&v, &nestedMap)
+			// Add the nested map to cloudenv
+			(*cloudenv)[key] = cty.ObjectVal(nestedMap)
+		default:
+			// Convert the value to cty.Value and add to cloudenv
+			(*cloudenv)[key] = convertToCty(v)
+		}
+	}
+}
+
 func generateMetadataHeader(cloudenv *hclwrite.Body, id string, application string, applicationName string, version string, creator string, deploymentID uint) {
 	currentTime := time.Now()
 	dateString := currentTime.Format("2006-01-02")
@@ -103,7 +124,6 @@ func generateMetadataHeader(cloudenv *hclwrite.Body, id string, application stri
 	}
 	cloudenv.AppendUnstructuredTokens(comment)
 }
-
 
 func generateMetadataHeaderNew(cloudenv *hclwrite.Body, id string, application string, applicationName string, version string, creator string) {
 	currentTime := time.Now()
@@ -235,7 +255,6 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	return nil
 }
 
-
 // AddApplicationToStack adds the given application configuration to the stack.
 // It takes care of creating the necessary workspace directory, generating the
 // HCL file, and writing the required attributes.
@@ -319,7 +338,7 @@ func AddApplicationToStackNewV2(appConfig *config.AppConfig, location string, me
 
 	directory := filepath.Join(appConfig.Workdir, "workspace")
 	log.Errorf("Application name: %s", installParams.Name)
-	filename := fmt.Sprintf("%v-%v.tf", installParams.Name,  installParams.DeploymentName)
+	filename := fmt.Sprintf("%v-%v.tf", installParams.Name, installParams.DeploymentName)
 
 	log.Errorf("Creating file with the name: %s", filename)
 	tfFile, err := createFile(directory, filename, 0755)
@@ -357,8 +376,8 @@ func AddApplicationToStackNewV2(appConfig *config.AppConfig, location string, me
 			attributes[key] = cty.StringVal(element)
 		}
 	}
-	// log.Info("Parsing advanced vars")
-	// parseAdvancedVariables(install, &attributes)
+	log.Info("Parsing advanced vars")
+	parseAdvancedVariablesV2(&installParams.AdvancedValues, &attributes)
 	rand.Seed(time.Now().UnixNano())
 	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	randomChars := make([]byte, 5)
