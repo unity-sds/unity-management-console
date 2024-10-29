@@ -28,6 +28,7 @@ type S3BucketAPI interface {
 	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error)
 	PutBucketVersioning(ctx context.Context, params *s3.PutBucketVersioningInput) (*s3.PutBucketVersioningOutput, error)
 	PutBucketLifecycleConfiguration(ctx context.Context, params *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error)
+	PutBucketPolicy(ctx context.Context, params *s3.PutBucketPolicyInput, optFns ...func(*s3.Options)) (*s3.PutBucketPolicyOutput, error)
 }
 
 type AWSS3Client struct {
@@ -62,6 +63,10 @@ func (a *AWSS3Client) PutBucketVersioning(ctx context.Context, params *s3.PutBuc
 
 func (a *AWSS3Client) PutBucketLifecycleConfiguration(ctx context.Context, params *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error) {
 	return a.Client.PutBucketLifecycleConfiguration(ctx, params)
+}
+
+func (a *AWSS3Client) PutBucketPolicy(ctx context.Context, params *s3.PutBucketPolicyInput, optFns ...func(*s3.Options)) (*s3.PutBucketPolicyOutput, error) {
+	return a.Client.PutBucketPolicy(ctx, params)
 }
 
 func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (*s3.CreateBucketOutput, error) {
@@ -147,6 +152,38 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 
 		if berr != nil {
 			log.Errorf("Error creating bucket: %v", berr)
+			return
+		}
+
+		// Add SSL requirement policy
+		sslPolicy := fmt.Sprintf(`{
+			"Version": "2012-10-17",
+			"Statement": [
+				{
+					"Sid": "DenyNonSSLRequests",
+					"Effect": "Deny",
+					"Principal": "*",
+					"Action": "s3:*",
+					"Resource": [
+						"arn:aws:s3:::%s",
+						"arn:aws:s3:::%s/*"
+					],
+					"Condition": {
+						"Bool": {
+							"aws:SecureTransport": "false"
+						}
+					}
+				}
+			]
+		}`, bucket, bucket)
+
+		_, perr := s3client.PutBucketPolicy(context.TODO(), &s3.PutBucketPolicyInput{
+			Bucket: aws.String(bucket),
+			Policy: aws.String(sslPolicy),
+		})
+
+		if perr != nil {
+			log.Errorf("Error setting bucket SSL policy: %v", perr)
 			return
 		}
 
