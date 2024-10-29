@@ -4,6 +4,7 @@
   import type { NodeGroupType } from '../../data/entities';
   import { productInstall } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
+  import AdvancedVar from './advanced_var.svelte';
 
   type StartApplicationInstallResponse = {
     deploymentID: string;
@@ -42,6 +43,7 @@
   }
 
   $: Variables = product?.DefaultDeployment?.Variables?.Values || {};
+  $: AdvancedValues = product?.DefaultDeployment?.Variables?.AdvancedValues || {};
   $: {
     Object.entries(Variables).forEach(([key, value]) => {
       if (value) {
@@ -76,7 +78,12 @@
   }
 
   async function installApplication() {
-    const outObj = { Name: product.Name, Version: product.Version, ...applicationMetadata };
+    const outObj = {
+      Name: product.Name,
+      Version: product.Version,
+      AdvancedValues,
+      ...applicationMetadata
+    };
     installInProgress = true;
     const url = '../api/install_application';
     const res = await fetch(url, { method: 'POST', body: JSON.stringify(outObj) });
@@ -152,6 +159,12 @@
           </div>
         {/each}
       </div>
+      {#if AdvancedValues}
+        <hr style="margin-top:10px" />
+        <div class="variablesForm">
+          <AdvancedVar bind:json={AdvancedValues} editMode={true} />
+        </div>
+      {/if}
     {:else if steps[currentStepIndex] === 'summary'}
       <div class="st-typography-small-caps">Installation Summary</div>
       <div class="variablesForm">
@@ -168,6 +181,9 @@
               <div class="st-typography-bold">{value}</div>
             </div>
           {/each}
+          {#if AdvancedValues}
+            <AdvancedVar bind:json={AdvancedValues} />
+          {/if}
         </div>
       </div>
     {/if}
