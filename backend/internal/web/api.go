@@ -96,7 +96,8 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 		metadata, err := processes.FetchMarketplaceMetadata(applicationInstallParams.Name, applicationInstallParams.Version, &appConfig)
 		if err != nil {
 			log.Errorf("Unable to fetch metadata for application: %s, %v", applicationInstallParams.Name, err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to fetch package"})
+			errMsg := fmt.Sprintf("Unable to fetch package metatadata: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": errMsg})
 			return
 		}
 

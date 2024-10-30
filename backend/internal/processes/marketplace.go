@@ -13,30 +13,36 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"errors"
 )
 
 func FetchMarketplaceMetadata(name string, version string, appConfig *config.AppConfig) (marketplace.MarketplaceMetadata, error) {
 
 	log.Infof("Fetching marketplace metadata for, %s, %s", name, version)
 	url := fmt.Sprintf("%sunity-sds/unity-marketplace/main/applications/%s/%s/metadata.json", appConfig.MarketplaceBaseUrl, name, version)
+
+	log.Infof("Fetching marketplace metadata at: %s", url)
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Errorf("Error fetching from github: %v", err)
-		return marketplace.MarketplaceMetadata{}, err
+		errMsg := fmt.Sprintf("Error fetching metadata from url: %s", url)
+		return marketplace.MarketplaceMetadata{}, errors.New(errMsg)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Errorf("Error reading file: %v", err)
-		return marketplace.MarketplaceMetadata{}, err
+		errMsg := fmt.Sprintf("Error fetching metadata from url: %s", url)
+		return marketplace.MarketplaceMetadata{}, errors.New(errMsg)
 	}
 
 	content := string(body)
 	req := &marketplace.MarketplaceMetadata{}
 	err = protojson.Unmarshal([]byte(content), req)
 	if err != nil {
-		log.WithError(err).Error("Error unmarshalling file")
+		errMsg := fmt.Sprintf("Error fetching metadata from url: %s", url)
+		return marketplace.MarketplaceMetadata{}, errors.New(errMsg)
 	}
 	return *req, err
 }

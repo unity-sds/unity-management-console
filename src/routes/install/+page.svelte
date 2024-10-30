@@ -75,13 +75,21 @@
     }, 5000);
   }
 
+  let errMsg = '';
   async function installApplication() {
     const outObj = { Name: product.Name, Version: product.Version, ...applicationMetadata };
     installInProgress = true;
     const url = '../api/install_application';
     const res = await fetch(url, { method: 'POST', body: JSON.stringify(outObj) });
     if (!res.ok) {
-      console.log(res);
+      try {
+        const json = await res.json();
+        if (json.error) {
+          errMsg = json.error;
+          installFailed = true;
+          installInProgress = false;
+        }
+      } catch (e) {}
       return;
     }
     startStatusPoller();
@@ -194,6 +202,9 @@
         >
       {/if}
     </div>
+    {#if errMsg}
+      <div class="st-typography-label" style="color:red;">{errMsg}</div>
+    {/if}
     {#if showLogs && logs}
       <div style="margin-top:10px">
         <hr />
