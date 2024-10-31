@@ -342,7 +342,7 @@ func EnableBucketVersioning(s3client S3BucketAPI, conf *appconfig.AppConfig, buc
 	return nil
 }
 
-func SetBucketLifecycleLength(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, lifecycleInDays int32) error {
+func SetBucketHealthCheckLifecycleLength(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, lifecycleInDays int32) error {
 	if s3client == nil {
 		s3client = InitS3Client(conf)
 	}
