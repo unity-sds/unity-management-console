@@ -178,7 +178,7 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 
 		// Set bucket lifecycle length
 		log.Printf("Setting lifecycle length on bucket: %s", bucket)
-		berr = SetBucketLifecycleLength(s3client, conf, bucket, bucketLifecycleInDays)
+		berr = SetBucketHealthCheckLifecycleLength(s3client, conf, bucket, bucketLifecycleInDays)
 
 		if berr != nil {
 			log.Errorf("Error setting lifecycle length on bucket: %v", berr)
