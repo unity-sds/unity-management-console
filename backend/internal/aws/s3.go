@@ -3,6 +3,11 @@ package aws
 import (
 	"context"
 	"fmt"
+	"io"
+	"math/rand"
+	"strconv"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -11,10 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	appconfig "github.com/unity-sds/unity-management-console/backend/internal/application/config"
-	"io"
-	"math/rand"
-	"time"
-	"strconv"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -176,9 +177,9 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 			}
 		}
 
-		// Set bucket lifecycle length
-		log.Printf("Setting lifecycle length on bucket: %s", bucket)
-		berr = SetBucketLifecycleLength(s3client, conf, bucket, bucketLifecycleInDays)
+		// Set bucket health_check object lifecycle policy
+		log.Printf("Setting health_check object lifecycle policy on bucket: %s", bucket)
+		berr = SetBucketHealthCheckLifecyclePolicy(s3client, conf, bucket, bucketLifecycleInDays)
 
 		if berr != nil {
 			log.Errorf("Error setting lifecycle length on bucket: %v", berr)
@@ -342,17 +343,19 @@ func EnableBucketVersioning(s3client S3BucketAPI, conf *appconfig.AppConfig, buc
 	return nil
 }
 
-func SetBucketLifecycleLength(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, lifecycleInDays int32) error {
+func SetBucketHealthCheckLifecyclePolicy(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, lifecycleInDays int32) error {
 	if s3client == nil {
 		s3client = InitS3Client(conf)
 	}
 
 	lifecycleRule := &types.LifecycleRule{
+		ID: aws.String("delete old health checks"),
 		Expiration: &types.LifecycleExpiration{
 			Days: lifecycleInDays,
 		},
 		Filter: &types.LifecycleRuleFilterMemberPrefix{},
 		Status: types.ExpirationStatusEnabled,
+		Prefix: aws.String("health_check"),
 	}
 
 	putBucketLifecycleConfigurationInput := &s3.PutBucketLifecycleConfigurationInput{
