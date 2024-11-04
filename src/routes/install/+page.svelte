@@ -96,6 +96,18 @@
 
   let showLogs = false;
   let logs: string;
+  let logsDiv: HTMLElement;
+
+  function scrollLogsToBottom() {
+    if (logsDiv) {
+      logsDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }
+
+  $: if (logs) {
+    // Wait for DOM update
+    setTimeout(scrollLogsToBottom, 0);
+  }
   let logInterval: any = null;
 
   async function getLogs() {
@@ -213,7 +225,7 @@
     {#if showLogs && logs}
       <div style="margin-top:10px">
         <hr />
-        <pre>
+        <pre bind:this={logsDiv}>
       {logs}
     </pre>
       </div>
