@@ -353,9 +353,10 @@ func SetBucketHealthCheckLifecyclePolicy(s3client S3BucketAPI, conf *appconfig.A
 		Expiration: &types.LifecycleExpiration{
 			Days: lifecycleInDays,
 		},
-		Filter: &types.LifecycleRuleFilterMemberPrefix{},
+		Filter: &types.LifecycleRuleFilterMemberPrefix{
+			Value: "health_check",
+		},
 		Status: types.ExpirationStatusEnabled,
-		Prefix: aws.String("health_check"),
 	}
 
 	putBucketLifecycleConfigurationInput := &s3.PutBucketLifecycleConfigurationInput{
