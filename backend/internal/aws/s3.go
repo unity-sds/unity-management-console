@@ -3,6 +3,11 @@ package aws
 import (
 	"context"
 	"fmt"
+	"io"
+	"math/rand"
+	"strconv"
+	"time"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -11,10 +16,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	appconfig "github.com/unity-sds/unity-management-console/backend/internal/application/config"
-	"io"
-	"math/rand"
-	"time"
-	"strconv"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
@@ -28,6 +29,7 @@ type S3BucketAPI interface {
 	ListObjectsV2(ctx context.Context, params *s3.ListObjectsV2Input) (*s3.ListObjectsV2Output, error)
 	PutBucketVersioning(ctx context.Context, params *s3.PutBucketVersioningInput) (*s3.PutBucketVersioningOutput, error)
 	PutBucketLifecycleConfiguration(ctx context.Context, params *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error)
+	PutBucketPolicy(ctx context.Context, params *s3.PutBucketPolicyInput) (*s3.PutBucketPolicyOutput, error)
 }
 
 type AWSS3Client struct {
@@ -64,6 +66,10 @@ func (a *AWSS3Client) PutBucketLifecycleConfiguration(ctx context.Context, param
 	return a.Client.PutBucketLifecycleConfiguration(ctx, params)
 }
 
+func (a *AWSS3Client) PutBucketPolicy(ctx context.Context, params *s3.PutBucketPolicyInput) (*s3.PutBucketPolicyOutput, error) {
+	return a.Client.PutBucketPolicy(ctx, params)
+}
+
 func CreateBucketFromS3(ctx context.Context, api S3BucketAPI, params *s3.CreateBucketInput) (*s3.CreateBucketOutput, error) {
 	resp, berr := api.CreateBucket(ctx, params)
 	return resp, berr
@@ -89,6 +95,33 @@ func PutBucketVersioning(ctx context.Context, api S3BucketAPI, params *s3.PutBuc
 
 func PutBucketLifecycleConfiguration(ctx context.Context, api S3BucketAPI, params *s3.PutBucketLifecycleConfigurationInput) (*s3.PutBucketLifecycleConfigurationOutput, error) {
 	return api.PutBucketLifecycleConfiguration(ctx, params)
+}
+
+func PutBucketPolicy(ctx context.Context, api S3BucketAPI, params *s3.PutBucketPolicyInput) (*s3.PutBucketPolicyOutput, error) {
+	return api.PutBucketPolicy(ctx, params)
+}
+
+func createTLSOnlyBucketPolicy(bucketName string) string {
+	return fmt.Sprintf(`{
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Sid": "DenyNonTLSRequests",
+				"Effect": "Deny",
+				"Principal": "*",
+				"Action": "s3:*",
+				"Resource": [
+					"arn:aws:s3:::%s",
+					"arn:aws:s3:::%s/*"
+				],
+				"Condition": {
+					"Bool": {
+						"aws:SecureTransport": "false"
+					}
+				}
+			}
+		]
+	}`, bucketName, bucketName)
 }
 
 func InitS3Client(conf *appconfig.AppConfig) S3BucketAPI {
@@ -176,14 +209,27 @@ func CreateBucket(s3client S3BucketAPI, conf *appconfig.AppConfig) {
 			}
 		}
 
-		// Set bucket lifecycle length
-		log.Printf("Setting lifecycle length on bucket: %s", bucket)
-		berr = SetBucketLifecycleLength(s3client, conf, bucket, bucketLifecycleInDays)
+		// Set bucket health_check object lifecycle policy
+		log.Printf("Setting health_check object lifecycle policy on bucket: %s", bucket)
+		berr = SetBucketHealthCheckLifecyclePolicy(s3client, conf, bucket, bucketLifecycleInDays)
 
 		if berr != nil {
 			log.Errorf("Error setting lifecycle length on bucket: %v", berr)
 			return
 		}
+
+		// Apply TLS-only bucket policy
+		policyInput := &s3.PutBucketPolicyInput{
+			Bucket: aws.String(bucket),
+			Policy: aws.String(createTLSOnlyBucketPolicy(bucket)),
+		}
+
+		_, perr = PutBucketPolicy(context.TODO(), s3client, policyInput)
+		if perr != nil {
+			log.Errorf("Error setting TLS-only policy on bucket: %v", perr)
+			return
+		}
+		log.Infof("Applied TLS-only policy to bucket %s", bucket)
 	} else {
 		log.Infof("Bucket %s exists", bucket)
 	}
@@ -342,16 +388,19 @@ func EnableBucketVersioning(s3client S3BucketAPI, conf *appconfig.AppConfig, buc
 	return nil
 }
 
-func SetBucketLifecycleLength(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, lifecycleInDays int32) error {
+func SetBucketHealthCheckLifecyclePolicy(s3client S3BucketAPI, conf *appconfig.AppConfig, bucketName string, lifecycleInDays int32) error {
 	if s3client == nil {
 		s3client = InitS3Client(conf)
 	}
 
 	lifecycleRule := &types.LifecycleRule{
+		ID: aws.String("delete old health checks"),
 		Expiration: &types.LifecycleExpiration{
 			Days: lifecycleInDays,
 		},
-		Filter: &types.LifecycleRuleFilterMemberPrefix{},
+		Filter: &types.LifecycleRuleFilterMemberPrefix{
+			Value: "health_check",
+		},
 		Status: types.ExpirationStatusEnabled,
 	}
 
