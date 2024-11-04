@@ -108,6 +108,7 @@
     // Wait for DOM update
     setTimeout(scrollLogsToBottom, 0);
   }
+
   let logInterval: any = null;
 
   async function getLogs() {

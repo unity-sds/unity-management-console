@@ -136,6 +136,17 @@
     }
     dispatch('refreshApplicationList');
   }
+
+  let logsDiv: HTMLElement;
+  function scrollLogsToBottom() {
+    if (logsDiv) {
+      logsDiv.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+  }
+
+  $: if (logs) {
+    setTimeout(scrollLogsToBottom, 0);
+  }
 </script>
 
 <div class="lg:w-1/3 md:w-1/2 mb-4" style="flex: 0 0 auto">
@@ -239,7 +250,7 @@
   </h2>
 
   {#if logs}
-    <pre>
+    <pre bind:this={logsDiv}>
   {logs}
 </pre>
   {/if}
