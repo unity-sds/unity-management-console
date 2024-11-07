@@ -18,7 +18,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"time"
+	// "time"
 )
 
 func fetchMandatoryVars() ([]terraform.Varstruct, error) {
@@ -36,50 +36,15 @@ func fetchMandatoryVars() ([]terraform.Varstruct, error) {
 
 }
 
-func InstallMarketplaceApplicationNew(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore) (string, error) {
-	if meta.Backend == "terraform" {
-		app := models.Application{
-			Name:        installParams.Name,
-			Version:     installParams.Version,
-			DisplayName: installParams.DeploymentName,
-			PackageName: meta.Name,
-			Source:      meta.Package,
-			Status:      "STAGED",
-		}
-		deployment := models.Deployment{
-			Name:         installParams.DeploymentName,
-			Applications: []models.Application{app},
-			Creator:      "admin",
-			CreationDate: time.Time{},
-		}
 
-		deploymentID, err := db.StoreDeployment(deployment)
-
-		if err != nil {
-			db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "STAGINGFAILED")
-			return "", err
-		}
-
-		go func() {
-			log.Errorf("Application name is: %s", installParams.Name)
-			err = terraform.AddApplicationToStackNew(appConfig, location, meta, installParams, db, deploymentID)
-			executeNew(db, appConfig, meta, installParams, deploymentID)
-		}()
-
-		return fmt.Sprintf("%d", deploymentID), nil
-
-	} else {
-		return "", errors.New("backend not implemented")
-	}
-}
 
 func startApplicationInstallTerraform(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore) {
 	log.Errorf("Application name is: %s", installParams.Name)
-	terraform.AddApplicationToStackNewV2(appConfig, location, meta, installParams, db)
-	executeNewV2(db, appConfig, meta, installParams)
+	terraform.AddApplicationToStack(appConfig, location, meta, installParams, db)
+	execute(db, appConfig, meta, installParams)
 }
 
-func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore, sync bool) error {
+func InstallMarketplaceApplication(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore, sync bool) error {
 	if meta.Backend == "terraform" {
 		application := models.InstalledMarketplaceApplication{
 			Name:           installParams.Name,
@@ -100,12 +65,6 @@ func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location st
 
 		}
 
-		// go func() {
-		// 	log.Errorf("Application name is: %s", installParams.Name)
-		// 	terraform.AddApplicationToStackNewV2(appConfig, location, meta, installParams, db)
-		// 	executeNewV2(db, appConfig, meta, installParams)
-		// }()
-
 		return nil
 
 	} else {
@@ -115,42 +74,9 @@ func InstallMarketplaceApplicationNewV2(appConfig *config.AppConfig, location st
 
 
 
-func InstallMarketplaceApplication(conn *websocket.WebSocketManager, userid string, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, location string, install *marketplace.Install, db database.Datastore) error {
 
-	if meta.Backend == "terraform" {
 
-		app := models.Application{
-			Name:        install.Applications.Name,
-			Version:     install.Applications.Version,
-			DisplayName: install.Applications.Displayname,
-			PackageName: meta.Name,
-			Source:      meta.Package,
-			Status:      "STAGED",
-		}
-		deployment := models.Deployment{
-			Name:         install.DeploymentName,
-			Applications: []models.Application{app},
-			Creator:      "admin",
-			CreationDate: time.Time{},
-		}
-
-		deploymentID, err := db.StoreDeployment(deployment)
-		if err != nil {
-			db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "STAGINGFAILED")
-
-			return err
-		}
-
-		err = terraform.AddApplicationToStack(appConfig, location, meta, install, db, deploymentID)
-
-		return execute(db, appConfig, meta, install, deploymentID, conn, userid)
-
-	} else {
-		return errors.New("backend not implemented")
-	}
-}
-
-func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, install *marketplace.Install, deploymentID uint, conn *websocket.WebSocketManager, userid string) error {
+func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams) error {
 	// Create install_logs directory if it doesn't exist
 	logDir := filepath.Join(appConfig.Workdir, "install_logs")
 	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
@@ -164,96 +90,7 @@ func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketpla
 	//	return err
 	//}
 	//terraform.WriteTFVars(m, appConfig)
-	err := runPreInstall(appConfig, meta, install)
-	if err != nil {
-		return err
-	}
-	db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "INSTALLING")
-	fetchAllApplications(db)
-	err = terraform.RunTerraform(appConfig, conn, userid, executor, "")
-	if err != nil {
-		db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "FAILED")
-		fetchAllApplications(db)
-		return err
-	}
-	db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "INSTALLED")
-	fetchAllApplications(db)
-	err = runPostInstall(appConfig, meta, install)
-
-	if err != nil {
-		db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "POSTINSTALL FAILED")
-		fetchAllApplications(db)
-
-		return err
-	}
-	db.UpdateApplicationStatus(deploymentID, install.Applications.Name, install.Applications.Displayname, "COMPLETE")
-	fetchAllApplications(db)
-
-	return nil
-}
-
-func executeNew(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams, deploymentID uint) error {
-	// Create install_logs directory if it doesn't exist
-	logDir := filepath.Join(appConfig.Workdir, "install_logs")
-	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
-		return fmt.Errorf("failed to create install_logs directory: %w", err)
-	}
-
-	executor := &terraform.RealTerraformExecutor{}
-
-	//m, err := fetchMandatoryVars()
-	//if err != nil {
-	//	return err
-	//}
-	//terraform.WriteTFVars(m, appConfig)
-	err := runPreInstallNew(appConfig, meta, installParams)
-	if err != nil {
-		return err
-	}
-
-	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "INSTALLING")
-
-	fetchAllApplications(db)
-
-	logfile := filepath.Join(logDir, fmt.Sprintf("%s_install_log", installParams.DeploymentName))
-	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
-
-	if err != nil {
-		db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "FAILED")
-		fetchAllApplications(db)
-		return err
-	}
-	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "INSTALLED")
-	fetchAllApplications(db)
-	err = runPostInstallNew(appConfig, meta, installParams)
-
-	if err != nil {
-		db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "POSTINSTALL FAILED")
-		fetchAllApplications(db)
-
-		return err
-	}
-	db.UpdateApplicationStatus(deploymentID, installParams.Name, installParams.DeploymentName, "COMPLETE")
-	fetchAllApplications(db)
-
-	return nil
-}
-
-func executeNewV2(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams) error {
-	// Create install_logs directory if it doesn't exist
-	logDir := filepath.Join(appConfig.Workdir, "install_logs")
-	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
-		return fmt.Errorf("failed to create install_logs directory: %w", err)
-	}
-
-	executor := &terraform.RealTerraformExecutor{}
-
-	//m, err := fetchMandatoryVars()
-	//if err != nil {
-	//	return err
-	//}
-	//terraform.WriteTFVars(m, appConfig)
-	err := runPreInstallNew(appConfig, meta, installParams)
+	err := runPreInstall(appConfig, meta, installParams)
 	if err != nil {
 		return err
 	}
@@ -355,40 +192,8 @@ func runPostInstallNew(appConfig *config.AppConfig, meta *marketplace.Marketplac
 	return nil
 }
 
-func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, install *marketplace.Install) error {
-	if meta.PreInstall != "" {
-		// TODO UNPIN ME
-		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PreInstall)
-		log.Infof("Pre install command path: %s", path)
-		cmd := exec.Command(path)
-		cmd.Env = os.Environ()
-		for k, v := range install.Applications.Dependencies {
-			// Replace hyphens with underscores
-			formattedKey := strings.ReplaceAll(k, "-", "_")
 
-			// Convert to upper case
-			upperKey := strings.ToUpper(formattedKey)
-
-			// Use a regex to keep only alphanumeric characters and underscores
-			re := regexp.MustCompile("[^A-Z0-9_]+")
-			cleanKey := re.ReplaceAllString(upperKey, "")
-
-			log.Infof("Adding environment variable: %s = %s", cleanKey, v)
-			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", cleanKey, v))
-		}
-		cmd.Env = append(cmd.Env, fmt.Sprintf("DEPLOYMENTNAME=%s", install.DeploymentName))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", appConfig.Workdir))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", install.Applications.Displayname))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("APPNAME=%s", install.Applications.Name))
-		if err := cmd.Run(); err != nil {
-			log.WithError(err).Error("Error running pre install script")
-			return err
-		}
-	}
-	return nil
-}
-
-func runPreInstallNew(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams) error {
+func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams) error {
 	if meta.PreInstall != "" {
 		// TODO UNPIN ME
 		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PreInstall)
@@ -421,29 +226,8 @@ func runPreInstallNew(appConfig *config.AppConfig, meta *marketplace.Marketplace
 	return nil
 }
 
-func TriggerInstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Install, conf *config.AppConfig) error {
-	t := received.Applications
 
-	meta, err := validateAndPrepareInstallation(t, conf)
-	if err != nil {
-		return err
-	}
-
-	location, err := FetchPackage(meta, conf)
-	if err != nil {
-		log.Error("Error fetching package:", err)
-		return err
-	}
-
-	if err := InstallMarketplaceApplication(wsManager, userid, conf, meta, location, received, store); err != nil {
-		log.Error("Error installing application:", err)
-		return err
-	}
-
-	return nil
-}
-
-func TriggerInstallNew(store database.Datastore, applicationInstallParams *types.ApplicationInstallParams, conf *config.AppConfig, sync bool) error {
+func TriggerInstall(store database.Datastore, applicationInstallParams *types.ApplicationInstallParams, conf *config.AppConfig, sync bool) error {
 	// First check if this application is already installed.
 	existingApplication, err := store.GetInstalledMarketplaceApplicationStatusByName(applicationInstallParams.Name, applicationInstallParams.DeploymentName)
 	if err != nil {
@@ -470,7 +254,7 @@ func TriggerInstallNew(store database.Datastore, applicationInstallParams *types
 		return errors.New("Unable to fetch package")
 	}
 
-	return InstallMarketplaceApplicationNewV2(conf, location, applicationInstallParams, &metadata, store, sync)
+	return InstallMarketplaceApplication(conf, location, applicationInstallParams, &metadata, store, sync)
 }
 
 func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Uninstall, conf *config.AppConfig) error {
