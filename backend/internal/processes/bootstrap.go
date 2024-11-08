@@ -240,7 +240,7 @@ func installGateway(store database.Datastore, appConfig *config.AppConfig) error
 		DisplayName:    "Unity Health Status Lambda",
 		DeploymentName: fmt.Sprintf("default-%s", name),
 	}
-	err := TriggerInstallNew(store, &installParams, appConfig, true)
+	err := TriggerInstall(store, &installParams, appConfig, true)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Mgmt Gateway")
 		return err
@@ -276,7 +276,7 @@ func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfi
 		DeploymentName: fmt.Sprintf("default-%s", name),
 	}
 
-	err := TriggerInstallNew(store, &installParams, appConfig, true)
+	err := TriggerInstall(store, &installParams, appConfig, true)
 	if err != nil {
 		log.WithError(err).Error("Issue installing API Gateway")
 		return err
@@ -355,7 +355,7 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 		DeploymentName: fmt.Sprintf("default-%s", name),
 	}
 
-	err = TriggerInstallNew(store, &installParams, appConfig, true)
+	err = TriggerInstall(store, &installParams, appConfig, true)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Unity Cloud Env")
 		return err
@@ -403,7 +403,7 @@ func installHealthStatusLambda(store database.Datastore, appConfig *config.AppCo
 		DeploymentName: fmt.Sprintf("default-%s", name),
 	}
 
-	err := TriggerInstallNew(store, &installParams, appConfig, true)
+	err := TriggerInstall(store, &installParams, appConfig, true)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Unity Health Status Lambda")
 		return err

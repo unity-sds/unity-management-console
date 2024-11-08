@@ -109,7 +109,7 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 			return
 		}
 
-		err = processes.InstallMarketplaceApplicationNewV2(&appConfig, location, &applicationInstallParams, &metadata, db, false)
+		err = processes.InstallMarketplaceApplication(&appConfig, location, &applicationInstallParams, &metadata, db, false)
 		
 		c.Status(http.StatusOK)
 

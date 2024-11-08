@@ -153,12 +153,6 @@ func handleMessages() error {
 
 		log.Infof("Message recieved: %v", clientMessage)
 		switch content := clientMessage.Content.(type) {
-		case *marketplace.UnityWebsocketMessage_Install:
-			installMessage := content.Install
-			// Handle install message
-			if err := processes.TriggerInstall(websocket2.WsManager, message.Client.UserID, store, installMessage, &conf); err != nil {
-				log.WithError(err).Error("Error triggering install")
-			}
 		case *marketplace.UnityWebsocketMessage_Uninstall:
 			uninstallMessage := content.Uninstall
 			if err := processes.TriggerUninstall(websocket2.WsManager, message.Client.UserID, store, uninstallMessage, &conf); err != nil {
