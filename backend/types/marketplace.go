@@ -10,3 +10,16 @@ type ApplicationInstallParams struct {
 	Variables      map[string]string
 	AdvancedValues AdvancedValue
 }
+
+
+type InstalledMarketplaceApplication struct {
+	Name         string
+	DeploymentName  string
+	Version      string
+	Source       string
+	Status       string
+	PackageName  string	
+	TerraformModuleName string
+	Variables    map[string]string
+	AdvancedValues    AdvancedValue
+}

@@ -8,17 +8,17 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
-	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
 	"github.com/unity-sds/unity-management-console/backend/internal/terraform"
 	"github.com/unity-sds/unity-management-console/backend/internal/websocket"
 	"github.com/unity-sds/unity-management-console/backend/types"
 	"github.com/zclconf/go-cty/cty"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
-	// "time"
+	"time"
 )
 
 func fetchMandatoryVars() ([]terraform.Varstruct, error) {
@@ -36,32 +36,44 @@ func fetchMandatoryVars() ([]terraform.Varstruct, error) {
 
 }
 
-
-
-func startApplicationInstallTerraform(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore) {
-	log.Errorf("Application name is: %s", installParams.Name)
-	terraform.AddApplicationToStack(appConfig, location, meta, installParams, db)
-	execute(db, appConfig, meta, installParams)
+func startApplicationInstallTerraform(appConfig *config.AppConfig, location string, application *types.InstalledMarketplaceApplication, meta *marketplace.MarketplaceMetadata, db database.Datastore) {
+	log.Errorf("Application name is: %s", application.Name)
+	terraform.AddApplicationToStack(appConfig, location, meta, application, db)
+	executeTerraformInstall(db, appConfig, meta, application)
 }
 
 func InstallMarketplaceApplication(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore, sync bool) error {
 	if meta.Backend == "terraform" {
-		application := models.InstalledMarketplaceApplication{
-			Name:           installParams.Name,
-			Version:        installParams.Version,
-			DeploymentName: installParams.DeploymentName,
-			PackageName:    meta.Name,
-			Source:         meta.Package,
-			Status:         "STAGED",
+
+		rand.Seed(time.Now().UnixNano())
+		chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+		randomChars := make([]byte, 5)
+		for i, v := range rand.Perm(52)[:5] {
+			randomChars[i] = chars[v]
+		}
+		log.Info("Appending block to body")
+		terraformModuleName := fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars))
+
+		application := &types.InstalledMarketplaceApplication{
+			Name:                     installParams.Name,
+			Version:                  installParams.Version,
+			DeploymentName:           installParams.DeploymentName,
+			PackageName:              meta.Name,
+			Source:                   meta.Package,
+			Status:                   "STAGED",
+			TerraformModuleName:      terraformModuleName,
+			Variables:                installParams.Variables,
 		}
 
 		db.StoreInstalledMarketplaceApplication(application)
-		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "INSTALLING")
+
+		application.Status = "INSTALLING"
+		db.UpdateInstalledMarketplaceApplication(application)
 
 		if sync {
-			startApplicationInstallTerraform(appConfig, location, installParams, meta, db)
+			startApplicationInstallTerraform(appConfig, location, application, meta, db)
 		} else {
-			go startApplicationInstallTerraform(appConfig, location, installParams, meta, db)
+			go startApplicationInstallTerraform(appConfig, location, application, meta, db)
 
 		}
 
@@ -72,11 +84,7 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 	}
 }
 
-
-
-
-
-func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams) error {
+func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, application *types.InstalledMarketplaceApplication) error {
 	// Create install_logs directory if it doesn't exist
 	logDir := filepath.Join(appConfig.Workdir, "install_logs")
 	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
@@ -90,34 +98,38 @@ func execute(db database.Datastore, appConfig *config.AppConfig, meta *marketpla
 	//	return err
 	//}
 	//terraform.WriteTFVars(m, appConfig)
-	err := runPreInstall(appConfig, meta, installParams)
+	err := runPreInstall(appConfig, meta, application)
 	if err != nil {
 		return err
 	}
 
-	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "INSTALLING")
+	application.Status = "INSTALLING"
+	db.UpdateInstalledMarketplaceApplication(application)
 
 	fetchAllApplications(db)
 
-	logfile := filepath.Join(logDir, fmt.Sprintf("%s_%s_install_log", installParams.Name, installParams.DeploymentName))
+	logfile := filepath.Join(logDir, fmt.Sprintf("%s_%s_install_log", application.Name, application.DeploymentName))
 	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
 
 	if err != nil {
-		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "FAILED")
-		fetchAllApplications(db)
+		application.Status = "FAILED"
+		db.UpdateInstalledMarketplaceApplication(application)
 		return err
 	}
-	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "INSTALLED")
+
+	application.Status = "INSTALLED"
+	db.UpdateInstalledMarketplaceApplication(application)
 	fetchAllApplications(db)
-	err = runPostInstallNew(appConfig, meta, installParams)
+	err = runPostInstallNew(appConfig, meta, application)
 
 	if err != nil {
-		db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "POSTINSTALL FAILED")
+		application.Status = "POSTINSTALL FAILED"
+		db.UpdateInstalledMarketplaceApplication(application)
 		fetchAllApplications(db)
-
 		return err
 	}
-	db.UpdateInstalledMarketplaceApplicationStatusByName(installParams.Name, installParams.DeploymentName, "COMPLETE")
+	application.Status = "COMPLETE"
+	db.UpdateInstalledMarketplaceApplication(application)
 	fetchAllApplications(db)
 
 	return nil
@@ -157,7 +169,7 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 	return nil
 }
 
-func runPostInstallNew(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams) error {
+func runPostInstallNew(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, application *types.InstalledMarketplaceApplication) error {
 
 	if meta.PostInstall != "" {
 		//TODO UNPIN ME
@@ -179,10 +191,10 @@ func runPostInstallNew(appConfig *config.AppConfig, meta *marketplace.Marketplac
 		// 	log.Infof("Adding environment variable: %s = %s", cleanKey, v)
 		// 	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", cleanKey, v))
 		// }
-		cmd.Env = append(cmd.Env, fmt.Sprintf("DEPLOYMENTNAME=%s", installParams.DeploymentName))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DEPLOYMENTNAME=%s", application.DeploymentName))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", appConfig.Workdir))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", installParams.DisplayName))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("APPNAME=%s", installParams.Name))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", application.DeploymentName))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("APPNAME=%s", application.Name))
 
 		if err := cmd.Run(); err != nil {
 			log.WithError(err).Error("Error running post install script")
@@ -192,8 +204,7 @@ func runPostInstallNew(appConfig *config.AppConfig, meta *marketplace.Marketplac
 	return nil
 }
 
-
-func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams) error {
+func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, application *types.InstalledMarketplaceApplication) error {
 	if meta.PreInstall != "" {
 		// TODO UNPIN ME
 		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PreInstall)
@@ -214,10 +225,10 @@ func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMet
 		// 	log.Infof("Adding environment variable: %s = %s", cleanKey, v)
 		// 	cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", cleanKey, v))
 		// }
-		cmd.Env = append(cmd.Env, fmt.Sprintf("DEPLOYMENTNAME=%s", installParams.DeploymentName))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DEPLOYMENTNAME=%s", application.DeploymentName))
 		cmd.Env = append(cmd.Env, fmt.Sprintf("WORKDIR=%s", appConfig.Workdir))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", installParams.DisplayName))
-		cmd.Env = append(cmd.Env, fmt.Sprintf("APPNAME=%s", installParams.Name))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("DISPLAYNAME=%s", application.DeploymentName))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("APPNAME=%s", application.Name))
 		if err := cmd.Run(); err != nil {
 			log.WithError(err).Error("Error running pre install script")
 			return err
@@ -226,10 +237,9 @@ func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMet
 	return nil
 }
 
-
 func TriggerInstall(store database.Datastore, applicationInstallParams *types.ApplicationInstallParams, conf *config.AppConfig, sync bool) error {
 	// First check if this application is already installed.
-	existingApplication, err := store.GetInstalledMarketplaceApplicationStatusByName(applicationInstallParams.Name, applicationInstallParams.DeploymentName)
+	existingApplication, err := store.GetInstalledMarketplaceApplication(applicationInstallParams.Name, applicationInstallParams.DeploymentName)
 	if err != nil {
 		log.WithError(err).Error("Error finding applications")
 		return errors.New("Unable to search applcation list")
@@ -260,7 +270,9 @@ func TriggerInstall(store database.Datastore, applicationInstallParams *types.Ap
 func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Uninstall, conf *config.AppConfig) error {
 	if received.All == true {
 		return UninstallAll(conf, wsManager, userid, received)
-	} else {
-		return UninstallApplication(received.Application, received.DeploymentName, received.DisplayName, conf, store, wsManager, userid)
-	}
+	} 
+	// else {
+	// 	return UninstallApplication(received.Application, received.DeploymentName, received.DisplayName, conf, store, wsManager, userid)
+	// }
+	return nil
 }

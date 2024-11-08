@@ -1,11 +1,13 @@
 package database
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
+	"github.com/unity-sds/unity-management-console/backend/types"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -134,19 +136,6 @@ func (g GormDatastore) FetchDeploymentIDByName(deploymentID string) (uint, error
 	return deployment.ID, nil
 }
 
-func (g GormDatastore) GetInstalledApplicationByName(name string) (*models.InstalledMarketplaceApplication, error) {
-	var application models.InstalledMarketplaceApplication
-	result := g.db.Where("name = ?", name).Where("status != 'UNINSTALLED'").First(&application)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-
-		log.WithError(result.Error).Error("Error finding application")
-		return nil, result.Error
-	}
-	return &application, nil
-}
 
 func (g GormDatastore) FetchDeploymentIDByApplicationName(deploymentName string) (uint, error) {
 	var application models.Application
@@ -191,13 +180,55 @@ func (g GormDatastore) FetchAllApplicationStatus() ([]models.Deployment, error) 
 	return deployments, nil
 }
 
-func (g GormDatastore) FetchAllInstalledMarketplaceApplications() ([]models.InstalledMarketplaceApplication, error) {
-	var applications []models.InstalledMarketplaceApplication
-	result := g.db.Find(&applications)
+func parseMarketplaceApplication(dbApp *models.InstalledMarketplaceApplicationDB) (*types.InstalledMarketplaceApplication, error) {
+	typeApp := &types.InstalledMarketplaceApplication{
+		Name:                dbApp.Name,
+		DeploymentName:     dbApp.DeploymentName,
+		Version:            dbApp.Version,
+		Source:             dbApp.Source,
+		Status:             dbApp.Status,
+		PackageName:        dbApp.PackageName,
+		TerraformModuleName: dbApp.TerraformModuleName,
+		Variables:          make(map[string]string),
+		AdvancedValues:     make(types.AdvancedValue),
+	}
+
+	// Convert Variables JSON to map
+	if dbApp.Variables != nil {
+		if err := json.Unmarshal([]byte(dbApp.Variables), &typeApp.Variables); err != nil {
+			log.WithError(err).Error("Failed to unmarshal Variables")
+			return nil, err
+		}
+	}
+
+	// Convert AdvancedValues JSON to map
+	if dbApp.AdvancedValues != nil {
+		if err := json.Unmarshal([]byte(dbApp.AdvancedValues), &typeApp.AdvancedValues); err != nil {
+			log.WithError(err).Error("Failed to unmarshal AdvancedValues")
+			return nil, err
+		}
+	}
+
+	return typeApp, nil
+}
+
+func (g GormDatastore) FetchAllInstalledMarketplaceApplications() ([]*types.InstalledMarketplaceApplication, error) {
+	var dbApps []models.InstalledMarketplaceApplicationDB
+	result := g.db.Find(&dbApps)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return applications, nil
+
+	typeApps := make([]*types.InstalledMarketplaceApplication, 0, len(dbApps))
+	for _, dbApp := range dbApps {
+		typeApp, err := parseMarketplaceApplication(&dbApp)
+		if err != nil {
+			return nil, err
+		}
+		typeApps = append(typeApps, typeApp)
+	}
+
+	return typeApps, nil
 }
 
 func (g GormDatastore) FetchAllApplicationStatusByDeployment(deploymentid uint) ([]models.Application, error) {
@@ -259,18 +290,48 @@ func (g GormDatastore) RemoveApplicationByName(deploymentName string, applicatio
 	return nil
 }
 
-func (g GormDatastore) StoreInstalledMarketplaceApplication(model models.InstalledMarketplaceApplication) error {
-	if err := g.db.Save(&model).Error; err != nil {
-		// Handle error for Save
+func (g GormDatastore) StoreInstalledMarketplaceApplication(application *types.InstalledMarketplaceApplication) error {
+	// Convert types model to database model
+	dbApp := &models.InstalledMarketplaceApplicationDB{
+		Name:                application.Name,
+		DeploymentName:     application.DeploymentName,
+		Version:            application.Version,
+		Source:             application.Source,
+		Status:             application.Status,
+		PackageName:        application.PackageName,
+		TerraformModuleName: application.TerraformModuleName,
+	}
+
+	// Convert Variables map to JSON
+	if application.Variables != nil {
+		varsJSON, err := json.Marshal(application.Variables)
+		if err != nil {
+			log.WithError(err).Error("Failed to marshal Variables")
+			return err
+		}
+		dbApp.Variables = models.JSON(varsJSON)
+	}
+
+	// Convert AdvancedValues map to JSON
+	if application.AdvancedValues != nil {
+		advJSON, err := json.Marshal(application.AdvancedValues)
+		if err != nil {
+			log.WithError(err).Error("Failed to marshal AdvancedValues")
+			return err
+		}
+		dbApp.AdvancedValues = models.JSON(advJSON)
+	}
+
+	if err := g.db.Save(dbApp).Error; err != nil {
 		log.WithError(err).Error("Problem saving record to database")
 		return err
 	}
 	return nil
 }
 
-func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName string, deploymentName string) (*models.InstalledMarketplaceApplication, error) {
-	var application models.InstalledMarketplaceApplication
-	err := g.db.Where("Name = ? AND deployment_name = ?", appName, deploymentName).First(&application).Error
+func (g GormDatastore) GetInstalledMarketplaceApplication(appName string, deploymentName string) (*types.InstalledMarketplaceApplication, error) {
+	var dbApp models.InstalledMarketplaceApplicationDB
+	err := g.db.Where("Name = ? AND deployment_name = ?", appName, deploymentName).First(&dbApp).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -278,25 +339,56 @@ func (g GormDatastore) GetInstalledMarketplaceApplicationStatusByName(appName st
 		log.WithError(err).Error("Problem getting application status")
 		return nil, err
 	}
-	return &application, nil
+
+	return parseMarketplaceApplication(&dbApp)
 }
 
-func (g GormDatastore) UpdateInstalledMarketplaceApplicationStatusByName(appName string, deploymentName string, status string) error {
-	var app models.InstalledMarketplaceApplication
 
-	g.db.Where("name = ? AND deployment_name = ?", appName, deploymentName).First(&app)
-	app.Status = status
+func (g GormDatastore) UpdateInstalledMarketplaceApplication(application *types.InstalledMarketplaceApplication) error {
+	// Find existing record
+	var existingApp models.InstalledMarketplaceApplicationDB
+	if err := g.db.Where("name = ? AND deployment_name = ?", application.Name, application.DeploymentName).First(&existingApp).Error; err != nil {
+		log.WithError(err).Error("Problem finding existing application")
+		return err
+	}
 
-	if err := g.db.Save(&app).Error; err != nil {
-		// Handle error for Save
+	// Update fields
+	existingApp.Version = application.Version
+	existingApp.Source = application.Source
+	existingApp.Status = application.Status
+	existingApp.PackageName = application.PackageName
+	existingApp.TerraformModuleName = application.TerraformModuleName
+
+	// Convert Variables map to JSON
+	if application.Variables != nil {
+		varsJSON, err := json.Marshal(application.Variables)
+		if err != nil {
+			log.WithError(err).Error("Failed to marshal Variables")
+			return err
+		}
+		existingApp.Variables = models.JSON(varsJSON)
+	}
+
+	// Convert AdvancedValues map to JSON
+	if application.AdvancedValues != nil {
+		advJSON, err := json.Marshal(application.AdvancedValues)
+		if err != nil {
+			log.WithError(err).Error("Failed to marshal AdvancedValues")
+			return err
+		}
+		existingApp.AdvancedValues = models.JSON(advJSON)
+	}
+
+	if err := g.db.Save(&existingApp).Error; err != nil {
 		log.WithError(err).Error("Problem saving record to database")
 		return err
 	}
 	return nil
 }
 
+
 func (g GormDatastore) RemoveInstalledMarketplaceApplication(appName string, deploymentName string) error {
-	if err := g.db.Where("name = ? AND deployment_name = ?", appName, deploymentName).Delete(&models.InstalledMarketplaceApplication{}).Error; err != nil {
+	if err := g.db.Where("name = ? AND deployment_name = ?", appName, deploymentName).Delete(&models.InstalledMarketplaceApplicationDB{}).Error; err != nil {
 		return err
 	}
 	return nil

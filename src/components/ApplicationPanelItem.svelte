@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onDestroy } from 'svelte';
   import ScaleOut from './common/ScaleOut.svelte';
   import Modal from './common/Modal.svelte';
   import { HttpHandler, reapplyApplication } from '../data/httpHandler';
@@ -87,13 +87,16 @@
   let showLogs = false;
   let logInterval: any = null;
   let logs = '';
-  let selectedLogOption = '';
 
-  async function fetchLogs() {
-    const url =
-      selectedLogOption === 'uninstall'
-        ? `../api/uninstall_application/logs/${appName}/${deployment}`
-        : `../api/install_application/logs/${appName}/${deployment}`;
+  onDestroy(() => {
+    clearInterval(logInterval);
+    showLogs = false;
+  });
+
+  async function fetchLogs(uninstall = false) {
+    const url = uninstall
+      ? `../api/uninstall_application/logs/${appName}/${deployment}`
+      : `../api/install_application/logs/${appName}/${deployment}`;
     const res = await fetch(url);
     if (!res.ok) {
       console.warn("Can't get logs!");
@@ -107,21 +110,15 @@
     }
   }
 
-  async function getLogs() {
-    if (!selectedLogOption) {
-      clearInterval(logInterval);
-      showLogs = false;
-      return;
-    }
+  function getLogs(uninstall = false) {
+    return async () => {
+      await fetchLogs(uninstall);
+      showLogs = true;
 
-    await fetchLogs();
-    showLogs = true;
-
-    if (selectedLogOption === 'uninstall') {
       logInterval = setInterval((_) => {
-        fetchLogs();
+        fetchLogs(uninstall);
       }, 5000);
-    }
+    };
   }
 
   $: if (!showLogs && logInterval) {
@@ -222,16 +219,9 @@
             >Show Uninstall Logs
           </button>
         {/if} -->
-        <select
-          class="st-select"
-          bind:value={selectedLogOption}
-          style="height: 34px"
-          on:change={getLogs}
-        >
-          <option value="">Show Logs</option>
-          <option value="install">Install</option>
-          <option value="uninstall">Uninstall</option>
-        </select>
+        <button class="st-button tertiary" on:click={getLogs()}>See Install Logs</button>
+        <button class="st-button tertiary" on:click={getLogs(true)}>See Uninstall Logs</button>
+
         {#if uninstallComplete}
           <div class="st-typography-small-caps">Uninstall Complete!</div>
         {/if}
