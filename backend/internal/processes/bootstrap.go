@@ -2,16 +2,19 @@ package processes
 
 import (
 	"fmt"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
+
 	// "github.com/unity-sds/unity-cs-manager/marketplace"
+	"path/filepath"
+	"strings"
+
 	"github.com/unity-sds/unity-management-console/backend/internal/application"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/types"
-	"path/filepath"
-	"strings"
 )
 
 func BootstrapEnv(appconf *config.AppConfig) {
@@ -88,7 +91,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 
 	err = installHealthStatusLambda(store, appconf)
 	if err != nil {
-		log.WithError(err).Error("Error installing Health Status ")
+		log.WithError(err).Error("Error installing Health Status")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
@@ -99,6 +102,16 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	err = installBasicAPIGateway(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing API Gateway")
+		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+		if err != nil {
+			log.WithError(err).Error("Problem writing to auditlog")
+		}
+		return
+	}
+
+	err = installUnityUi(store, appconf)
+	if err != nil {
+		log.WithError(err).Error("Error installing unity-ui")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
@@ -406,6 +419,43 @@ func installHealthStatusLambda(store database.Datastore, appConfig *config.AppCo
 	err := TriggerInstall(store, &installParams, appConfig, true)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Unity Health Status Lambda")
+		return err
+	}
+	return nil
+}
+
+func installUnityUi(store database.Datastore, appConfig *config.AppConfig) error {
+
+	// Find the marketplace item for the unity-ui
+	var name, version string
+	for _, item := range appConfig.MarketplaceItems {
+		if item.Name == "unity-ui" {
+			name = item.Name
+			version = item.Version
+			break
+		}
+	}
+
+	// Print the name and version
+	log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
+
+	// If the item wasn't found, log an error and return
+	if name == "" || version == "" {
+		log.Error("unity-ui not found in MarketplaceItems")
+		return fmt.Errorf("unity-ui not found in MarketplaceItems")
+	}
+
+	installParams := types.ApplicationInstallParams{
+		Name:           name,
+		Version:        version,
+		Variables:      nil,
+		DisplayName:    "Unity Navbar UI",
+		DeploymentName: fmt.Sprintf("default-%s", name),
+	}
+
+	err := TriggerInstall(store, &installParams, appConfig, true)
+	if err != nil {
+		log.WithError(err).Error("Issue installing Unity Navbar UI")
 		return err
 	}
 	return nil
