@@ -44,12 +44,17 @@
 
   $: Variables = product?.DefaultDeployment?.Variables?.Values || {};
   $: AdvancedValues = product?.DefaultDeployment?.Variables?.AdvancedValues || {};
+
+  let varSetupDone = false;
   $: {
-    Object.entries(Variables).forEach(([key, value]) => {
-      if (value) {
-        applicationMetadata.Variables[key] = value;
-      }
-    });
+    if (!varSetupDone && Object.keys(Variables).length) {
+      Object.entries(Variables).forEach(([key, value]) => {
+        if (value) {
+          applicationMetadata.Variables[key] = value;
+        }
+      });
+      varSetupDone = true;
+    }
   }
 
   let installInProgress = false;
