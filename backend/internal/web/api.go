@@ -79,40 +79,15 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 
 		log.Errorf("Got JSON: %v", applicationInstallParams)
 
-		// First check if this application is already installed.
-		existingApplication, err := db.GetInstalledMarketplaceApplicationStatusByName(applicationInstallParams.Name, applicationInstallParams.DeploymentName)
+		// Kick off install process in async mode. Errors will come back from the initial checks, otherwise we can return OK to user.
+		err = processes.TriggerInstall(db, &applicationInstallParams, &appConfig, false)
+
 		if err != nil {
-			log.WithError(err).Error("Error finding applications")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to search applcation list"})	
-		}
-		
-		if existingApplication != nil && existingApplication.Status != "UNINSTALLED" {
-			errMsg := fmt.Sprintf("Application with name %s already exists. Status: %s", applicationInstallParams.Name, existingApplication.Status)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": errMsg})	
+			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
 		}
-
-		// OK to start installing, get the metadata for this application
-		metadata, err := processes.FetchMarketplaceMetadata(applicationInstallParams.Name, applicationInstallParams.Version, &appConfig)
-		if err != nil {
-			log.Errorf("Unable to fetch metadata for application: %s, %v", applicationInstallParams.Name, err)
-			errMsg := fmt.Sprintf("Unable to fetch package metatadata: %v", err)
-			c.JSON(http.StatusBadRequest, gin.H{"error": errMsg})
-			return
-		}
-
-		// Install the application package files
-		location, err := processes.FetchPackage(&metadata, &appConfig)
-		if err != nil {
-			log.Errorf("Unable to fetch package for application: %s, %v", applicationInstallParams.Name, err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to fetch package"})
-			return
-		}
-
-		err = processes.InstallMarketplaceApplication(&appConfig, location, &applicationInstallParams, &metadata, db, false)
 		
 		c.Status(http.StatusOK)
-
 	}
 }
 
@@ -158,10 +133,17 @@ func handleGetInstallLogs(appConfig config.AppConfig, db database.Datastore, uni
 func handleUninstallApplication(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		appName := c.Param("appName")
-		version := c.Param("version")
 		deploymentName := c.Param("deploymentName")
 
-		go processes.UninstallApplicationNewV2(appName, version, deploymentName, &conf, db)
+		app, err := db.GetInstalledMarketplaceApplication(appName, deploymentName)
+
+		if err != nil {
+			log.Errorf("Installed application not found: %v", err)
+			c.Status(http.StatusNotFound)
+			return
+		}
+
+		go processes.UninstallApplication(app, &conf, db)
 	}
 }
 
@@ -169,7 +151,7 @@ func handleGetApplicationInstallStatusByName(appConfig config.AppConfig, db data
 	return func(c *gin.Context) {
 		appName := c.Param("appName")
 		deploymentName := c.Param("deploymentName")
-		app, err := db.GetInstalledMarketplaceApplicationStatusByName(appName, deploymentName)
+		app, err := db.GetInstalledMarketplaceApplication(appName, deploymentName)
 
 		if err != nil {
 			log.Errorf("Error reading application status: %v", err)
@@ -198,7 +180,7 @@ func handleDeleteApplication(appConfig config.AppConfig, db database.Datastore) 
 		appName := c.Param("appName")
 		deploymentName := c.Param("deploymentName")
 
-		existingApplication, err := db.GetInstalledMarketplaceApplicationStatusByName(appName, deploymentName)
+		existingApplication, err := db.GetInstalledMarketplaceApplication(appName, deploymentName)
 		if existingApplication == nil {
 			log.Errorf("Unable to find application %s and deployment %s", appName, deploymentName)
 			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Application or deployment name doesn't exist."})
@@ -213,27 +195,3 @@ func handleDeleteApplication(appConfig config.AppConfig, db database.Datastore) 
 		c.Status(http.StatusOK)
 	}
 }
-
-// func handleGetAPICall(appConfig config.AppConfig) gin.HandlerFunc {
-// 	fn := func(c *gin.Context) {
-// 		switch endpoint := c.Param("endpoint"); endpoint {
-// 		case "health_checks":
-// 			handleHealthChecks(c, appConfig)
-// 		default:
-// 			handleNoRoute(c)
-// 		}
-// 	}
-// 	return gin.HandlerFunc(fn)
-// }
-
-// func handlePostAPICall(appConfig config.AppConfig) gin.HandlerFunc {
-// 	fn := func(c *gin.Context) {
-// 		switch endpoint := c.Param("endpoint"); endpoint {
-// 		case "uninstall":
-// 			handleUninstall(c, appConfig)
-// 		default:
-// 			handleNoRoute(c)
-// 		}
-// 	}
-// 	return gin.HandlerFunc(fn)
-// }

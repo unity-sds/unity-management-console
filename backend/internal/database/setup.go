@@ -5,6 +5,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/database/models"
+	"github.com/unity-sds/unity-management-console/backend/types"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -101,7 +102,7 @@ func NewGormDatastore() (Datastore, error) {
 		return nil, err
 	}
 
-	err = db.AutoMigrate(&models.InstalledMarketplaceApplication{})
+	err = db.AutoMigrate(&models.InstalledMarketplaceApplicationDB{})
 	if err != nil {
 		return nil, err
 	}
@@ -127,10 +128,9 @@ type Datastore interface {
 	RemoveDeploymentByName(name string) error
 	RemoveApplicationByName(deploymentName string, applicationName string) error
 	FetchDeploymentIDByApplicationName(deploymentName string) (uint, error)
-	GetInstalledApplicationByName(name string) (*models.InstalledMarketplaceApplication, error)
-	StoreInstalledMarketplaceApplication(model models.InstalledMarketplaceApplication) error
-	UpdateInstalledMarketplaceApplicationStatusByName(appName string,displayName  string, status string) error
-	GetInstalledMarketplaceApplicationStatusByName(appName string, displayName string) (*models.InstalledMarketplaceApplication, error)
-	FetchAllInstalledMarketplaceApplications() ([]models.InstalledMarketplaceApplication, error)
+	StoreInstalledMarketplaceApplication(application *types.InstalledMarketplaceApplication) error
+	GetInstalledMarketplaceApplication(appName string, displayName string) (*types.InstalledMarketplaceApplication, error)
+	FetchAllInstalledMarketplaceApplications() ([]*types.InstalledMarketplaceApplication, error)
 	RemoveInstalledMarketplaceApplication(appName string, deploymentName string) error
+	UpdateInstalledMarketplaceApplication(application *types.InstalledMarketplaceApplication) error
 }

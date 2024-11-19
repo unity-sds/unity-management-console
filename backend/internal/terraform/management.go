@@ -82,7 +82,6 @@ func convertToCty(data interface{}) cty.Value {
 	return cty.NilVal
 }
 
-
 func parseAdvancedVariables(advancedVars *types.AdvancedValue, cloudenv *map[string]cty.Value) {
 	if advancedVars == nil {
 		return
@@ -157,20 +156,19 @@ func appendBlockToBody(body *hclwrite.Body, blockType string, labels []string, s
 	}
 }
 
-
 // AddApplicationToStack adds the given application configuration to the stack.
 // It takes care of creating the necessary workspace directory, generating the
 // HCL file, and writing the required attributes.
-func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, installParams *types.ApplicationInstallParams, db database.Datastore) error {
-	log.Infof("Adding application to stack. Location: %v, meta %v, install: %v, deploymentID: %v", location, meta, installParams)
+func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, application *types.InstalledMarketplaceApplication, db database.Datastore) error {
+	log.Infof("Adding application to stack. Location: %v, meta %v, install: %v, module ID: %s", location, meta, application.TerraformModuleName)
 	rand.Seed(time.Now().UnixNano())
 
 	// s := GenerateRandomString(8)
 	hclFile := hclwrite.NewEmptyFile()
 
 	directory := filepath.Join(appConfig.Workdir, "workspace")
-	log.Errorf("Application name: %s", installParams.Name)
-	filename := fmt.Sprintf("%v-%v.tf", installParams.Name, installParams.DeploymentName)
+	log.Errorf("Application name: %s", application.Name)
+	filename := fmt.Sprintf("%v-%v.tf", application.Name, application.DeploymentName)
 
 	log.Errorf("Creating file with the name: %s", filename)
 	tfFile, err := createFile(directory, filename, 0755)
@@ -190,11 +188,11 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	}
 
 	log.Info("Generating header")
-	generateMetadataHeader(rootBody, u.String(), meta.Name, installParams.DeploymentName, installParams.Version, "admin")
+	generateMetadataHeader(rootBody, u.String(), meta.Name, application.DeploymentName, application.Version, "admin")
 
 	log.Info("adding attributes")
 	attributes := map[string]cty.Value{
-		"deployment_name": cty.StringVal(installParams.DeploymentName),
+		"deployment_name": cty.StringVal(application.DeploymentName),
 		"tags":            cty.MapValEmpty(cty.String), // Example of setting an empty map
 		"project":         cty.StringVal(appConfig.Project),
 		"venue":           cty.StringVal(appConfig.Venue),
@@ -202,14 +200,14 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	}
 
 	log.Info("Organising variable replacement")
-	if installParams.Variables != nil {
-		for key, element := range installParams.Variables {
+	if application.Variables != nil {
+		for key, element := range application.Variables {
 			log.Infof("Adding variable: %s, %s", key, element)
 			attributes[key] = cty.StringVal(element)
 		}
 	}
 	log.Info("Parsing advanced vars")
-	parseAdvancedVariables(&installParams.AdvancedValues, &attributes)
+	parseAdvancedVariables(&application.AdvancedValues, &attributes)
 	rand.Seed(time.Now().UnixNano())
 	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	randomChars := make([]byte, 5)
@@ -217,7 +215,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		randomChars[i] = chars[v]
 	}
 	log.Info("Appending block to body")
-	appendBlockToBody(rootBody, "module", []string{fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars))}, path, attributes)
+	appendBlockToBody(rootBody, "module", []string{application.TerraformModuleName}, path, attributes)
 
 	log.Info("Writing hcl file.")
 	_, err = tfFile.Write(hclFile.Bytes())
@@ -240,6 +238,7 @@ func lookUpVariablePointer(element string, inst *marketplace.Install) (string, e
 
 	return "", nil
 }
+
 
 func lookUpFromDependencies(element string, inst *marketplace.Install_Applications) (string, error) {
 	deps := inst.Dependencies

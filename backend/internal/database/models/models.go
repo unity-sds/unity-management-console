@@ -1,8 +1,11 @@
 package models
 
 import (
+	"errors"
 	"gorm.io/gorm"
 	"time"
+	"database/sql/driver"
+	"encoding/json"
 )
 
 type CoreConfig struct {
@@ -45,7 +48,7 @@ type Deployment struct {
 	CreationDate time.Time
 }
 
-type InstalledMarketplaceApplication struct {
+type InstalledMarketplaceApplicationDB struct {
 	gorm.Model
 	Name         string
 	DeploymentName  string
@@ -53,4 +56,29 @@ type InstalledMarketplaceApplication struct {
 	Source       string
 	Status       string
 	PackageName  string	
+	TerraformModuleName string
+	Variables    JSON `json:"variables"`
+	AdvancedValues    JSON `json:"advanced_values"`
+}
+
+type JSON json.RawMessage
+
+func (j JSON) Value() (driver.Value, error) {
+	if len(j) == 0 {
+		return nil, nil
+	}
+	return json.RawMessage(j).MarshalJSON()
+}
+
+func (j *JSON) Scan(value interface{}) error {
+	if value == nil {
+		*j = nil
+		return nil
+	}
+	s, ok := value.([]byte)
+	if !ok {
+		return errors.New("Invalid Scan Source")
+	}
+	*j = append((*j)[0:0], s...)
+	return nil
 }

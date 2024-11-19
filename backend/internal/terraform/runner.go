@@ -25,6 +25,7 @@ type TerraformExecutor interface {
 	Init(context.Context, ...tfexec.InitOption) error
 	Plan(context.Context, ...tfexec.PlanOption) (bool, error)
 	Apply(context.Context, ...tfexec.ApplyOption) error
+	Destroy(context.Context, ...tfexec.DestroyOption) error
 	SetStdout(io.Writer)
 	SetStderr(io.Writer)
 	SetLogger(*log.Logger)
@@ -54,6 +55,10 @@ func (r *RealTerraformExecutor) Plan(ctx context.Context, opts ...tfexec.PlanOpt
 
 func (r *RealTerraformExecutor) Apply(ctx context.Context, opts ...tfexec.ApplyOption) error {
 	return r.tf.Apply(ctx, opts...)
+}
+
+func (r *RealTerraformExecutor) Destroy(ctx context.Context, opts ...tfexec.DestroyOption) error {
+	return r.tf.Destroy(ctx, opts...)
 }
 
 func (r *RealTerraformExecutor) SetStdout(w io.Writer) {
@@ -268,6 +273,57 @@ func RunTerraformLogOutToFile(appconf *config.AppConfig, logfile string, executo
 	return nil
 }
 
+
+func DestroyTerraformModule(appconf *config.AppConfig, logfile string, executor TerraformExecutor, moduleName string) error {
+	bucket := fmt.Sprintf("bucket=%s", appconf.BucketName)
+	key := fmt.Sprintf("key=%s-%s-tfstate", appconf.Project, appconf.Venue)
+	region := fmt.Sprintf("region=%s", appconf.AWSRegion)
+
+	p := filepath.Join(appconf.Workdir, "workspace")
+	tf, err := executor.NewTerraform(p, "/usr/local/bin/terraform")
+	if err != nil {
+		log.Fatalf("error running Terraform: %s", err)
+	}
+
+	// Open the log file in append mode
+	logfileHandle, err := os.OpenFile(logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("error opening log file: %s", err)
+	}
+	defer logfileHandle.Close()
+
+	// Create a multi-writer that writes to both file and stdout
+	writerStdout := io.MultiWriter(os.Stdout, logfileHandle)
+	writerStderr := io.MultiWriter(os.Stderr, logfileHandle)
+
+	tf.SetStdout(writerStdout)
+	tf.SetStderr(writerStderr)
+	tf.SetLogger(log.StandardLogger())
+
+	logfileHandle.WriteString("Starting Terraform")
+
+	err = executor.Init(context.Background(), tfexec.Upgrade(true), tfexec.BackendConfig(bucket), tfexec.BackendConfig(key), tfexec.BackendConfig(region))
+
+	if err != nil {
+		log.WithError(err).Error("error initialising terraform")
+		logfileHandle.WriteString(fmt.Sprintf("Error initialising terraform: %s\n", err))
+		return err
+	}
+
+	logfileHandle.WriteString("Waiting 60 seconds for the state to settle\n")
+	time.Sleep(60 * time.Second)
+
+	err = executor.Destroy(context.Background(), tfexec.Target(fmt.Sprintf("module.%s", moduleName)))
+	if err != nil {
+		log.WithError(err).Error("error running terraform destroy")
+		logfileHandle.WriteString(fmt.Sprintf("Error running destroy: %s\n", err))
+		return err
+	}
+
+	logfileHandle.WriteString("Terraform destroy completed successfully\n")
+	return nil
+}
+
 func DestroyAllTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, id string, executor TerraformExecutor) error {
 	p := filepath.Join(appconf.Workdir, "workspace")
 
@@ -289,7 +345,7 @@ func DestroyAllTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, 
 			userid: id,
 			wsmgr:  wsmgr,
 			level:  "ERROR",
-		}		
+		}
 		writerStdout = io.MultiWriter(os.Stdout, wwsWriter)
 		writerStderr = io.MultiWriter(os.Stderr, wwserrWriter)
 	}
@@ -310,7 +366,7 @@ func DestroyAllTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, 
 			wrap := marketplace.UnityWebsocketMessage{Content: &om}
 			b, _ := proto.Marshal(&wrap)
 			wsmgr.SendMessageToUserID(id, b)
-			return err			
+			return err
 		}
 	}
 
@@ -322,7 +378,7 @@ func DestroyAllTerraform(appconf *config.AppConfig, wsmgr *ws.WebSocketManager, 
 		om := marketplace.UnityWebsocketMessage_Simplemessage{Simplemessage: &message}
 		wrap := marketplace.UnityWebsocketMessage{Content: &om}
 		b, _ := proto.Marshal(&wrap)
-		wsmgr.SendMessageToUserID(id, b)		
+		wsmgr.SendMessageToUserID(id, b)
 	}
 	return nil
 }
