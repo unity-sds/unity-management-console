@@ -4,10 +4,8 @@
   import ApplicationPanelItem from '../../components/ApplicationPanelItem.svelte';
   import { onDestroy, onMount } from 'svelte';
   import { fetchDeployedApplications } from '../../data/httpHandler';
-  import {
-    InstalledMarketplaceApplication,
-    getInstalledApplications
-  } from '../../data/marketplaceUtils';
+  import type { InstalledMarketplaceApplication } from '../../data/marketplaceUtils';
+  import { getInstalledApplications } from '../../data/marketplaceUtils';
 
   const page = writable('');
 
