@@ -4,47 +4,18 @@
   import ApplicationPanelItem from '../../components/ApplicationPanelItem.svelte';
   import { onDestroy, onMount } from 'svelte';
   import { fetchDeployedApplications } from '../../data/httpHandler';
+  import {
+    InstalledMarketplaceApplication,
+    getInstalledApplications
+  } from '../../data/marketplaceUtils';
 
   const page = writable('');
 
   let project = '';
-
-  type InstalledMarketplaceApplication = {
-    DeploymentName: string;
-    PackageName: string;
-    Name: string;
-    Source: string;
-    Version: string;
-    Status: string;
-  };
-
   let applications: InstalledMarketplaceApplication[] = [];
 
-  async function getInstalledApplications() {
-    const res = await fetch('../api/installed_applications');
-    if (!res.ok) {
-      console.warn('Unable to get application list!');
-      return;
-    }
-    applications = await res.json();
-    // json.forEach((app: InstalledMarketplaceApplication[] = []) => {
-    //   const newCard: CardItem = {
-    //     title: app.displayName,
-    //     packageName: app.PackageName,
-    //     applicationName: app.Name,
-    //     source: app.Source,
-    //     version: app.Version,
-    //     status: app.Status,
-    //     link: '',
-    //     deploymentName: app.DisplayName
-    //   };
-    //   cardData = cardData.concat([newCard]);
-    // });
-    // console.log(json);
-  }
-
   onMount(async () => {
-    await getInstalledApplications();
+    applications = await getInstalledApplications();
     // await fetchDeployedApplications();
   });
 
