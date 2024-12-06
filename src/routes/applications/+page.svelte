@@ -119,7 +119,7 @@
 </script>
 
 <div style="margin-left: 20px">
-  <div class="st-typography-displayH3">Installed Applications</div>
+  <div class="st-typography-displayH3">Applications</div>
   <div
     style="
       width: 90%;

@@ -171,7 +171,7 @@
           Deployment Name (this should be a unique identifier for this installation of the
           Marketplace item)
         </div>
-        <input class="st-input" bind:value={applicationMetadata.DeploymentName} />
+        <input class="st-input" bind:value={applicationMetadata.DeploymentName} maxlength="32" />
       </div>
     {:else if steps[currentStepIndex] === 'variables'}
       <div class="st-typography-small-caps">Variables</div>
