@@ -288,14 +288,14 @@ func CheckDependencies(conf *config.AppConfig, appName string, version string) (
 	log.Infof("Metadata: %v", metadata)
 
 	// Check if the required SSM params exist in this deployment.
-	for _, ssmParam := range metadata.Dependencies.SSMParams {
-		ssmParam = "/${PROJ}/${VENUE}/cluster-name"
+	// for _, ssmParam := range metadata.Dependencies.SSMParams {
+		ssmParam := "/${PROJ}/${VENUE}/cluster-name"
 
 		// Replace any project or venue placeholders with the actual values
 		formattedSSMParam := strings.ReplaceAll(strings.ToLower(ssmParam), "${PROJ}", conf.Project)
 		formattedSSMParam = strings.ReplaceAll(strings.ToLower(formattedSSMParam), "${VENUE}", conf.Venue)
 
 		log.Infof("Parameter: %s", formattedSSMParam)
-	}
+	// }
 	return &metadata, nil
 }
