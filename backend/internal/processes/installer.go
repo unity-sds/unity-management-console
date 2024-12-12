@@ -279,12 +279,17 @@ func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, stor
 
 // Checks that the SSM parameters a particular application depends on are present. If not, returns a list of applicable Marketplace items
 // that could be installed to fulfill this requirement.
-func CheckDependencies(conf *config.AppConfig, appName string, version string) (*marketplace.MarketplaceMetadata, error) {
-	metadata, err := FetchMarketplaceMetadata(appName, version, conf)
+func CheckDependencies(conf *config.AppConfig, appName string, version string) (*types.MarketplaceMetadata, error) {
+	metadata, err := FetchMarketplaceMetadataJSON(appName, version, conf)
 	if err != nil {
 		log.Errorf("Unable to fetch metadata for application: %s, %v", appName, err)
 		return nil, errors.New("Unable to fetch package")
 	}
 	log.Infof("Metadata: %v", metadata)
+
+	// Check if the required SSM params exist in this deployment.
+	for _, ssmParam := range metadata.Dependencies.SSMParams {
+		log.Infof("Parameter: %s", ssmParam)
+	}
 	return &metadata, nil
 }

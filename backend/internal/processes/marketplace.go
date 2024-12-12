@@ -1,19 +1,21 @@
 package processes
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/types"
 	"google.golang.org/protobuf/encoding/protojson"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"errors"
 )
 
 func FetchMarketplaceMetadata(name string, version string, appConfig *config.AppConfig) (marketplace.MarketplaceMetadata, error) {
@@ -43,6 +45,37 @@ func FetchMarketplaceMetadata(name string, version string, appConfig *config.App
 	if err != nil {
 		errMsg := fmt.Sprintf("Error fetching metadata from url: %s", url)
 		return marketplace.MarketplaceMetadata{}, errors.New(errMsg)
+	}
+	return *req, err
+}
+
+func FetchMarketplaceMetadataJSON(name string, version string, appConfig *config.AppConfig) (types.MarketplaceMetadata, error) {
+
+	log.Infof("Fetching marketplace metadata for, %s, %s", name, version)
+	url := fmt.Sprintf("%sunity-sds/unity-marketplace/main/applications/%s/%s/metadata.json", appConfig.MarketplaceBaseUrl, name, version)
+
+	log.Infof("Fetching marketplace metadata at: %s", url)
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Errorf("Error fetching from github: %v", err)
+		errMsg := fmt.Sprintf("Error fetching metadata from url: %s", url)
+		return types.MarketplaceMetadata{}, errors.New(errMsg)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Errorf("Error reading file: %v", err)
+		errMsg := fmt.Sprintf("Error fetching metadata from url: %s", url)
+		return types.MarketplaceMetadata{}, errors.New(errMsg)
+	}
+
+	content := string(body)
+	req := &types.MarketplaceMetadata{}
+	err = json.Unmarshal([]byte(content), req)
+	if err != nil {
+		errMsg := fmt.Sprintf("Error fetching metadata from url: %s", url)
+		return types.MarketplaceMetadata{}, errors.New(errMsg)
 	}
 	return *req, err
 }

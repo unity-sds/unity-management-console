@@ -1,5 +1,21 @@
 package types
 
+
+type SSMProviderApp struct {
+	MinimumVersion string `json:MinimumVersion`
+}
+
+type SSMParam map[string]string
+
+type Dependencies struct {
+	SSMParams []SSMParam `json:SSMParams`
+	Apps 	  map[string]SSMProviderApp `json:Apps`
+}
+
+type MarketplaceMetadata struct {
+	Dependencies Dependencies `json:Dependencies`
+}
+
 type AdvancedValue map[string]interface{}
 
 type ApplicationInstallParams struct {
