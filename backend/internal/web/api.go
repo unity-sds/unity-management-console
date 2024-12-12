@@ -86,7 +86,7 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
 		}
-		
+
 		c.Status(http.StatusOK)
 	}
 }
@@ -188,6 +188,20 @@ func handleDeleteApplication(appConfig config.AppConfig, db database.Datastore) 
 		}
 
 		err = db.RemoveInstalledMarketplaceApplication(appName, deploymentName)
+		if err != nil {
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		c.Status(http.StatusOK)
+	}
+}
+
+func handleCheckDependencies(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		appName := c.Param("appName")
+		version := c.Param("version")
+		err := processes.CheckDependencies(&appConfig, appName, version)
+
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
 			return

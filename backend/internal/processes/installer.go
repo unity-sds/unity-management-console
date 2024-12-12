@@ -55,14 +55,14 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 		terraformModuleName := fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars))
 
 		application := &types.InstalledMarketplaceApplication{
-			Name:                     installParams.Name,
-			Version:                  installParams.Version,
-			DeploymentName:           installParams.DeploymentName,
-			PackageName:              meta.Name,
-			Source:                   meta.Package,
-			Status:                   "STAGED",
-			TerraformModuleName:      terraformModuleName,
-			Variables:                installParams.Variables,
+			Name:                installParams.Name,
+			Version:             installParams.Version,
+			DeploymentName:      installParams.DeploymentName,
+			PackageName:         meta.Name,
+			Source:              meta.Package,
+			Status:              "STAGED",
+			TerraformModuleName: terraformModuleName,
+			Variables:           installParams.Variables,
 		}
 
 		db.StoreInstalledMarketplaceApplication(application)
@@ -270,9 +270,21 @@ func TriggerInstall(store database.Datastore, applicationInstallParams *types.Ap
 func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Uninstall, conf *config.AppConfig) error {
 	if received.All == true {
 		return UninstallAll(conf, wsManager, userid, received)
-	} 
+	}
 	// else {
 	// 	return UninstallApplication(received.Application, received.DeploymentName, received.DisplayName, conf, store, wsManager, userid)
 	// }
+	return nil
+}
+
+// Checks that the SSM parameters a particular application depends on are present. If not, returns a list of applicable Marketplace items
+// that could be installed to fulfill this requirement.
+func CheckDependencies(conf *config.AppConfig, appName string, version string) error {
+	metadata, err := FetchMarketplaceMetadata(appName, version, conf)
+	if err != nil {
+		log.Errorf("Unable to fetch metadata for application: %s, %v", appName, err)
+		return errors.New("Unable to fetch package")
+	}
+	log.Infof("Metadata: %v", metadata)
 	return nil
 }

@@ -102,7 +102,7 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router.StaticFS("/ui/", http.Dir("./build"))
 	router.GET("/ws", handleWebsocket)
 
-	api := router.Group("/api") 
+	api := router.Group("/api")
 	{
 		api.GET("/health_checks", gin.HandlerFunc(handleHealthChecks(appConfig)))
 		api.GET("/installed_applications", gin.HandlerFunc(getInstalledApplications(appConfig, store)))
@@ -113,6 +113,7 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 		api.GET("/uninstall_application/:appName/:version/:deploymentName", gin.HandlerFunc(handleUninstallApplication(appConfig, store)))
 		api.GET("/install_application/status/:appName/:version/:deploymentName", gin.HandlerFunc(handleGetApplicationInstallStatusByName(appConfig, store)))
 		api.DELETE("/application/:appName/:deploymentName", gin.HandlerFunc(handleDeleteApplication(appConfig, store)))
+		api.GET("/install_application/check_dependencies/:appName/:version", gin.HandlerFunc(handleCheckDependencies(appConfig, store)))
 	}
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
 
