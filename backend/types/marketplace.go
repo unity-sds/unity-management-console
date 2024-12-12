@@ -5,10 +5,8 @@ type SSMProviderApp struct {
 	MinimumVersion string `json:MinimumVersion`
 }
 
-type SSMParam map[string]string
-
 type Dependencies struct {
-	SSMParams []SSMParam `json:SSMParams`
+	SSMParams map[string]string `json:SSMParams`
 	Apps 	  map[string]SSMProviderApp `json:Apps`
 }
 
