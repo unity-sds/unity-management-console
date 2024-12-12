@@ -287,6 +287,8 @@ func CheckDependencies(conf *config.AppConfig, appName string, version string) (
 	}
 	log.Infof("Metadata: %v", metadata)
 
+	missingParametersFound := false
+
 	// Check if the required SSM params exist in this deployment.
 	// for _, ssmParam := range metadata.Dependencies.SSMParams {
 		ssmParam := "/${PROJ}/${VENUE}/cluster-name"
@@ -295,7 +297,17 @@ func CheckDependencies(conf *config.AppConfig, appName string, version string) (
 		formattedSSMParam := strings.ReplaceAll(strings.ToLower(ssmParam), "${proj}", conf.Project)
 		formattedSSMParam = strings.ReplaceAll(strings.ToLower(formattedSSMParam), "${venue}", conf.Venue)
 
+		paramValue, err := aws.ReadSSMParameter(formattedSSMParam)
+		if err != nil {
+			missingParametersFound = true
+		}
+
 		log.Infof("Parameter: %s", formattedSSMParam)
+		log.Infof("Parameter Value: %s", paramValue)
+
+		if missingParametersFound {
+			log.Infof("Missing Dependency Parameters Found!")
+		}
 	// }
 	return &metadata, nil
 }
