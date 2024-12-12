@@ -292,8 +292,8 @@ func CheckDependencies(conf *config.AppConfig, appName string, version string) (
 		ssmParam := "/${PROJ}/${VENUE}/cluster-name"
 
 		// Replace any project or venue placeholders with the actual values
-		formattedSSMParam := strings.ReplaceAll(strings.ToLower(ssmParam), "${PROJ}", conf.Project)
-		formattedSSMParam = strings.ReplaceAll(strings.ToLower(formattedSSMParam), "${VENUE}", conf.Venue)
+		formattedSSMParam := strings.ReplaceAll(strings.ToLower(ssmParam), "${proj}", conf.Project)
+		formattedSSMParam = strings.ReplaceAll(strings.ToLower(formattedSSMParam), "${venue}", conf.Venue)
 
 		log.Infof("Parameter: %s", formattedSSMParam)
 	// }
