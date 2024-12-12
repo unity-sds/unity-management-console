@@ -200,12 +200,13 @@ func handleCheckDependencies(appConfig config.AppConfig, db database.Datastore) 
 	return func(c *gin.Context) {
 		appName := c.Param("appName")
 		version := c.Param("version")
-		err := processes.CheckDependencies(&appConfig, appName, version)
+		result, err := processes.CheckDependencies(&appConfig, appName, version)
 
 		if err != nil {
 			c.Status(http.StatusInternalServerError)
 			return
 		}
-		c.Status(http.StatusOK)
+		c.JSON(http.StatusOK, result)
+		// c.Status(http.StatusOK)
 	}
 }
