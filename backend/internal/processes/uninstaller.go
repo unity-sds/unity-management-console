@@ -52,8 +52,9 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 }
 
 func runScript(application *types.InstalledMarketplaceApplication, store database.Datastore, path string) error {
+	filename := path.Base(path)
 	if _, err := os.Stat(path); err == nil {
-		application.Status = fmt.Sprintf("RUNNING SCRIPT: %s", path)
+		application.Status = fmt.Sprintf("RUNNING SCRIPT: %s", filename)
 		store.UpdateInstalledMarketplaceApplication(application)
 		log.Infof("Found script at %s, executing...", path)
 		cmd := exec.Command("/bin/sh", path)
