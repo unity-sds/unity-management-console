@@ -16,6 +16,7 @@ import (
 	"path"
 	// "strconv"
 	"fmt"
+	"os/exec"
 	"strings"
 )
 
@@ -62,6 +63,20 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 
 	application.Status = "UNINSTALLING"
 	store.UpdateInstalledMarketplaceApplication(application)
+
+	// Check for and run pre-uninstall script if it exists
+	preUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "pre_uninstall.sh")
+	if _, err := os.Stat(preUninstallScript); err == nil {
+		log.Infof("Found pre-uninstall script at %s, executing...", preUninstallScript)
+		cmd := exec.Command("/bin/sh", preUninstallScript)
+		cmd.Env = os.Environ() // Inherit parent environment
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			log.WithError(err).Errorf("Pre-uninstall script failed: %s", string(output))
+			return fmt.Errorf("pre-uninstall script failed: %w", err)
+		}
+		log.Infof("Pre-uninstall script output: %s", string(output))
+	}
 
 	// Run a terraform destroy on the module to be uninstalled
 	err := terraform.DestroyTerraformModule(conf, logfile, executor, application.TerraformModuleName)
