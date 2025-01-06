@@ -51,6 +51,23 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 	return nil
 }
 
+func runScript(application *types.InstalledMarketplaceApplication, store database.Datastore, path string) error {
+	if _, err := os.Stat(path); err == nil {
+		application.Status = fmt.Sprintf("RUNNING SCRIPT: %s", path)
+		store.UpdateInstalledMarketplaceApplication(application)
+		log.Infof("Found script at %s, executing...", path)
+		cmd := exec.Command("/bin/sh", path)
+		cmd.Env = os.Environ() // Inherit parent environment
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			log.WithError(err).Errorf("Pre-uninstall script failed: %s", string(output))
+			return fmt.Errorf("pre-uninstall script failed: %w", err)
+		}
+		log.Infof("Pre-uninstall script output: %s", string(output))
+	}
+	return nil
+}
+
 func UninstallApplication(application *types.InstalledMarketplaceApplication, conf *config.AppConfig, store database.Datastore) error {
 	// Create uninstall_logs directory if it doesn't exist
 	logDir := path.Join(conf.Workdir, "uninstall_logs")
@@ -66,20 +83,13 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 
 	// Check for and run pre-uninstall script if it exists
 	preUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "pre_uninstall.sh")
-	if _, err := os.Stat(preUninstallScript); err == nil {
-		log.Infof("Found pre-uninstall script at %s, executing...", preUninstallScript)
-		cmd := exec.Command("/bin/sh", preUninstallScript)
-		cmd.Env = os.Environ() // Inherit parent environment
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			log.WithError(err).Errorf("Pre-uninstall script failed: %s", string(output))
-			return fmt.Errorf("pre-uninstall script failed: %w", err)
-		}
-		log.Infof("Pre-uninstall script output: %s", string(output))
+	err := runScript(application, store, preUninstallScript)
+	if err != nil {
+		return err
 	}
 
 	// Run a terraform destroy on the module to be uninstalled
-	err := terraform.DestroyTerraformModule(conf, logfile, executor, application.TerraformModuleName)
+	err = terraform.DestroyTerraformModule(conf, logfile, executor, application.TerraformModuleName)
 	if err != nil {
 		return err
 	}
@@ -139,6 +149,13 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 				store.UpdateInstalledMarketplaceApplication(application)
 
 				err = fetchAllApplications(store)
+				if err != nil {
+					return err
+				}
+
+				// Check for and run pre-uninstall script if it exists
+				postUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "post_uninstall.sh")
+				err := runScript(application, store, postUninstallScript)
 				if err != nil {
 					return err
 				}
