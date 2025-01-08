@@ -51,13 +51,13 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 	return nil
 }
 
-func runScript(application *types.InstalledMarketplaceApplication, store database.Datastore, path string) error {
-	filename := path.Base(path)
-	if _, err := os.Stat(path); err == nil {
+func runShellScript(application *types.InstalledMarketplaceApplication, store database.Datastore, scriptPath string) error {
+	filename := path.Base(scriptPath)
+	if _, err := os.Stat(scriptPath); err == nil {
 		application.Status = fmt.Sprintf("RUNNING SCRIPT: %s", filename)
 		store.UpdateInstalledMarketplaceApplication(application)
-		log.Infof("Found script at %s, executing...", path)
-		cmd := exec.Command("/bin/sh", path)
+		log.Infof("Found script at %s, executing...", scriptPath)
+		cmd := exec.Command("/bin/sh", scriptPath)
 		cmd.Env = os.Environ() // Inherit parent environment
 		output, err := cmd.CombinedOutput()
 		if err != nil {
@@ -83,8 +83,8 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 	store.UpdateInstalledMarketplaceApplication(application)
 
 	// Check for and run pre-uninstall script if it exists
-	preUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "pre_uninstall.sh")
-	err := runScript(application, store, preUninstallScript)
+	preUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "pre-uninstall.sh")
+	err := runShellScript(application, store, preUninstallScript)
 	if err != nil {
 		return err
 	}
@@ -155,8 +155,8 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 				}
 
 				// Check for and run pre-uninstall script if it exists
-				postUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "post_uninstall.sh")
-				err := runScript(application, store, postUninstallScript)
+				postUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "post-uninstall.sh")
+				err := runShellScript(application, store, postUninstallScript)
 				if err != nil {
 					return err
 				}
