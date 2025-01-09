@@ -19,6 +19,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"path"
 )
 
 func fetchMandatoryVars() ([]terraform.Varstruct, error) {
@@ -69,6 +70,14 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 
 		application.Status = "INSTALLING"
 		db.UpdateInstalledMarketplaceApplication(application)
+
+		// Check for and run pre-uninstall script if it exists
+		preInstallScript := path.Join(appConfig.Workdir, "workspace", application.Name, "pre-install.sh")
+		log.Errorf("Looking for pre-install script: pre-install.sh")
+		err := runShellScript(application, db, preInstallScript)
+		if err != nil {
+			return err
+		}
 
 		if sync {
 			startApplicationInstallTerraform(appConfig, location, application, meta, db)
@@ -128,6 +137,14 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 		fetchAllApplications(db)
 		return err
 	}
+
+	// Check for and run post-install script if it exists
+	postInstallScript := path.Join(appConfig.Workdir, "workspace", application.Name, "post-install.sh")
+	err = runShellScript(application, db, postInstallScript)
+	if err != nil {
+		return err
+	}
+
 	application.Status = "COMPLETE"
 	db.UpdateInstalledMarketplaceApplication(application)
 	fetchAllApplications(db)
