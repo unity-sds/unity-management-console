@@ -71,18 +71,6 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 		application.Status = "INSTALLING"
 		db.UpdateInstalledMarketplaceApplication(application)
 
-		// Check for and run pre-uninstall script if it exists
-		preInstallScript := path.Join(location, "pre-install.sh")
-		if _, err := os.Stat(preInstallScript); err == nil {
-			log.Errorf("pre-install.sh found, running...")
-			application.Status = "RUNNING PRE-INSTALL SCRIPT"
-			db.UpdateInstalledMarketplaceApplication(application)
-			err := runShellScript(application, db, preInstallScript)
-			if err != nil {
-				return err
-			}
-		}
-
 		if sync {
 			startApplicationInstallTerraform(appConfig, location, application, meta, db)
 		} else {
@@ -122,6 +110,27 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 	fetchAllApplications(db)
 
 	logfile := filepath.Join(logDir, fmt.Sprintf("%s_%s_install_log", application.Name, application.DeploymentName))
+
+	// Open the log file in append mode
+	fileHandle, err := os.OpenFile(logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("error opening log file: %s", err)
+	}
+	defer fileHandle.Close()
+
+	// Check for and run pre-uninstall script if it exists
+	preInstallScript := path.Join(location, "pre-install.sh")
+	if _, err := os.Stat(preInstallScript); err == nil {
+		log.Errorf("pre-install.sh found, running...")
+		application.Status = "RUNNING PRE-INSTALL SCRIPT"
+		db.UpdateInstalledMarketplaceApplication(application)
+		err := runShellScript(application, db, preInstallScript, fileHandle)
+		if err != nil {
+			fileHandle.WriteString(err)
+			return err
+		}
+	}
+
 	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
 
 	if err != nil {
@@ -148,7 +157,7 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 		log.Errorf("post-install.sh found, running...")
 		application.Status = "RUNNING POST-INSTALL SCRIPT"
 		db.UpdateInstalledMarketplaceApplication(application)
-		err := runShellScript(application, db, postInstallScript)
+		err := runShellScript(application, db, postInstallScript,nil)
 		if err != nil {
 			return err
 		}
