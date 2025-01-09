@@ -157,7 +157,7 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 		log.Errorf("post-install.sh found, running...")
 		application.Status = "RUNNING POST-INSTALL SCRIPT"
 		db.UpdateInstalledMarketplaceApplication(application)
-		err := runShellScript(application, db, postInstallScript,nil)
+		err := runShellScript(application, db, postInstallScript, fileHandle)
 		if err != nil {
 			return err
 		}

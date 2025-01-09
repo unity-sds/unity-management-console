@@ -51,7 +51,7 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 	return nil
 }
 
-func runShellScript(application *types.InstalledMarketplaceApplication, store database.Datastore, scriptPath string) error {
+func runShellScript(application *types.InstalledMarketplaceApplication, store database.Datastore, scriptPath string, fileHandle *os.File) error {
 	filename := path.Base(scriptPath)
 	application.Status = fmt.Sprintf("RUNNING SCRIPT: %s", filename)
 	store.UpdateInstalledMarketplaceApplication(application)
@@ -78,7 +78,11 @@ func runShellScript(application *types.InstalledMarketplaceApplication, store da
 	outScanner := bufio.NewScanner(stdout)
 	go func() {
 		for outScanner.Scan() {
-			log.Infof("Script stdout: %s", outScanner.Text())
+			outString := fmt.Sprintf("Script stdout: %s", outScanner.Text())
+			if fileHandle != nil {
+				fileHandle.WriteString(outString)
+			}
+			log.Infof(outString)
 		}
 	}()
 
@@ -86,7 +90,11 @@ func runShellScript(application *types.InstalledMarketplaceApplication, store da
 	errScanner := bufio.NewScanner(stderr)
 	go func() {
 		for errScanner.Scan() {
-			log.Infof("Script stderr: %s", errScanner.Text())
+			outString := fmt.Sprintf("Script stderr: %s", errScanner.Text())
+			if fileHandle != nil {
+				fileHandle.WriteString(outString)
+			}
+			log.Infof(outString)
 		}
 	}()
 
@@ -113,7 +121,7 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 
 	// Check for and run pre-uninstall script if it exists
 	preUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "pre-uninstall.sh")
-	err := runShellScript(application, store, preUninstallScript)
+	err := runShellScript(application, store, preUninstallScript, nil)
 	if err != nil {
 		return err
 	}
@@ -185,7 +193,7 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 
 				// Check for and run pre-uninstall script if it exists
 				postUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "post-uninstall.sh")
-				err := runShellScript(application, store, postUninstallScript)
+				err := runShellScript(application, store, postUninstallScript, nil)
 				if err != nil {
 					return err
 				}
