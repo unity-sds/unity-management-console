@@ -65,7 +65,6 @@ func FetchPackage(meta *marketplace.MarketplaceMetadata, appConfig *config.AppCo
 }
 
 func gitClone(url string, basedir string) (string, error) {
-	return basedir, nil
 	log.Infof("Cloning: %s into %s", url, basedir)
 	sha := ""
 	err := os.MkdirAll(basedir, 0755)
