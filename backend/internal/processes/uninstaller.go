@@ -55,7 +55,9 @@ func runShellScript(application *types.InstalledMarketplaceApplication, store da
 	filename := path.Base(scriptPath)
 	application.Status = fmt.Sprintf("RUNNING SCRIPT: %s", filename)
 	store.UpdateInstalledMarketplaceApplication(application)
+	scriptDir := path.Dir(scriptPath)
 	cmd := exec.Command("/bin/sh", scriptPath)
+	cmd.Dir = scriptDir
 	cmd.Env = os.Environ() // Inherit parent environment
 
 	// Create pipes for stdout and stderr
