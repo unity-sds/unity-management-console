@@ -121,7 +121,7 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 	// Check for and run pre-uninstall script if it exists
 	preInstallScript := path.Join(location, "pre-install.sh")
 	if _, err := os.Stat(preInstallScript); err == nil {
-		log.Errorf("pre-install.sh found, running...")
+		fileHandle.WriteString("pre-install.sh found, running...\n")
 		application.Status = "RUNNING PRE-INSTALL SCRIPT"
 		db.UpdateInstalledMarketplaceApplication(application)
 		err := runShellScript(application, db, preInstallScript, fileHandle)
@@ -155,6 +155,7 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 	postInstallScript := path.Join(location, "post-install.sh")
 	if _, err := os.Stat(postInstallScript); err == nil {
 		log.Errorf("post-install.sh found, running...")
+		fileHandle.WriteString("post-install.sh found, running...\n")
 		application.Status = "RUNNING POST-INSTALL SCRIPT"
 		db.UpdateInstalledMarketplaceApplication(application)
 		err := runShellScript(application, db, postInstallScript, fileHandle)

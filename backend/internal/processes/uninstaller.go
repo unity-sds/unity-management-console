@@ -55,7 +55,6 @@ func runShellScript(application *types.InstalledMarketplaceApplication, store da
 	filename := path.Base(scriptPath)
 	application.Status = fmt.Sprintf("RUNNING SCRIPT: %s", filename)
 	store.UpdateInstalledMarketplaceApplication(application)
-	log.Infof("Found script at %s, executing...", scriptPath)
 	cmd := exec.Command("/bin/sh", scriptPath)
 	cmd.Env = os.Environ() // Inherit parent environment
 
@@ -78,7 +77,7 @@ func runShellScript(application *types.InstalledMarketplaceApplication, store da
 	outScanner := bufio.NewScanner(stdout)
 	go func() {
 		for outScanner.Scan() {
-			outString := fmt.Sprintf("Script stdout: %s", outScanner.Text())
+			outString := fmt.Sprintf("Script stdout: %s\n", outScanner.Text())
 			if fileHandle != nil {
 				fileHandle.WriteString(outString)
 			}
@@ -90,7 +89,7 @@ func runShellScript(application *types.InstalledMarketplaceApplication, store da
 	errScanner := bufio.NewScanner(stderr)
 	go func() {
 		for errScanner.Scan() {
-			outString := fmt.Sprintf("Script stderr: %s", errScanner.Text())
+			outString := fmt.Sprintf("Script stderr: %s\n", errScanner.Text())
 			if fileHandle != nil {
 				fileHandle.WriteString(outString)
 			}
@@ -120,8 +119,14 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 	store.UpdateInstalledMarketplaceApplication(application)
 
 	// Check for and run pre-uninstall script if it exists
-	preUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "pre-uninstall.sh")
-	err := runShellScript(application, store, preUninstallScript, nil)
+	preUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, application.Version, "pre-uninstall.sh")
+	fileHandle, err := os.OpenFile(logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("error opening log file: %s", err)
+	}
+	defer fileHandle.Close()
+
+	err = runShellScript(application, store, preUninstallScript, fileHandle)
 	if err != nil {
 		return err
 	}
@@ -193,7 +198,7 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 
 				// Check for and run pre-uninstall script if it exists
 				postUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "post-uninstall.sh")
-				err := runShellScript(application, store, postUninstallScript, nil)
+				err := runShellScript(application, store, postUninstallScript, fileHandle)
 				if err != nil {
 					return err
 				}
