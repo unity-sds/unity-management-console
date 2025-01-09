@@ -119,7 +119,7 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 	store.UpdateInstalledMarketplaceApplication(application)
 
 	// Check for and run pre-uninstall script if it exists
-	preUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, application.Version, "pre-uninstall.sh")
+	preUninstallScript := path.Join(conf.Workdir, "terraform", application.Name, application.Version, "pre-uninstall.sh")
 	fileHandle, err := os.OpenFile(logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Fatalf("error opening log file: %s", err)
@@ -197,7 +197,7 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 				}
 
 				// Check for and run pre-uninstall script if it exists
-				postUninstallScript := path.Join(conf.Workdir, "workspace", application.Name, "post-uninstall.sh")
+				postUninstallScript := path.Join(conf.Workdir, "terraform", application.Name, "post-uninstall.sh")
 				err := runShellScript(application, store, postUninstallScript, fileHandle)
 				if err != nil {
 					return err
