@@ -95,6 +95,8 @@ func runShellScript(application *types.InstalledMarketplaceApplication, store da
 		if err := cmd.Wait(); err != nil {
 			return fmt.Errorf("script failed: %w", err)
 		}
+	} else {
+		return fmt.Errorf("Script not found, skipping...")
 	}
 	return nil
 }
