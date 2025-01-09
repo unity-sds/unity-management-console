@@ -72,10 +72,9 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 		db.UpdateInstalledMarketplaceApplication(application)
 
 		// Check for and run pre-uninstall script if it exists
-		preInstallScript := path.Join(appConfig.Workdir, "workspace", application.Name, application.Version, "pre-install.sh")
+		preInstallScript := path.Join(location, "pre-install.sh")
 		log.Errorf("Looking for pre-install script: pre-install.sh")
 		log.Errorf("Path: %s", preInstallScript)
-		log.Errorf("Location: %s", location)
 		err := runShellScript(application, db, preInstallScript)
 		if err != nil {
 			return err
