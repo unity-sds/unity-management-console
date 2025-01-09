@@ -199,7 +199,7 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 				}
 
 				// Check for and run pre-uninstall script if it exists
-				postUninstallScript := path.Join(conf.Workdir, "terraform", "modules", application.Name, "post-uninstall.sh")
+				postUninstallScript := path.Join(conf.Workdir, "terraform", "modules", application.Name, application.Version, "post-uninstall.sh")
 				err := runShellScript(application, store, postUninstallScript, fileHandle)
 				if err != nil {
 					return err
