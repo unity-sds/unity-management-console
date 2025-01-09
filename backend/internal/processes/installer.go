@@ -126,7 +126,7 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 		db.UpdateInstalledMarketplaceApplication(application)
 		err := runShellScript(application, db, preInstallScript, fileHandle)
 		if err != nil {
-			fileHandle.WriteString(err)
+			fileHandle.WriteString(err.Error())
 			return err
 		}
 	}
