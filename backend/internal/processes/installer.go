@@ -276,11 +276,11 @@ func TriggerInstall(store database.Datastore, applicationInstallParams *types.Ap
 	}
 
 	// Install the application package files
-	location, err := FetchPackage(&metadata, conf)
-	if err != nil {
-		log.Errorf("Unable to fetch package for application: %s, %v", applicationInstallParams.Name, err)
-		return errors.New("Unable to fetch package")
-	}
+	// location, err := FetchPackage(&metadata, conf)
+	// if err != nil {
+	// 	log.Errorf("Unable to fetch package for application: %s, %v", applicationInstallParams.Name, err)
+	// 	return errors.New("Unable to fetch package")
+	// }
 
 	return InstallMarketplaceApplication(conf, location, applicationInstallParams, &metadata, store, sync)
 }
