@@ -53,51 +53,48 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 
 func runShellScript(application *types.InstalledMarketplaceApplication, store database.Datastore, scriptPath string) error {
 	filename := path.Base(scriptPath)
-	if _, err := os.Stat(scriptPath); err == nil {
-		application.Status = fmt.Sprintf("RUNNING SCRIPT: %s", filename)
-		store.UpdateInstalledMarketplaceApplication(application)
-		log.Infof("Found script at %s, executing...", scriptPath)
-		cmd := exec.Command("/bin/sh", scriptPath)
-		cmd.Env = os.Environ() // Inherit parent environment
-		
-		// Create pipes for stdout and stderr
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-			return fmt.Errorf("failed to create stdout pipe: %w", err)
-		}
-		stderr, err := cmd.StderrPipe()
-		if err != nil {
-			return fmt.Errorf("failed to create stderr pipe: %w", err)
-		}
+	application.Status = fmt.Sprintf("RUNNING SCRIPT: %s", filename)
+	store.UpdateInstalledMarketplaceApplication(application)
+	log.Infof("Found script at %s, executing...", scriptPath)
+	cmd := exec.Command("/bin/sh", scriptPath)
+	cmd.Env = os.Environ() // Inherit parent environment
 
-		// Start the command
-		if err := cmd.Start(); err != nil {
-			return fmt.Errorf("failed to start script: %w", err)
-		}
-
-		// Create scanner for stdout
-		outScanner := bufio.NewScanner(stdout)
-		go func() {
-			for outScanner.Scan() {
-				log.Infof("Script stdout: %s", outScanner.Text())
-			}
-		}()
-
-		// Create scanner for stderr
-		errScanner := bufio.NewScanner(stderr)
-		go func() {
-			for errScanner.Scan() {
-				log.Infof("Script stderr: %s", errScanner.Text())
-			}
-		}()
-
-		// Wait for command to complete
-		if err := cmd.Wait(); err != nil {
-			return fmt.Errorf("script failed: %w", err)
-		}
-	} else {
-		return fmt.Errorf("Script not found, skipping...")
+	// Create pipes for stdout and stderr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("failed to create stdout pipe: %w", err)
 	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("failed to create stderr pipe: %w", err)
+	}
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start script: %w", err)
+	}
+
+	// Create scanner for stdout
+	outScanner := bufio.NewScanner(stdout)
+	go func() {
+		for outScanner.Scan() {
+			log.Infof("Script stdout: %s", outScanner.Text())
+		}
+	}()
+
+	// Create scanner for stderr
+	errScanner := bufio.NewScanner(stderr)
+	go func() {
+		for errScanner.Scan() {
+			log.Infof("Script stderr: %s", errScanner.Text())
+		}
+	}()
+
+	// Wait for command to complete
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("script failed: %w", err)
+	}
+
 	return nil
 }
 
