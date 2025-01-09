@@ -75,6 +75,7 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 		preInstallScript := path.Join(appConfig.Workdir, "workspace", application.Name, application.Version, "pre-install.sh")
 		log.Errorf("Looking for pre-install script: pre-install.sh")
 		log.Errorf("Path: %s", preInstallScript)
+		log.Errorf("Location: %s", location)
 		err := runShellScript(application, db, preInstallScript)
 		if err != nil {
 			return err
@@ -276,11 +277,11 @@ func TriggerInstall(store database.Datastore, applicationInstallParams *types.Ap
 	}
 
 	// Install the application package files
-	// location, err := FetchPackage(&metadata, conf)
-	// if err != nil {
-	// 	log.Errorf("Unable to fetch package for application: %s, %v", applicationInstallParams.Name, err)
-	// 	return errors.New("Unable to fetch package")
-	// }
+	location, err := FetchPackage(&metadata, conf)
+	if err != nil {
+		log.Errorf("Unable to fetch package for application: %s, %v", applicationInstallParams.Name, err)
+		return errors.New("Unable to fetch package")
+	}
 
 	return InstallMarketplaceApplication(conf, location, applicationInstallParams, &metadata, store, sync)
 }
