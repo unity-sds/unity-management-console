@@ -96,6 +96,12 @@ func (g GormDatastore) StoreSSMParams(p []config.SSMParameter, owner string) err
 		model.Value = param.Value
 		model.Owner = owner
 
+		log.WithFields(log.Fields{
+			"name":  param.Name,
+			"type":  param.Type,
+			"owner": owner,
+		}).Info("Storing SSM parameter")
+
 		// Use Save to insert or update the record
 		if err := g.db.Save(&model).Error; err != nil {
 			// Handle error for Save

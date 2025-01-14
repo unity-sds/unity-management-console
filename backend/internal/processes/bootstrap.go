@@ -17,7 +17,7 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/types"
 )
 
-func BootstrapEnv(appconf *config.AppConfig) {
+func BootstrapEnv(appconf *config.AppConfig) error {
 	// Print out everything in appConfig
 	log.Infof("AppConfig contents:")
 	log.Infof("GithubToken: %s", appconf.GithubToken)
@@ -36,6 +36,8 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	for _, item := range appconf.MarketplaceItems {
 		log.Infof("  - Name: %s, Version: %s", item.Name, item.Version)
 	}
+
+	log.Infof("Creating Local Database")
 	store, err := database.NewGormDatastore()
 	if err != nil {
 		log.WithError(err).Error("Problem creating database")
@@ -43,9 +45,10 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return
+		return err
 	}
 
+	log.Infof("Provisioning S3 Bucket")
 	err = provisionS3(appconf)
 	if err != nil {
 		log.WithError(err).Error("Error provisioning S3 bucket")
@@ -53,8 +56,10 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return
+		return err
 	}
+
+	log.Infof("Setting Up Default SSM Parameters")
 	err = storeDefaultSSMParameters(appconf, store)
 	if err != nil {
 		log.WithError(err).Error("Error setting SSM Parameters")
@@ -62,8 +67,10 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return
+		return err
 	}
+
+	log.Infof("Setting Up Terraform")
 	err = initTerraform(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing Terraform")
@@ -71,7 +78,7 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return
+		return err
 	}
 
 	//r := action.ActRunnerImpl{}
@@ -79,6 +86,8 @@ func BootstrapEnv(appconf *config.AppConfig) {
 	//if err != nil {
 	//	log.WithError(err).Error("Problem updating ssm config")
 	//}
+
+	log.Infof("Setting Up HTTPD Gateway from Marketplace")
 	err = installGateway(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing HTTPD Gateway")
@@ -86,9 +95,10 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return
+		return err
 	}
 
+	log.Infof("Setting Up Health Status Lambda")
 	err = installHealthStatusLambda(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing Health Status")
@@ -96,9 +106,10 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return
+		return err
 	}
 
+	log.Infof("Setting Up Basic API Gateway from Marketplace")
 	err = installBasicAPIGateway(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing API Gateway")
@@ -106,9 +117,10 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return
+		return err
 	}
 
+	log.Infof("Setting Up Unity UI from Marketplace")
 	err = installUnityUi(store, appconf)
 	if err != nil {
 		log.WithError(err).Error("Error installing unity-ui")
@@ -116,14 +128,17 @@ func BootstrapEnv(appconf *config.AppConfig) {
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return
+		return err
 	}
 
 	err = store.AddToAudit(application.Bootstrap_Successful, "test")
 	if err != nil {
 		log.WithError(err).Error("Problem writing to auditlog")
+		return err
 	}
 
+	log.Infof("Bootstrap Process Completed Succesfully")
+	return nil
 }
 
 func provisionS3(appConfig *config.AppConfig) error {
