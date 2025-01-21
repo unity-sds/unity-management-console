@@ -16,6 +16,7 @@ import (
 	"path"
 	// "strconv"
 	"fmt"
+	"os/exec"
 	"strings"
 )
 
@@ -50,6 +51,62 @@ func UninstallAll(conf *config.AppConfig, conn *websocket.WebSocketManager, user
 	return nil
 }
 
+func runShellScript(application *types.InstalledMarketplaceApplication, store database.Datastore, scriptPath string, fileHandle *os.File) error {
+	filename := path.Base(scriptPath)
+	application.Status = fmt.Sprintf("RUNNING SCRIPT: %s", filename)
+	store.UpdateInstalledMarketplaceApplication(application)
+	scriptDir := path.Dir(scriptPath)
+	cmd := exec.Command("/bin/sh", scriptPath)
+	cmd.Dir = scriptDir
+	cmd.Env = os.Environ() // Inherit parent environment
+
+	// Create pipes for stdout and stderr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("failed to create stdout pipe: %w", err)
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("failed to create stderr pipe: %w", err)
+	}
+
+	// Start the command
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start script: %w", err)
+	}
+
+	// Create scanner for stdout
+	outScanner := bufio.NewScanner(stdout)
+	go func() {
+		for outScanner.Scan() {
+			outString := fmt.Sprintf("Script stdout: %s\n", outScanner.Text())
+			if fileHandle != nil {
+				fileHandle.WriteString(outString)
+			}
+			log.Infof(outString)
+		}
+	}()
+
+	// Create scanner for stderr
+	errScanner := bufio.NewScanner(stderr)
+	go func() {
+		for errScanner.Scan() {
+			outString := fmt.Sprintf("Script stderr: %s\n", errScanner.Text())
+			if fileHandle != nil {
+				fileHandle.WriteString(outString)
+			}
+			log.Infof(outString)
+		}
+	}()
+
+	// Wait for command to complete
+	if err := cmd.Wait(); err != nil {
+		return fmt.Errorf("script failed: %w", err)
+	}
+
+	return nil
+}
+
 func UninstallApplication(application *types.InstalledMarketplaceApplication, conf *config.AppConfig, store database.Datastore) error {
 	// Create uninstall_logs directory if it doesn't exist
 	logDir := path.Join(conf.Workdir, "uninstall_logs")
@@ -63,8 +120,21 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 	application.Status = "UNINSTALLING"
 	store.UpdateInstalledMarketplaceApplication(application)
 
+	// Check for and run pre-uninstall script if it exists
+	preUninstallScript := path.Join(conf.Workdir, "terraform", "modules", application.Name, application.Version, "pre-uninstall.sh")
+	fileHandle, err := os.OpenFile(logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("error opening log file: %s", err)
+	}
+	defer fileHandle.Close()
+
+	err = runShellScript(application, store, preUninstallScript, fileHandle)
+	if err != nil {
+		return err
+	}
+
 	// Run a terraform destroy on the module to be uninstalled
-	err := terraform.DestroyTerraformModule(conf, logfile, executor, application.TerraformModuleName)
+	err = terraform.DestroyTerraformModule(conf, logfile, executor, application.TerraformModuleName)
 	if err != nil {
 		return err
 	}
@@ -124,6 +194,13 @@ func UninstallApplication(application *types.InstalledMarketplaceApplication, co
 				store.UpdateInstalledMarketplaceApplication(application)
 
 				err = fetchAllApplications(store)
+				if err != nil {
+					return err
+				}
+
+				// Check for and run pre-uninstall script if it exists
+				postUninstallScript := path.Join(conf.Workdir, "terraform", "modules", application.Name, application.Version, "post-uninstall.sh")
+				err := runShellScript(application, store, postUninstallScript, fileHandle)
 				if err != nil {
 					return err
 				}

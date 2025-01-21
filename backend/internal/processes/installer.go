@@ -15,6 +15,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -39,7 +40,7 @@ func fetchMandatoryVars() ([]terraform.Varstruct, error) {
 func startApplicationInstallTerraform(appConfig *config.AppConfig, location string, application *types.InstalledMarketplaceApplication, meta *marketplace.MarketplaceMetadata, db database.Datastore) {
 	log.Errorf("Application name is: %s", application.Name)
 	terraform.AddApplicationToStack(appConfig, location, meta, application, db)
-	executeTerraformInstall(db, appConfig, meta, application)
+	executeTerraformInstall(db, appConfig, meta, application, location)
 }
 
 func InstallMarketplaceApplication(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore, sync bool) error {
@@ -55,14 +56,14 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 		terraformModuleName := fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars))
 
 		application := &types.InstalledMarketplaceApplication{
-			Name:                     installParams.Name,
-			Version:                  installParams.Version,
-			DeploymentName:           installParams.DeploymentName,
-			PackageName:              meta.Name,
-			Source:                   meta.Package,
-			Status:                   "STAGED",
-			TerraformModuleName:      terraformModuleName,
-			Variables:                installParams.Variables,
+			Name:                installParams.Name,
+			Version:             installParams.Version,
+			DeploymentName:      installParams.DeploymentName,
+			PackageName:         meta.Name,
+			Source:              meta.Package,
+			Status:              "STAGED",
+			TerraformModuleName: terraformModuleName,
+			Variables:           installParams.Variables,
 		}
 
 		db.StoreInstalledMarketplaceApplication(application)
@@ -84,7 +85,7 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 	}
 }
 
-func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, application *types.InstalledMarketplaceApplication) error {
+func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, application *types.InstalledMarketplaceApplication, location string) error {
 	// Create install_logs directory if it doesn't exist
 	logDir := filepath.Join(appConfig.Workdir, "install_logs")
 	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
@@ -109,6 +110,27 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 	fetchAllApplications(db)
 
 	logfile := filepath.Join(logDir, fmt.Sprintf("%s_%s_install_log", application.Name, application.DeploymentName))
+
+	// Open the log file in append mode
+	fileHandle, err := os.OpenFile(logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("error opening log file: %s", err)
+	}
+	defer fileHandle.Close()
+
+	// Check for and run pre-uninstall script if it exists
+	preInstallScript := path.Join(location, "pre-install.sh")
+	if _, err := os.Stat(preInstallScript); err == nil {
+		fileHandle.WriteString("pre-install.sh found, running...\n")
+		application.Status = "RUNNING PRE-INSTALL SCRIPT"
+		db.UpdateInstalledMarketplaceApplication(application)
+		err := runShellScript(application, db, preInstallScript, fileHandle)
+		if err != nil {
+			fileHandle.WriteString(err.Error())
+			return err
+		}
+	}
+
 	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
 
 	if err != nil {
@@ -128,6 +150,20 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 		fetchAllApplications(db)
 		return err
 	}
+
+	// Check for and run post-install script if it exists
+	postInstallScript := path.Join(location, "post-install.sh")
+	if _, err := os.Stat(postInstallScript); err == nil {
+		log.Errorf("post-install.sh found, running...")
+		fileHandle.WriteString("post-install.sh found, running...\n")
+		application.Status = "RUNNING POST-INSTALL SCRIPT"
+		db.UpdateInstalledMarketplaceApplication(application)
+		err := runShellScript(application, db, postInstallScript, fileHandle)
+		if err != nil {
+			return err
+		}
+	}
+
 	application.Status = "COMPLETE"
 	db.UpdateInstalledMarketplaceApplication(application)
 	fetchAllApplications(db)
@@ -270,7 +306,7 @@ func TriggerInstall(store database.Datastore, applicationInstallParams *types.Ap
 func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Uninstall, conf *config.AppConfig) error {
 	if received.All == true {
 		return UninstallAll(conf, wsManager, userid, received)
-	} 
+	}
 	// else {
 	// 	return UninstallApplication(received.Application, received.DeploymentName, received.DisplayName, conf, store, wsManager, userid)
 	// }
