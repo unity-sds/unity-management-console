@@ -142,7 +142,8 @@ func BootstrapEnv(appconf *config.AppConfig) error {
 	if err != nil {
 		log.WithError(err).Error("Problem updating ssm config")
 	}
-
+	store.AddToAudit(application.Config_Updated, "test")
+	
 	log.Infof("Bootstrap Process Completed Succesfully")
 	return nil
 }
