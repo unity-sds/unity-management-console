@@ -24,7 +24,7 @@
     if (res.ok) {
       return await res.json();
     }
-    return <ParameterResponse>{};
+    return <ParameterResponse>{ parameterList: {} };
   }
 </script>
 
