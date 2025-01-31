@@ -65,6 +65,14 @@
   }): Parameters_Parameter {
     return { name: p.name, value: p.value, type: p.type, tracked: p.tracked, insync: p.insync };
   }
+
+  async function getSSMParams() {
+    const res = await fetch.get('../api/ssm_params/current');
+    if (res.ok) {
+      console.log(await res.json());
+    }
+  }
+  getSSMParams();
 </script>
 
 <div class="container mx-auto px-4">
