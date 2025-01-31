@@ -210,6 +210,6 @@ func GetCurrentSSMParamValues(appConfig config.AppConfig, db database.Datastore)
 			c.Status(http.StatusInternalServerError)
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"ssm_params": ssm})
+		c.JSON(http.StatusOK, ssm)
 	}
 }

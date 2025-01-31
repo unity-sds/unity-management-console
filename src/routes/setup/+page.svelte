@@ -69,7 +69,7 @@
   async function getSSMParams() {
     const res = await fetch('../api/ssm_params/current', { method: 'GET' });
     if (res.ok) {
-      console.log(await res.json());
+      return await res.json();
     }
   }
   getSSMParams();
@@ -78,6 +78,13 @@
 <div class="container mx-auto px-4">
   <div class="flex flex-wrap -mx-4">
     <div class="w-full lg:w-1/4 px-4">
+      {#await getSSMParams}
+        <strong>Loading...</strong>
+      {:then res}
+        {#each Object.entries(res.parameterList) as [key, param]}
+          <strong>{key}:</strong>&nbsp;{param.value}
+        {/each}
+      {/await}
       <p class="mb-4">
         Welcome to the Unity Management Console setup wizard. Here we set some values that are
         mandatory for the reliable operation of your Unity platform.
