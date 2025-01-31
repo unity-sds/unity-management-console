@@ -31,7 +31,7 @@
 <div class="container mx-auto px-4">
   <div class="flex flex-wrap -mx-4">
     <div class="w-full lg:w-1/4 px-4">
-      {#await getSSMParams}
+      {#await getSSMParams()}
         <strong>Loading...</strong>
       {:then res}
         {#each Object.entries(res) as [key, param]}
