@@ -67,7 +67,7 @@
   }
 
   async function getSSMParams() {
-    const res = await fetch.get('../api/ssm_params/current');
+    const res = await fetch('../api/ssm_params/current', { method: 'GET' });
     if (res.ok) {
       console.log(await res.json());
     }
