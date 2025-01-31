@@ -33,7 +33,7 @@
     <strong>Loading...</strong>
   {:then res}
     {#each Object.entries(res.parameterlist) as [key, param]}
-      <strong>{key}:</strong>&nbsp;{param.value}
+      <p><strong>{key}:</strong>&nbsp;{param.value}</p>
     {/each}
   {/await}
 </div>
