@@ -16,7 +16,7 @@
   }
 
   interface ParameterResponse {
-    parameterList: Record<string, Parameter>;
+    parameterlist: Record<string, Parameter>;
   }
 
   async function getSSMParams(): Promise<ParameterResponse> {
