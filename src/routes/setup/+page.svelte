@@ -34,8 +34,7 @@
       {#await getSSMParams()}
         <strong>Loading...</strong>
       {:then res}
-        {console.log(res)}
-        {#each Object.entries(res.parameterList) as [key, param]}
+        {#each Object.entries(res.parameterlist) as [key, param]}
           <strong>{key}:</strong>&nbsp;{param.value}
         {/each}
       {/await}
