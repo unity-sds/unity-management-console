@@ -195,3 +195,21 @@ func handleDeleteApplication(appConfig config.AppConfig, db database.Datastore) 
 		c.Status(http.StatusOK)
 	}
 }
+
+func GetCurrentSSMParamValues(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		params, err := db.FetchSSMParams()
+		if err != nil {
+			log.Errorf("Error getting SSM param list: %v", err)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		ssm, err := aws.ReadSSMParameters(params)
+		if err != nil {
+			log.Errorf("Error getting SSM params: %v", err)
+			c.Status(http.StatusInternalServerError)
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"ssm_params": ssm})
+	}
+}
