@@ -20,6 +20,7 @@
       >
         Home
       </a>
+      <a href="/management/ui/settings" type="button">Settings</a>
       <a
         href="/management/ui/progress"
         type="button"
