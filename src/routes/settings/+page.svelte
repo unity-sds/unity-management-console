@@ -10,15 +10,25 @@
 		parameterlist: Record<string, Parameter>;
 	}
 
+	interface ParamNode {
+		text: string;
+		nodes: ParamNode[];
+	}
+
 	async function getSSMParams(): Promise<ParameterResponse> {
 		const res = await fetch('../api/ssm_params/current', { method: 'GET' });
 		if (res.ok) {
-			const res = await res.json();
+			const json = await res.json();
 			const nodes = Object.entries(res).reduce((acc, [key, param]) => {
 				const base = key.split('/')[0];
-				acc.push(base);
+				const prefixIndex = acc.findIndex((node) => node.text === base);
+				if (prefixIndex) {
+					acc[prefixIndex].nodes.push({ text: key, nodes: [] });
+				} else {
+					acc.push({ text: key, nodes: [] });
+				}
 				return acc;
-			}, []);
+			}, [] as ParamNode[]);
 			console.log(nodes);
 		}
 		return <ParameterResponse>{};
