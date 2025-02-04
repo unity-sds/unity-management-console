@@ -25,7 +25,7 @@
 				if (prefixIndex >= 0) {
 					acc[prefixIndex].nodes.push({ text: key, nodes: [] });
 				} else {
-					acc.push({ text: key, nodes: [] });
+					acc.push({ text: base, nodes: [{ text: key, nodes: [] }] });
 				}
 				return acc;
 			}, [] as ParamNode[]);
