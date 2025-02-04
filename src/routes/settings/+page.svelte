@@ -19,7 +19,7 @@
 		const res = await fetch('../api/ssm_params/current', { method: 'GET' });
 		if (res.ok) {
 			const json = await res.json();
-			const nodes = Object.entries(json).reduce((acc, [key, param]) => {
+			const nodes = Object.entries(json.parameterlist).reduce((acc, [key, param]) => {
 				const base = key.split('/')[0];
 				const prefixIndex = acc.findIndex((node) => node.text === base);
 				if (prefixIndex) {
