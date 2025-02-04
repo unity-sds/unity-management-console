@@ -15,7 +15,7 @@
 		nodes: ParamNode[];
 	}
 
-	function parseNodes(rootNode) {
+	function parseNodes(rootNode: Parameter[]) {
 		return Object.entries(rootNode).reduce((acc, [key, param]) => {
 			const base = key.split('/')[1];
 			const prefixIndex = acc.findIndex((node) => node.text === base);
