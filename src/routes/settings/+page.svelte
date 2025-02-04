@@ -22,7 +22,7 @@
 			const nodes = Object.entries(json.parameterlist).reduce((acc, [key, param]) => {
 				const base = key.split('/')[0];
 				const prefixIndex = acc.findIndex((node) => node.text === base);
-				if (prefixIndex) {
+				if (prefixIndex >= 0) {
 					acc[prefixIndex].nodes.push({ text: key, nodes: [] });
 				} else {
 					acc.push({ text: key, nodes: [] });
