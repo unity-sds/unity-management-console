@@ -20,7 +20,12 @@
       >
         Home
       </a>
-      <a href="/management/ui/settings" type="button">Settings</a>
+      <a
+        href="/management/ui/settings"
+        type="button"
+        class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+        >Settings</a
+      >
       <a
         href="/management/ui/progress"
         type="button"
