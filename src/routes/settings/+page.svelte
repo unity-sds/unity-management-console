@@ -15,7 +15,7 @@
 		nodes: ParamNode[];
 	}
 
-	function parseNodes(rootNode: Parameter[]) {
+	function parseNodes(prefix: string, rootNode: Parameter[]) {
 		return Object.entries(rootNode).reduce((acc, [key, param]) => {
 			const base = key.split('/')[1];
 			const prefixIndex = acc.findIndex((node) => node.text === base);
@@ -32,7 +32,7 @@
 		const res = await fetch('../api/ssm_params/current', { method: 'GET' });
 		if (res.ok) {
 			const json = await res.json();
-			const nodes = parseNodes(json.parameterlist);
+			const nodes = parseNodes('', json.parameterlist);
 			console.log(nodes);
 		}
 		return <ParameterResponse>{};
