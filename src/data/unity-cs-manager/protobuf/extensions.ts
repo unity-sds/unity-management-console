@@ -13,7 +13,6 @@ export interface UnityWebsocketMessage {
   logs?: LogLine | undefined;
   deployments?: Deployments | undefined;
   uninstall?: Uninstall | undefined;
-  uninstallstatus?: UninstallStatus | undefined;
 }
 
 export interface Application {
@@ -93,7 +92,6 @@ export interface Config {
 }
 
 export interface Config_ApplicationConfig {
-  GithubToken: string;
   MarketplaceOwner: string;
   MarketplaceUser: string;
   Project: string;
@@ -129,12 +127,6 @@ export interface LogLine {
   type: string;
 }
 
-export interface UninstallStatus {
-  DeploymentName: string;
-  Application: string;
-  DisplayName: string;
-}
-
 function createBaseUnityWebsocketMessage(): UnityWebsocketMessage {
   return {
     install: undefined,
@@ -145,7 +137,6 @@ function createBaseUnityWebsocketMessage(): UnityWebsocketMessage {
     logs: undefined,
     deployments: undefined,
     uninstall: undefined,
-    uninstallstatus: undefined,
   };
 }
 
@@ -174,9 +165,6 @@ export const UnityWebsocketMessage = {
     }
     if (message.uninstall !== undefined) {
       Uninstall.encode(message.uninstall, writer.uint32(66).fork()).ldelim();
-    }
-    if (message.uninstallstatus !== undefined) {
-      UninstallStatus.encode(message.uninstallstatus, writer.uint32(74).fork()).ldelim();
     }
     return writer;
   },
@@ -244,13 +232,6 @@ export const UnityWebsocketMessage = {
 
           message.uninstall = Uninstall.decode(reader, reader.uint32());
           continue;
-        case 9:
-          if (tag !== 74) {
-            break;
-          }
-
-          message.uninstallstatus = UninstallStatus.decode(reader, reader.uint32());
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -270,7 +251,6 @@ export const UnityWebsocketMessage = {
       logs: isSet(object.logs) ? LogLine.fromJSON(object.logs) : undefined,
       deployments: isSet(object.deployments) ? Deployments.fromJSON(object.deployments) : undefined,
       uninstall: isSet(object.uninstall) ? Uninstall.fromJSON(object.uninstall) : undefined,
-      uninstallstatus: isSet(object.uninstallstatus) ? UninstallStatus.fromJSON(object.uninstallstatus) : undefined,
     };
   },
 
@@ -289,8 +269,6 @@ export const UnityWebsocketMessage = {
       (obj.deployments = message.deployments ? Deployments.toJSON(message.deployments) : undefined);
     message.uninstall !== undefined &&
       (obj.uninstall = message.uninstall ? Uninstall.toJSON(message.uninstall) : undefined);
-    message.uninstallstatus !== undefined &&
-      (obj.uninstallstatus = message.uninstallstatus ? UninstallStatus.toJSON(message.uninstallstatus) : undefined);
     return obj;
   },
 
@@ -321,9 +299,6 @@ export const UnityWebsocketMessage = {
       : undefined;
     message.uninstall = (object.uninstall !== undefined && object.uninstall !== null)
       ? Uninstall.fromPartial(object.uninstall)
-      : undefined;
-    message.uninstallstatus = (object.uninstallstatus !== undefined && object.uninstallstatus !== null)
-      ? UninstallStatus.fromPartial(object.uninstallstatus)
       : undefined;
     return message;
   },
@@ -1462,14 +1437,11 @@ export const Config = {
 };
 
 function createBaseConfig_ApplicationConfig(): Config_ApplicationConfig {
-  return { GithubToken: "", MarketplaceOwner: "", MarketplaceUser: "", Project: "", Venue: "" };
+  return { MarketplaceOwner: "", MarketplaceUser: "", Project: "", Venue: "" };
 }
 
 export const Config_ApplicationConfig = {
   encode(message: Config_ApplicationConfig, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.GithubToken !== "") {
-      writer.uint32(10).string(message.GithubToken);
-    }
     if (message.MarketplaceOwner !== "") {
       writer.uint32(18).string(message.MarketplaceOwner);
     }
@@ -1492,13 +1464,6 @@ export const Config_ApplicationConfig = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.GithubToken = reader.string();
-          continue;
         case 2:
           if (tag !== 18) {
             break;
@@ -1538,7 +1503,6 @@ export const Config_ApplicationConfig = {
 
   fromJSON(object: any): Config_ApplicationConfig {
     return {
-      GithubToken: isSet(object.GithubToken) ? String(object.GithubToken) : "",
       MarketplaceOwner: isSet(object.MarketplaceOwner) ? String(object.MarketplaceOwner) : "",
       MarketplaceUser: isSet(object.MarketplaceUser) ? String(object.MarketplaceUser) : "",
       Project: isSet(object.Project) ? String(object.Project) : "",
@@ -1548,7 +1512,6 @@ export const Config_ApplicationConfig = {
 
   toJSON(message: Config_ApplicationConfig): unknown {
     const obj: any = {};
-    message.GithubToken !== undefined && (obj.GithubToken = message.GithubToken);
     message.MarketplaceOwner !== undefined && (obj.MarketplaceOwner = message.MarketplaceOwner);
     message.MarketplaceUser !== undefined && (obj.MarketplaceUser = message.MarketplaceUser);
     message.Project !== undefined && (obj.Project = message.Project);
@@ -1562,7 +1525,6 @@ export const Config_ApplicationConfig = {
 
   fromPartial<I extends Exact<DeepPartial<Config_ApplicationConfig>, I>>(object: I): Config_ApplicationConfig {
     const message = createBaseConfig_ApplicationConfig();
-    message.GithubToken = object.GithubToken ?? "";
     message.MarketplaceOwner = object.MarketplaceOwner ?? "";
     message.MarketplaceUser = object.MarketplaceUser ?? "";
     message.Project = object.Project ?? "";
@@ -2007,90 +1969,6 @@ export const LogLine = {
     message.level = object.level ?? "";
     message.timestamp = object.timestamp ?? "";
     message.type = object.type ?? "";
-    return message;
-  },
-};
-
-function createBaseUninstallStatus(): UninstallStatus {
-  return { DeploymentName: "", Application: "", DisplayName: "" };
-}
-
-export const UninstallStatus = {
-  encode(message: UninstallStatus, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.DeploymentName !== "") {
-      writer.uint32(10).string(message.DeploymentName);
-    }
-    if (message.Application !== "") {
-      writer.uint32(18).string(message.Application);
-    }
-    if (message.DisplayName !== "") {
-      writer.uint32(26).string(message.DisplayName);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): UninstallStatus {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUninstallStatus();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.DeploymentName = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.Application = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.DisplayName = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): UninstallStatus {
-    return {
-      DeploymentName: isSet(object.DeploymentName) ? String(object.DeploymentName) : "",
-      Application: isSet(object.Application) ? String(object.Application) : "",
-      DisplayName: isSet(object.DisplayName) ? String(object.DisplayName) : "",
-    };
-  },
-
-  toJSON(message: UninstallStatus): unknown {
-    const obj: any = {};
-    message.DeploymentName !== undefined && (obj.DeploymentName = message.DeploymentName);
-    message.Application !== undefined && (obj.Application = message.Application);
-    message.DisplayName !== undefined && (obj.DisplayName = message.DisplayName);
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<UninstallStatus>, I>>(base?: I): UninstallStatus {
-    return UninstallStatus.fromPartial(base ?? {});
-  },
-
-  fromPartial<I extends Exact<DeepPartial<UninstallStatus>, I>>(object: I): UninstallStatus {
-    const message = createBaseUninstallStatus();
-    message.DeploymentName = object.DeploymentName ?? "";
-    message.Application = object.Application ?? "";
-    message.DisplayName = object.DisplayName ?? "";
     return message;
   },
 };

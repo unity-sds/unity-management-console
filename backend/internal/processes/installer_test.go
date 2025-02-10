@@ -11,7 +11,6 @@ import (
 func TestInstallMarketplaceApplication(t *testing.T) {
 
 	appConf := config2.AppConfig{
-		GithubToken:          "",
 		MarketplaceOwner:     "",
 		MarketplaceRepo:      "",
 		AWSRegion:            "",
@@ -42,7 +41,6 @@ func TestInstallMarketplaceApplication(t *testing.T) {
 func TestUpdateCoreConfig(t *testing.T) {
 	store, _ := database.NewGormDatastore()
 	appConf := config2.AppConfig{
-		GithubToken:          "",
 		MarketplaceOwner:     "",
 		MarketplaceRepo:      "",
 		AWSRegion:            "",

@@ -15,9 +15,6 @@ func ProcessSimpleMessage(message *marketplace.SimpleMessage, conf *config.AppCo
 	if message.Operation == "request config" {
 		log.Info("Request Config received")
 		return fetchConfig(conf, store)
-	} else if message.Operation == "request parameters" {
-		log.Info("Request Parameters received")
-		return fetchParameters(conf)
 	} else if message.Operation == "update config" {
 		log.Info("Update config received")
 		//return updateParameters()
@@ -65,23 +62,6 @@ func UpdateParameters(params *marketplace.Parameters, store database.Datastore, 
 
 }
 
-func fetchParameters(conf *config.AppConfig) ([]byte, error) {
-	db, err := database.NewGormDatastore()
-
-	params, err := db.FetchSSMParams()
-
-	ssm, err := aws.ReadSSMParameters(params)
-
-	paramwrap := marketplace.UnityWebsocketMessage_Parameters{Parameters: ssm}
-	msg := &marketplace.UnityWebsocketMessage{Content: &paramwrap}
-	data, err := proto.Marshal(msg)
-	if err != nil {
-		log.WithError(err).Error("Failed to marshal config")
-		return nil, err
-	}
-
-	return data, nil
-}
 func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, error) {
 
 	//coreconf, err := store.FetchCoreParams()
@@ -101,7 +81,6 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	}
 
 	appConfig := marketplace.Config_ApplicationConfig{
-		GithubToken:      conf.GithubToken,
 		MarketplaceOwner: conf.MarketplaceOwner,
 		MarketplaceUser:  conf.MarketplaceRepo,
 		Project:          conf.Project,
@@ -123,7 +102,7 @@ func fetchConfig(conf *config.AppConfig, store database.Datastore) ([]byte, erro
 	} else if bootstrapfailed.Owner != "" {
 		bsoutput = "failed"
 	}
-	
+
 	genconfig := &marketplace.Config{
 
 		ApplicationConfig: &appConfig,

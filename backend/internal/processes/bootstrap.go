@@ -20,7 +20,6 @@ import (
 func BootstrapEnv(appconf *config.AppConfig) error {
 	// Print out everything in appConfig
 	log.Infof("AppConfig contents:")
-	log.Infof("GithubToken: %s", appconf.GithubToken)
 	log.Infof("MarketplaceBaseUrl: %s", appconf.MarketplaceBaseUrl)
 	log.Infof("MarketplaceOwner: %s", appconf.MarketplaceOwner)
 	log.Infof("MarketplaceRepo: %s", appconf.MarketplaceRepo)

@@ -27,11 +27,7 @@ let marketplaceowner = 'unity-sds';
 let marketplacerepo = 'unity-marketplace';
 
 const unsubscribe = config.subscribe((configValue) => {
-	if (configValue && configValue.applicationConfig && configValue.applicationConfig.GithubToken) {
-		headers = {
-			Authorization: `token ${configValue.applicationConfig.GithubToken}`
-		};
-
+	if (configValue && configValue.applicationConfig) {
 		if (
 			configValue &&
 			configValue.applicationConfig.MarketplaceOwner &&
@@ -46,7 +42,6 @@ const unsubscribe = config.subscribe((configValue) => {
 			generateMarketplace();
 		}
 	} else {
-		// default or error headers if GithubToken is not available
 		headers = {};
 	}
 });
@@ -95,17 +90,10 @@ export class HttpHandler {
 		return UnityWebsocketMessage.create({ simplemessage: configrequest });
 	}
 
-	requestParams(): UnityWebsocketMessage {
-		const paramrequest = SimpleMessage.create({ operation: 'request parameters', payload: '' });
-		return UnityWebsocketMessage.create({ simplemessage: paramrequest });
-	}
-
 	setupws() {
 		if (!dev) {
 			const wsm = this.requestConfig();
-			const wsm2 = this.requestParams();
 			websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
-			websocketStore.send(UnityWebsocketMessage.encode(wsm2).finish());
 			let lastProcessedIndex = -1;
 			const unsubscribe = websocketStore.subscribe((receivedMessages) => {
 				// loop through the received messages
@@ -124,9 +112,7 @@ export class HttpHandler {
 								installRunning.set(false);
 							}
 							const wsm = this.requestConfig();
-							const wsm2 = this.requestParams();
 							websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
-							websocketStore.send(UnityWebsocketMessage.encode(wsm2).finish());
 						}
 					} else if (message.parameters) {
 						parametersStore.set(message.parameters);
