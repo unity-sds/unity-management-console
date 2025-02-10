@@ -20,7 +20,6 @@ type MarketplaceItem struct {
 }
 
 type AppConfig struct {
-	GithubToken          string
 	MarketplaceBaseUrl   string
 	MarketplaceOwner     string
 	MarketplaceRepo      string
