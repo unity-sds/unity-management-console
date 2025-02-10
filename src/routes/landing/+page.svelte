@@ -9,6 +9,7 @@
     conf = value;
   });
 
+  $: console.log({ conf });
   let setuprun: boolean;
   let bootstrapfailed: boolean;
   let bootstrapped: boolean;
@@ -26,12 +27,6 @@
     setuprun = !!(conf && conf.updatedby !== '');
   }
   $: cardData = [
-    {
-      title: 'Core Management',
-      description: 'Manage your core settings and features.',
-      link: '/management/ui/setup',
-      disabled: !bootstrapped
-    },
     {
       title: 'Unity Marketplace',
       description: 'Explore the Unity Marketplace.',
@@ -65,10 +60,6 @@
       {:else if !bootstrapped}
         <div class="managementfeedback">
           <h5 class="text-xl">Bootstrap is either in progress or has not been run</h5>
-        </div>
-      {:else if !setuprun}
-        <div class="managementfeedback">
-          <h5 class="text-xl">Setup has not been run, please go to Core Management</h5>
         </div>
       {:else}
         <div class="managementfeedback">
