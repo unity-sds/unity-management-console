@@ -79,6 +79,8 @@ func gitClone(url string, basedir string) (string, error) {
 		sha = parts[1]
 	}
 
+	log.Infof("Basedir: %s, url: %s, sha: %s", basedir, url, sha)
+
 	repo, err := git.PlainClone(basedir, false, &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
@@ -99,6 +101,7 @@ func gitClone(url string, basedir string) (string, error) {
 	if sha != "" {
 		w, err := repo.Worktree()
 		if err != nil {
+			log.Infof("Couldn't open repo: %v", err)
 			return "", err
 		}
 
@@ -106,6 +109,7 @@ func gitClone(url string, basedir string) (string, error) {
 			Hash: plumbing.NewHash(sha),
 		})
 		if err != nil {
+			log.Infof("Couldn't open sha: %v", err)
 			return "", err
 		}
 	}

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import semver from 'semver';
+  import ExtendedSemver from '../../lib/ExtendedSemver';
   import ProductItem from '../../components/ProductItem.svelte';
   import CategoryList from '../../components/CategoryList.svelte';
   import Header from '../../components/Header.svelte';
@@ -8,6 +8,8 @@
   import type { OrderLine } from '../../data/entities';
   import { fade, slide } from 'svelte/transition';
   import { goto } from '$app/navigation';
+
+  const semver = new ExtendedSemver();
 
   $: categories = ['All', ...new Set($marketplaceStore.map((p) => p.Category))];
   $: filteredProducts = $marketplaceStore.filter(
