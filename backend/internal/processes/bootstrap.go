@@ -122,7 +122,7 @@ func BootstrapEnv(appconf *config.AppConfig) error {
 	log.Infof("Setting Up Unity UI from Marketplace")
 	err = installUnityUi(store, appconf)
 	if err != nil {
-		log.WithError(err).Error("Error installing unity-ui")
+		log.WithError(err).Error("Error installing unity-portal")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
@@ -447,10 +447,10 @@ func installHealthStatusLambda(store database.Datastore, appConfig *config.AppCo
 
 func installUnityUi(store database.Datastore, appConfig *config.AppConfig) error {
 
-	// Find the marketplace item for the unity-ui
+	// Find the marketplace item for the unity-portal
 	var name, version string
 	for _, item := range appConfig.MarketplaceItems {
-		if item.Name == "unity-ui" {
+		if item.Name == "unity-portal" {
 			name = item.Name
 			version = item.Version
 			break
@@ -462,8 +462,8 @@ func installUnityUi(store database.Datastore, appConfig *config.AppConfig) error
 
 	// If the item wasn't found, log an error and return
 	if name == "" || version == "" {
-		log.Error("unity-ui not found in MarketplaceItems")
-		return fmt.Errorf("unity-ui not found in MarketplaceItems")
+		log.Error("unity-portal not found in MarketplaceItems")
+		return fmt.Errorf("unity-portal not found in MarketplaceItems")
 	}
 
 	installParams := types.ApplicationInstallParams{
