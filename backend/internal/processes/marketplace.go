@@ -90,10 +90,29 @@ func gitClone(url string, basedir string) (string, error) {
 			return "", err
 		}
 
-		// If the repository already exists, open it
+		// If the repository already exists, open it and pull the latest changes
 		repo, err = git.PlainOpen(basedir)
 		if err != nil {
 			return "", err
+		}
+		
+		// Pull the latest changes
+		log.Infof("Repository already exists, pulling latest changes in %s", basedir)
+		w, err := repo.Worktree()
+		if err != nil {
+			log.Errorf("Couldn't get worktree: %v", err)
+			return "", err
+		}
+		
+		err = w.Pull(&git.PullOptions{
+			Progress: os.Stdout,
+		})
+		
+		if err != nil && err != git.NoErrAlreadyUpToDate {
+			log.Errorf("Couldn't pull updates: %v", err)
+			return "", err
+		} else if err == git.NoErrAlreadyUpToDate {
+			log.Infof("Repository already up to date")
 		}
 	}
 
