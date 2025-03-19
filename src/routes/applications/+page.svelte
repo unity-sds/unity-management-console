@@ -137,6 +137,7 @@
         appPackage={card.PackageName}
         appName={card.Name}
         deployment={card.DeploymentName}
+        version={card.Version}
         objectnumber={index + 1}
         on:refreshApplicationList={getInstalledApplications}
       />

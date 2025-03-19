@@ -15,13 +15,14 @@
   export let appPackage = '';
   export let appName = '';
   export let deployment = '';
+  export let version = '';  // Add version prop
 
   const dispatch = createEventDispatcher();
 
   let latestStatus = '';
   $: combinedStatus = latestStatus || status;
 
-  console.log({ appPackage, appName, deployment });
+  console.log({ appPackage, appName, deployment, version });
 
   export let objectnumber = 0;
 
@@ -172,6 +173,10 @@
       {/if}
       <span class="st-typography-header">{title}</span>
       <span class="st-typography-bold">Application: {appName}</span>
+      <!-- Add version display -->
+      {#if version}
+        <span class="st-typography-body">Version: {version}</span>
+      {/if}
       <div style="display: flex; gap: 10px; margin: 10px; justify-content: center">
         <span class="st-typography-bold">Installation Status:</span>
         {#if combinedStatus === 'COMPLETE'}
