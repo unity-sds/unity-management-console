@@ -2,6 +2,7 @@ package processes
 
 import (
 	"fmt"
+	"sync"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -80,54 +81,76 @@ func BootstrapEnv(appconf *config.AppConfig) error {
 		return err
 	}
 
-	//r := action.ActRunnerImpl{}
-	//err = UpdateCoreConfig(appconf, store, nil, "")
-	//if err != nil {
-	//	log.WithError(err).Error("Problem updating ssm config")
-	//}
-
+	// First install Gateway and API Gateway sequentially
 	log.Infof("Setting Up HTTPD Gateway from Marketplace")
-	err = installGateway(store, appconf)
-	if err != nil {
+	if err := installGateway(store, appconf); err != nil {
 		log.WithError(err).Error("Error installing HTTPD Gateway")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return err
-	}
-
-	log.Infof("Setting Up Health Status Lambda")
-	err = installHealthStatusLambda(store, appconf)
-	if err != nil {
-		log.WithError(err).Error("Error installing Health Status")
-		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
-		if err != nil {
-			log.WithError(err).Error("Problem writing to auditlog")
-		}
-		return err
+		return fmt.Errorf("gateway installation failed: %w", err)
 	}
 
 	log.Infof("Setting Up Basic API Gateway from Marketplace")
-	err = installBasicAPIGateway(store, appconf)
-	if err != nil {
+	if err := installBasicAPIGateway(store, appconf); err != nil {
 		log.WithError(err).Error("Error installing API Gateway")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return err
+		return fmt.Errorf("API gateway installation failed: %w", err)
 	}
 
-	log.Infof("Setting Up Unity UI from Marketplace")
-	err = installUnityUi(store, appconf)
-	if err != nil {
-		log.WithError(err).Error("Error installing unity-portal")
-		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
+	// Now parallelize the remaining installations
+	log.Infof("Starting parallel installation of remaining components")
+	
+	var wg sync.WaitGroup
+	errChan := make(chan error, 2) // Buffer for potential errors from 2 installations
+
+	// Launch Health Status Lambda installation
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		log.Infof("Setting Up Health Status Lambda")
+		if err := installHealthStatusLambda(store, appconf); err != nil {
+			log.WithError(err).Error("Error installing Health Status")
+			errChan <- fmt.Errorf("health status lambda installation failed: %w", err)
+		}
+	}()
+
+	// Launch Unity UI installation
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		log.Infof("Setting Up Unity UI from Marketplace")
+		if err := installUnityUi(store, appconf); err != nil {
+			log.WithError(err).Error("Error installing unity-portal")
+			errChan <- fmt.Errorf("unity UI installation failed: %w", err)
+		}
+	}()
+
+	// Wait for remaining installations to complete
+	wg.Wait()
+	close(errChan)
+
+	// Check for any errors that occurred during parallel installation
+	var errors []error
+	for err := range errChan {
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		// Combine all errors into a single error message
+		errorMsg := "Multiple installation failures:"
+		for _, err := range errors {
+			errorMsg += "\n- " + err.Error()
+		}
+		err := store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
 		}
-		return err
+		return fmt.Errorf(errorMsg)
 	}
 
 	err = store.AddToAudit(application.Bootstrap_Successful, "test")
