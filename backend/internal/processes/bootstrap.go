@@ -184,13 +184,16 @@ required_providers {
     }
   }
   backend "s3" {
-    dynamodb_table = "%s-%s-terraform-state"
+    bucket         = "%s"
+    key            = "terraform.tfstate"
+    region         = "%s"
+    encrypt        = true
   }
 }
 
 provider "aws" {
   region = "us-west-2"
-}`, appConfig.Project, appConfig.Venue)
+}`, appConfig.BucketName, appConfig.AWSRegion)
 
 	err := fs.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
 	if err != nil {
