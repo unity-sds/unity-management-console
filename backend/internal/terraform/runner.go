@@ -29,6 +29,9 @@ type TerraformExecutor interface {
 	SetStdout(io.Writer)
 	SetStderr(io.Writer)
 	SetLogger(*log.Logger)
+	WorkspaceNew(context.Context, string) error
+	WorkspaceSelect(context.Context, string) error
+	WorkspaceDelete(context.Context, string) error
 }
 
 type RealTerraformExecutor struct {
@@ -71,6 +74,18 @@ func (r *RealTerraformExecutor) SetStderr(w io.Writer) {
 
 func (r *RealTerraformExecutor) SetLogger(l *log.Logger) {
 	r.tf.SetLogger(l)
+}
+
+func (r *RealTerraformExecutor) WorkspaceNew(ctx context.Context, name string) error {
+	return r.tf.WorkspaceNew(ctx, name)
+}
+
+func (r *RealTerraformExecutor) WorkspaceSelect(ctx context.Context, name string) error {
+	return r.tf.WorkspaceSelect(ctx, name)
+}
+
+func (r *RealTerraformExecutor) WorkspaceDelete(ctx context.Context, name string) error {
+	return r.tf.WorkspaceDelete(ctx, name)
 }
 
 type wsWriter struct {
@@ -225,6 +240,15 @@ func RunTerraformLogOutToFile(appconf *config.AppConfig, logfile string, executo
 	tf.SetStderr(writerStderr)
 	tf.SetLogger(log.StandardLogger())
 
+	// Create a workspace for this installation
+	workspaceName := fmt.Sprintf("%s-%s", target, time.Now().Format("20060102150405"))
+	err = tf.WorkspaceNew(context.Background(), workspaceName)
+	if err != nil {
+		log.WithError(err).Error("error creating workspace")
+		file.WriteString(fmt.Sprintf("Error creating workspace: %s\n", err))
+		return err
+	}
+
 	file.WriteString("Starting Terraform")
 
 	err = executor.Init(context.Background(), tfexec.Upgrade(true), tfexec.BackendConfig(bucket), tfexec.BackendConfig(key), tfexec.BackendConfig(region))
@@ -273,7 +297,6 @@ func RunTerraformLogOutToFile(appconf *config.AppConfig, logfile string, executo
 	return nil
 }
 
-
 func DestroyTerraformModule(appconf *config.AppConfig, logfile string, executor TerraformExecutor, moduleName string) error {
 	bucket := fmt.Sprintf("bucket=%s", appconf.BucketName)
 	key := fmt.Sprintf("key=%s-%s-tfstate", appconf.Project, appconf.Venue)
@@ -300,6 +323,15 @@ func DestroyTerraformModule(appconf *config.AppConfig, logfile string, executor 
 	tf.SetStderr(writerStderr)
 	tf.SetLogger(log.StandardLogger())
 
+	// Switch to the workspace for this module
+	workspaceName := fmt.Sprintf("%s-%s", moduleName, time.Now().Format("20060102150405"))
+	err = tf.WorkspaceSelect(context.Background(), workspaceName)
+	if err != nil {
+		log.WithError(err).Error("error selecting workspace")
+		logfileHandle.WriteString(fmt.Sprintf("Error selecting workspace: %s\n", err))
+		return err
+	}
+
 	logfileHandle.WriteString("Starting Terraform")
 
 	err = executor.Init(context.Background(), tfexec.Upgrade(true), tfexec.BackendConfig(bucket), tfexec.BackendConfig(key), tfexec.BackendConfig(region))
@@ -318,6 +350,14 @@ func DestroyTerraformModule(appconf *config.AppConfig, logfile string, executor 
 		log.WithError(err).Error("error running terraform destroy")
 		logfileHandle.WriteString(fmt.Sprintf("Error running destroy: %s\n", err))
 		return err
+	}
+
+	// Delete the workspace after successful destroy
+	err = tf.WorkspaceDelete(context.Background(), workspaceName)
+	if err != nil {
+		log.WithError(err).Error("error deleting workspace")
+		logfileHandle.WriteString(fmt.Sprintf("Error deleting workspace: %s\n", err))
+		// Don't return error here as the main operation (destroy) was successful
 	}
 
 	logfileHandle.WriteString("Terraform destroy completed successfully\n")
