@@ -189,7 +189,7 @@
           <ScaleOut size={20} />
         </div>
       {:else} -->
-        <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a>
+        <!-- <a href={link} on:keydown={handleKeydown} class="st-button">Explore</a> -->
         <!-- <button on:click={reapplyApp} on:keydown={handleKeydown} class="st-button"
           >Reapply Installation
         </button> -->
