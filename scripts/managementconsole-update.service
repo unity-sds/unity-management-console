@@ -1,0 +1,18 @@
+[Unit]
+Description=Unity Management Console Update Service
+After=network.target
+OnFailure=status-email@%n.service
+
+[Service]
+Type=simple
+User=ubuntu
+StandardOutput=append:/var/log/managementconsole-update.log
+StandardError=inherit
+WorkingDirectory=/home/ubuntu
+# The path will be provided via environment variable
+ExecStart=/home/ubuntu/management-console/scripts/update_management_console.sh /home/ubuntu/updated-management-console /home/ubuntu
+RemainAfterExit=no
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

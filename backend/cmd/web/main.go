@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
+	"github.com/unity-sds/unity-management-console/backend/internal/version"
 	"github.com/unity-sds/unity-management-console/backend/internal/web"
 	"math/rand"
 	"os"
@@ -54,11 +55,28 @@ var (
 )
 
 func main() {
-	log.Info("Launching Unity Management Console")
+	log.Infof("Launching Unity Management Console v%s", version.GetVersion())
 
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.AddCommand(cplanecmd)
+
+	// Add version flag to root command
+	rootCmd.PersistentFlags().BoolP("version", "v", false, "Show version information")
+	
+	// Add custom pre-run function to check for version flag
+	oldPreRun := rootCmd.PersistentPreRun
+	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
+		showVersion, _ := cmd.Flags().GetBool("version")
+		if showVersion {
+			log.Infof("Unity Management Console v%s", version.GetVersion())
+			os.Exit(0)
+		}
+		
+		if oldPreRun != nil {
+			oldPreRun(cmd, args)
+		}
+	}
 
 	cplanecmd.PersistentFlags().BoolVar(&bootstrap, "bootstrap", false, "Provision an S3 bucket, Bootstrap an API Gateway for access to the management console")
 	err := rootCmd.Execute()
@@ -68,7 +86,6 @@ func main() {
 	}
 
 	config.InitApplication()
-
 }
 
 func generateRandomString(n int) (string, error) {
@@ -137,5 +154,8 @@ func initConfig() {
 	if err := viper.Unmarshal(&appConfig); err != nil {
 		log.WithError(err).Panicf("Unable to decode into struct")
 	}
+	
+	// Set the version in the app config
+	appConfig.Version = version.GetVersion()
 
 }
