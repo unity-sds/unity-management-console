@@ -21,11 +21,10 @@
     if (!hasInitialized) {
       isLoading.set(true);
       const httpHandler = new HttpHandler();
-      // if (typeof window !== 'undefined') {
-      // 	createWebsocketStore('ws://' + window.location.host + '/ws');
-      // }
+      // Set up WebSocket for other event-based communications
       httpHandler.setupws();
-      // await httpHandler.fetchConfig();
+      // Explicitly fetch config using our new HTTP method
+      await httpHandler.fetchConfig();
 
       // Update the store to indicate that the initialization has run
       initialized.set(true);

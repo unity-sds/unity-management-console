@@ -90,10 +90,60 @@ export class HttpHandler {
 		return UnityWebsocketMessage.create({ simplemessage: configrequest });
 	}
 
+	/**
+	 * Fetches config from HTTP API instead of WebSocket
+	 */
+	async fetchConfig(): Promise<void> {
+		if (!dev) {
+			try {
+				// Get configuration from the new HTTP API endpoint
+				const response = await Axios.get('../api/config');
+
+				if (response.status === 200) {
+					// Transform the HTTP JSON response to match the Config protobuf structure
+					const httpConfig = response.data;
+
+					// Create a Config object that matches the protobuf structure
+					const configData = {
+						applicationConfig: {
+							MarketplaceOwner: httpConfig.application_config.marketplace_owner,
+							MarketplaceUser: httpConfig.application_config.marketplace_user,
+							Project: httpConfig.application_config.project,
+							Venue: httpConfig.application_config.venue,
+							Version: httpConfig.application_config.version
+						},
+						networkConfig: {
+							publicsubnets: httpConfig.network_config.public_subnets,
+							privatesubnets: httpConfig.network_config.private_subnets
+						},
+						lastupdated: httpConfig.last_updated,
+						updatedby: httpConfig.updated_by,
+						bootstrap: httpConfig.bootstrap,
+						version: httpConfig.version
+					};
+
+					// Update the config store with the new data
+					config.set(configData);
+				}
+			} catch (error) {
+				console.error('Error fetching configuration via HTTP:', error);
+
+				// Fallback to WebSocket if HTTP fails
+				console.log('Falling back to WebSocket for config');
+				const wsm = this.requestConfig();
+				websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
+			}
+		} else {
+			// Dev environment - no need to fetch config
+			generateMarketplace();
+		}
+	}
+
 	setupws() {
 		if (!dev) {
-			const wsm = this.requestConfig();
-			websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
+			// Fetch config via HTTP API instead of immediately requesting via WebSocket
+			this.fetchConfig();
+
 			let lastProcessedIndex = -1;
 			const unsubscribe = websocketStore.subscribe((receivedMessages) => {
 				// loop through the received messages
@@ -111,12 +161,14 @@ export class HttpHandler {
 								installError.set(true);
 								installRunning.set(false);
 							}
-							const wsm = this.requestConfig();
-							websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
+							// Refresh config after terraform operations
+							this.fetchConfig();
 						}
 					} else if (message.parameters) {
 						parametersStore.set(message.parameters);
 					} else if (message.config) {
+						// We're still listening for config updates via WebSocket
+						// but primarily fetching via HTTP
 						config.set(message.config);
 					} else if (message.logs) {
 						if (message.logs.line != undefined) {

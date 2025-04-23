@@ -8,8 +8,9 @@ User=ubuntu
 StandardOutput=append:/var/log/managementconsole.log
 StandardError=inherit
 WorkingDirectory=/home/ubuntu/management-console
-ExecStart=/home/ubuntu/management-console/main webapp
+ExecStart=/home/ubuntu/management-console/bin/management-console webapp
 Restart=on-failure
+WorkingDirectory=/home/ubuntu/management-console
 
 [Install]
 WantedBy=multi-user.target

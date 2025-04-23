@@ -24,6 +24,22 @@ func ReadSSMParameter(path string) (*ssm.GetParameterOutput, error) {
 
 	return client.GetParameter(context.TODO(), input)
 }
+
+func ReadSSMParameterWithDecryption(path string, withDecryption bool) (*ssm.GetParameterOutput, error) {
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
+	if err != nil {
+		panic("configuration error, " + err.Error())
+	}
+
+	client := ssm.NewFromConfig(cfg)
+
+	input := &ssm.GetParameterInput{
+		Name:           &path,
+		WithDecryption: &withDecryption,
+	}
+
+	return client.GetParameter(context.TODO(), input)
+}
 func ReadSSMParameters(ssmParams []models.SSMParameters) (*marketplace.Parameters, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
 	if err != nil {

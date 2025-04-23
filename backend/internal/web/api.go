@@ -6,15 +6,16 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
+	"github.com/unity-sds/unity-management-console/backend/internal/application"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/internal/processes"
+	"github.com/unity-sds/unity-management-console/backend/internal/update"
 	"github.com/unity-sds/unity-management-console/backend/types"
 	"net/http"
 	"os"
 	"path/filepath"
-	// "strconv"
 )
 
 func handleHealthChecks(appConfig config.AppConfig) func(c *gin.Context) {
@@ -193,5 +194,73 @@ func handleDeleteApplication(appConfig config.AppConfig, db database.Datastore) 
 			return
 		}
 		c.Status(http.StatusOK)
+	}
+}
+
+func handleConfigRequest(appConfig config.AppConfig, db database.Datastore) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		// Get the public and private subnets
+		pub, priv, err := aws.FetchSubnets()
+		if err != nil {
+			log.WithError(err).Error("Error fetching subnets")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve subnet information"})
+			return
+		}
+
+		// Get audit information
+		audit, _ := db.FindLastAuditLineByOperation(application.Config_Updated)
+		bootstrapFailed, _ := db.FindLastAuditLineByOperation(application.Bootstrap_Unsuccessful)
+		bootstrapSuccess, _ := db.FindLastAuditLineByOperation(application.Bootstrap_Successful)
+		
+		// Determine bootstrap status
+		bootstrapStatus := ""
+		if bootstrapSuccess.Owner != "" {
+			bootstrapStatus = "complete"
+		} else if bootstrapFailed.Owner != "" {
+			bootstrapStatus = "failed"
+		}
+
+		// Create response object
+		configResponse := gin.H{
+			"application_config": gin.H{
+				"marketplace_owner": appConfig.MarketplaceOwner,
+				"marketplace_user": appConfig.MarketplaceRepo,
+				"project": appConfig.Project,
+				"venue": appConfig.Venue,
+				"version": appConfig.Version,
+			},
+			"network_config": gin.H{
+				"public_subnets": pub,
+				"private_subnets": priv,
+			},
+			"last_updated": audit.CreatedAt.Format("2006-01-02T15:04:05.000"),
+			"updated_by": audit.Owner,
+			"bootstrap": bootstrapStatus,
+			"version": appConfig.Version,
+		}
+
+		c.JSON(http.StatusOK, configResponse)
+	}
+}
+
+// handleUpdateManagementConsole downloads the latest release and copies all files to the current directory
+func handleUpdateManagementConsole(appConfig config.AppConfig) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		log.Info("Starting management console update process")
+		
+		err := update.UpdateManagementConsoleInPlace()
+		if err != nil {
+			log.WithError(err).Error("Failed to install release: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"error": err.Error(),
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"error": nil,
+		})
+		return
 	}
 }

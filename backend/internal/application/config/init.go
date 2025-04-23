@@ -33,6 +33,8 @@ type AppConfig struct {
 	Project              string
 	Venue                string
 	MarketplaceItems     []MarketplaceItem `mapstructure:"MarketplaceItems"` 
+	Version				 string
+	// GithubToken removed - now using SSM only
 }
 
 type FeatureFlagClient interface {
