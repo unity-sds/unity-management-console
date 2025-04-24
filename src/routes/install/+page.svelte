@@ -150,6 +150,33 @@
     }
   }
 
+  let validationErrors = { deploymentName: '', variables: {} as { [key: string]: string } };
+  function gotoNextStep() {
+    let hasErrors = false;
+    switch (steps[currentStepIndex]) {
+      case 'deploymentDetails':
+        if (!applicationMetadata.DeploymentName) {
+          validationErrors.deploymentName = 'Please enter a deployment name.';
+          hasErrors = true;
+        } else {
+          validationErrors.deploymentName = '';
+        }
+        break;
+      case 'variables':
+        Object.keys(Variables).forEach((key) => {
+          if (!applicationMetadata.Variables[key]) {
+            validationErrors.variables[key] = "This value can't be blank.";
+            hasErrors = true;
+          } else {
+            validationErrors.variables[key] = '';
+          }
+        });
+        break;
+    }
+    if (hasErrors) return;
+    currentStepIndex = currentStepIndex + 1;
+  }
+
   $: console.log(product);
   $: console.log($config);
 </script>
@@ -171,6 +198,11 @@
           Deployment Name (this should be a unique identifier for this installation of the
           Marketplace item)
         </div>
+        {#if validationErrors.deploymentName}
+          <span class="st-typography-label" style="color:red;"
+            >{validationErrors.deploymentName}</span
+          >
+        {/if}
         <input class="st-input" bind:value={applicationMetadata.DeploymentName} maxlength="32" />
       </div>
     {:else if steps[currentStepIndex] === 'variables'}
@@ -181,7 +213,14 @@
             <div class="st-typography-label">
               {key}
             </div>
-            <input class="st-input" bind:value={applicationMetadata.Variables[key]} />
+            <div style="display: flex; flex-direction: column;">
+              {#if validationErrors.variables[key]}
+                <span class="st-typography-label" style="color:red;"
+                  >{validationErrors.variables[key]}</span
+                >
+              {/if}
+              <input class="st-input" bind:value={applicationMetadata.Variables[key]} />
+            </div>
           </div>
         {/each}
       </div>
@@ -227,7 +266,7 @@
       {:else if currentStepIndex === steps.length - 1}
         <button class="st-button" on:click={installApplication}>Install</button>
       {:else}
-        <button class="st-button" on:click={(_) => currentStepIndex++}>Next</button>
+        <button class="st-button" on:click={gotoNextStep}>Next</button>
       {/if}
 
       {#if installInProgress || installComplete}
