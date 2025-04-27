@@ -178,7 +178,7 @@ required_providers {
     }
   }
   backend "s3" {
-    dynamodb_table = "%s-%s-terraform-state"
+  	use_lockfile = true 
   }
 }
 
@@ -391,93 +391,8 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 	return nil
 }
 
-func installHealthStatusLambda(store database.Datastore, appConfig *config.AppConfig) error {
-
-	// Find the marketplace item for the health status lambda
-	var name, version string
-	for _, item := range appConfig.MarketplaceItems {
-		if item.Name == "unity-cs-monitoring-lambda" {
-			name = item.Name
-			version = item.Version
-			break
-		}
-	}
-
-	// Print the name and version
-	log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
-
-	// If the item wasn't found, log an error and return
-	if name == "" || version == "" {
-		log.Error("unity-cs-monitoring-lambda not found in MarketplaceItems")
-		return fmt.Errorf("unity-cs-monitoring-lambda not found in MarketplaceItems")
-	}
-
-	// applications := marketplace.Install_Applications{
-	// 	Name:        name,
-	// 	Version:     version,
-	// 	Variables:   nil,
-	// 	Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
-	// }
-	// install := marketplace.Install{
-	// 	Applications:   &applications,
-	// 	DeploymentName: "Unity Health Status Lambda",
-	// }
-
-	installParams := types.ApplicationInstallParams{
-		Name:           name,
-		Version:        version,
-		Variables:      nil,
-		DisplayName:    "Unity Health Status Lambda",
-		DeploymentName: fmt.Sprintf("default-%s", name),
-	}
-
-	err := TriggerInstall(store, &installParams, appConfig, true)
-	if err != nil {
-		log.WithError(err).Error("Issue installing Unity Health Status Lambda")
-		return err
-	}
-	return nil
-}
-
-func installUnityUi(store database.Datastore, appConfig *config.AppConfig) error {
-
-	// Find the marketplace item for the unity-portal
-	var name, version string
-	for _, item := range appConfig.MarketplaceItems {
-		if item.Name == "unity-portal" {
-			name = item.Name
-			version = item.Version
-			break
-		}
-	}
-
-	// Print the name and version
-	log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
-
-	// If the item wasn't found, log an error and return
-	if name == "" || version == "" {
-		log.Error("unity-portal not found in MarketplaceItems")
-		return fmt.Errorf("unity-portal not found in MarketplaceItems")
-	}
-
-	installParams := types.ApplicationInstallParams{
-		Name:           name,
-		Version:        version,
-		Variables:      nil,
-		DisplayName:    "Unity Navbar UI",
-		DeploymentName: fmt.Sprintf("default-%s", name),
-	}
-
-	err := TriggerInstall(store, &installParams, appConfig, true)
-	if err != nil {
-		log.WithError(err).Error("Issue installing Unity Navbar UI")
-		return err
-	}
-	return nil
-}
-
 func installHealthStatusLambdaAndUnityUi(store database.Datastore, appConfig *config.AppConfig) error {
-	// Get Health Status Lambda metadata and package
+	// Find the marketplace item for health status lambda
 	var lambdaName, lambdaVersion string
 	for _, item := range appConfig.MarketplaceItems {
 		if item.Name == "unity-cs-monitoring-lambda" {
@@ -490,21 +405,8 @@ func installHealthStatusLambdaAndUnityUi(store database.Datastore, appConfig *co
 		log.Error("unity-cs-monitoring-lambda not found in MarketplaceItems")
 		return fmt.Errorf("unity-cs-monitoring-lambda not found in MarketplaceItems")
 	}
-	log.Infof("Found marketplace item - Name: %s, Version: %s", lambdaName, lambdaVersion)
-
-	lambdaMetadata, err := FetchMarketplaceMetadata(lambdaName, lambdaVersion, appConfig)
-	if err != nil {
-		log.Errorf("Unable to fetch metadata for application: %s, %v", lambdaName, err)
-		return errors.New("Unable to fetch package")
-	}
-
-	lambdaLocation, err := FetchPackage(&lambdaMetadata, appConfig)
-	if err != nil {
-		log.Errorf("Unable to fetch package for application: %s, %v", lambdaName, err)
-		return errors.New("Unable to fetch package")
-	}
-
-	// Get Unity UI metadata and package
+	
+	// Find the marketplace item for unity-portal
 	var uiName, uiVersion string
 	for _, item := range appConfig.MarketplaceItems {
 		if item.Name == "unity-portal" {
@@ -517,130 +419,25 @@ func installHealthStatusLambdaAndUnityUi(store database.Datastore, appConfig *co
 		log.Error("unity-portal not found in MarketplaceItems")
 		return fmt.Errorf("unity-portal not found in MarketplaceItems")
 	}
-	log.Infof("Found marketplace item - Name: %s, Version: %s", uiName, uiVersion)
-
-	uiMetadata, err := FetchMarketplaceMetadata(uiName, uiVersion, appConfig)
-	if err != nil {
-		log.Errorf("Unable to fetch metadata for application: %s, %v", uiName, err)
-		return errors.New("Unable to fetch package")
-	}
-
-	uiLocation, err := FetchPackage(&uiMetadata, appConfig)
-	if err != nil {
-		log.Errorf("Unable to fetch package for application: %s, %v", uiName, err)
-		return errors.New("Unable to fetch package")
-	}
-
-	// Generate module names and create application records
-	rand.Seed(time.Now().UnixNano())
-	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	
-	lambdaRandomChars := make([]byte, 5)
-	for i, v := range rand.Perm(52)[:5] {
-		lambdaRandomChars[i] = chars[v]
-	}
-	lambdaDeploymentName := fmt.Sprintf("default-%s", lambdaName)
-	lambdaModuleName := fmt.Sprintf("%s-%s", lambdaDeploymentName, string(lambdaRandomChars))
-	
-	uiRandomChars := make([]byte, 5)
-	for i, v := range rand.Perm(52)[:5] {
-		uiRandomChars[i] = chars[v]
-	}
-	uiDeploymentName := fmt.Sprintf("default-%s", uiName)
-	uiModuleName := fmt.Sprintf("%s-%s", uiDeploymentName, string(uiRandomChars))
-
-	// Create application records in database
-	lambdaApp := &types.InstalledMarketplaceApplication{
-		Name:                lambdaName,
-		Version:             lambdaVersion,
-		DeploymentName:      lambdaDeploymentName,
-		PackageName:         lambdaMetadata.Name,
-		Source:              lambdaMetadata.Package,
-		Status:              "STAGED",
-		TerraformModuleName: lambdaModuleName,
-		Variables:           nil,
-	}
-
-	uiApp := &types.InstalledMarketplaceApplication{
-		Name:                uiName,
-		Version:             uiVersion,
-		DeploymentName:      uiDeploymentName,
-		PackageName:         uiMetadata.Name,
-		Source:              uiMetadata.Package,
-		Status:              "STAGED",
-		TerraformModuleName: uiModuleName,
-		Variables:           nil,
-	}
-
-	// Store applications in the database
-	store.StoreInstalledMarketplaceApplication(lambdaApp)
-	store.StoreInstalledMarketplaceApplication(uiApp)
-
-	// Update status to INSTALLING
-	lambdaApp.Status = "INSTALLING"
-	uiApp.Status = "INSTALLING"
-	store.UpdateInstalledMarketplaceApplication(lambdaApp)
-	store.UpdateInstalledMarketplaceApplication(uiApp)
-
-	// Run pre-install scripts if needed
-	err = runPreInstall(appConfig, &lambdaMetadata, lambdaApp)
-	if err != nil {
-		return err
+	// Create installation parameters for both applications
+	params := []*types.ApplicationInstallParams{
+		{
+			Name:           lambdaName,
+			Version:        lambdaVersion,
+			Variables:      nil,
+			DisplayName:    "Unity Health Status Lambda",
+			DeploymentName: fmt.Sprintf("default-%s", lambdaName),
+		},
+		{
+			Name:           uiName,
+			Version:        uiVersion,
+			Variables:      nil,
+			DisplayName:    "Unity Navbar UI",
+			DeploymentName: fmt.Sprintf("default-%s", uiName),
+		},
 	}
 	
-	err = runPreInstall(appConfig, &uiMetadata, uiApp)
-	if err != nil {
-		return err
-	}
-
-	// Add both applications to the Terraform stack
-	terraform.AddApplicationToStack(appConfig, lambdaLocation, &lambdaMetadata, lambdaApp, store)
-	terraform.AddApplicationToStack(appConfig, uiLocation, &uiMetadata, uiApp, store)
-
-	// Run a single Terraform apply for both modules
-	executor := &terraform.RealTerraformExecutor{}
-	logDir := filepath.Join(appConfig.Workdir, "install_logs")
-	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
-		return fmt.Errorf("failed to create install_logs directory: %w", err)
-	}
-
-	logfile := filepath.Join(logDir, "batch_install_log")
-	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
-	if err != nil {
-		lambdaApp.Status = "FAILED"
-		uiApp.Status = "FAILED"
-		store.UpdateInstalledMarketplaceApplication(lambdaApp)
-		store.UpdateInstalledMarketplaceApplication(uiApp)
-		return err
-	}
-
-	// Update status and run post-install
-	lambdaApp.Status = "INSTALLED"
-	uiApp.Status = "INSTALLED"
-	store.UpdateInstalledMarketplaceApplication(lambdaApp)
-	store.UpdateInstalledMarketplaceApplication(uiApp)
-
-	// Run post-install scripts
-	err = runPostInstallNew(appConfig, &lambdaMetadata, lambdaApp)
-	if err != nil {
-		lambdaApp.Status = "POSTINSTALL FAILED"
-		store.UpdateInstalledMarketplaceApplication(lambdaApp)
-		return err
-	}
-	
-	err = runPostInstallNew(appConfig, &uiMetadata, uiApp)
-	if err != nil {
-		uiApp.Status = "POSTINSTALL FAILED"
-		store.UpdateInstalledMarketplaceApplication(uiApp)
-		return err
-	}
-
-	// Update final status
-	lambdaApp.Status = "COMPLETE"
-	uiApp.Status = "COMPLETE"
-	store.UpdateInstalledMarketplaceApplication(lambdaApp)
-	store.UpdateInstalledMarketplaceApplication(uiApp)
-
-	fetchAllApplications(store)
-	return nil
+	// Install both applications in a single batch operation
+	return BatchTriggerInstall(store, params, appConfig)
 }

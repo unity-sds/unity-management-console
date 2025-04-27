@@ -267,6 +267,137 @@ func TriggerInstall(store database.Datastore, applicationInstallParams *types.Ap
 	return InstallMarketplaceApplication(conf, location, applicationInstallParams, &metadata, store, sync)
 }
 
+// BatchTriggerInstall handles the installation of multiple applications in a single Terraform operation
+// to avoid state locking issues when installing multiple modules in parallel
+func BatchTriggerInstall(store database.Datastore, params []*types.ApplicationInstallParams, conf *config.AppConfig) error {
+	if len(params) == 0 {
+		return nil
+	}
+
+	applications := make([]*types.InstalledMarketplaceApplication, 0, len(params))
+	metadatas := make([]*marketplace.MarketplaceMetadata, 0, len(params))
+	locations := make([]string, 0, len(params))
+
+	// First pass: validate and prepare all applications
+	for _, param := range params {
+		// Check if application is already installed
+		existingApplication, err := store.GetInstalledMarketplaceApplication(param.Name, param.DeploymentName)
+		if err != nil {
+			log.WithError(err).Error("Error finding applications")
+			return errors.New("Unable to search application list")
+		}
+
+		if existingApplication != nil && existingApplication.Status != "UNINSTALLED" {
+			errMsg := fmt.Sprintf("Application with name %s already exists. Status: %s", param.Name, existingApplication.Status)
+			return errors.New(errMsg)
+		}
+
+		// Fetch metadata and package
+		metadata, err := FetchMarketplaceMetadata(param.Name, param.Version, conf)
+		if err != nil {
+			log.Errorf("Unable to fetch metadata for application: %s, %v", param.Name, err)
+			return errors.New("Unable to fetch package")
+		}
+
+		location, err := FetchPackage(&metadata, conf)
+		if err != nil {
+			log.Errorf("Unable to fetch package for application: %s, %v", param.Name, err)
+			return errors.New("Unable to fetch package")
+		}
+
+		// Generate unique module name
+		rand.Seed(time.Now().UnixNano())
+		chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+		randomChars := make([]byte, 5)
+		for i, v := range rand.Perm(52)[:5] {
+			randomChars[i] = chars[v]
+		}
+		terraformModuleName := fmt.Sprintf("%s-%s", param.DeploymentName, string(randomChars))
+
+		// Create application record
+		application := &types.InstalledMarketplaceApplication{
+			Name:                param.Name,
+			Version:             param.Version,
+			DeploymentName:      param.DeploymentName,
+			PackageName:         metadata.Name,
+			Source:              metadata.Package,
+			Status:              "STAGED",
+			TerraformModuleName: terraformModuleName,
+			Variables:           param.Variables,
+		}
+
+		// Store application record
+		store.StoreInstalledMarketplaceApplication(application)
+
+		// Update status to INSTALLING
+		application.Status = "INSTALLING"
+		store.UpdateInstalledMarketplaceApplication(application)
+
+		// Add to our tracking lists
+		applications = append(applications, application)
+		metadatas = append(metadatas, &metadata)
+		locations = append(locations, location)
+	}
+
+	// Second pass: prepare all Terraform configurations
+	for i, application := range applications {
+		// Run pre-install script if needed
+		err := runPreInstall(conf, metadatas[i], application)
+		if err != nil {
+			log.WithError(err).Errorf("Error running pre-install for %s", application.Name)
+			application.Status = "FAILED"
+			store.UpdateInstalledMarketplaceApplication(application)
+			return err
+		}
+
+		// Add application to Terraform stack
+		err = terraform.AddApplicationToStack(conf, locations[i], metadatas[i], application, store)
+		if err != nil {
+			log.WithError(err).Errorf("Error adding application to stack: %s", application.Name)
+			application.Status = "FAILED"
+			store.UpdateInstalledMarketplaceApplication(application)
+			return err
+		}
+	}
+
+	// Third pass: run a single Terraform apply for all modules
+	executor := &terraform.RealTerraformExecutor{}
+	logDir := filepath.Join(conf.Workdir, "install_logs")
+	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
+		return fmt.Errorf("failed to create install_logs directory: %w", err)
+	}
+
+	logfile := filepath.Join(logDir, "batch_install_log")
+	err := terraform.RunTerraformLogOutToFile(conf, logfile, executor, "")
+	if err != nil {
+		// Mark all applications as failed
+		for _, application := range applications {
+			application.Status = "FAILED"
+			store.UpdateInstalledMarketplaceApplication(application)
+		}
+		return err
+	}
+
+	// Fourth pass: run post-install scripts and update status
+	for i, application := range applications {
+		application.Status = "INSTALLED"
+		store.UpdateInstalledMarketplaceApplication(application)
+
+		err := runPostInstallNew(conf, metadatas[i], application)
+		if err != nil {
+			log.WithError(err).Errorf("Error running post-install for %s", application.Name)
+			application.Status = "POSTINSTALL FAILED"
+			store.UpdateInstalledMarketplaceApplication(application)
+			return err
+		}
+
+		application.Status = "COMPLETE"
+		store.UpdateInstalledMarketplaceApplication(application)
+	}
+
+	return nil
+}
+
 func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Uninstall, conf *config.AppConfig) error {
 	if received.All == true {
 		return UninstallAll(conf, wsManager, userid, received)
