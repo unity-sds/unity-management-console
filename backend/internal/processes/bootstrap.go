@@ -2,12 +2,8 @@ package processes
 
 import (
 	"fmt"
-	"math/rand"
-	"os"
 	"path/filepath"
 	"strings"
-	"time"
-	"errors"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -18,7 +14,6 @@ import (
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
-	"github.com/unity-sds/unity-management-console/backend/internal/terraform"
 	"github.com/unity-sds/unity-management-console/backend/types"
 )
 
