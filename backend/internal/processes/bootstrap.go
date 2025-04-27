@@ -2,18 +2,23 @@ package processes
 
 import (
 	"fmt"
+	"math/rand"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+	"errors"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 
 	// "github.com/unity-sds/unity-cs-manager/marketplace"
-	"path/filepath"
-	"strings"
 
 	"github.com/unity-sds/unity-management-console/backend/internal/application"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
 	"github.com/unity-sds/unity-management-console/backend/internal/aws"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
+	"github.com/unity-sds/unity-management-console/backend/internal/terraform"
 	"github.com/unity-sds/unity-management-console/backend/types"
 )
 
@@ -97,17 +102,6 @@ func BootstrapEnv(appconf *config.AppConfig) error {
 		return err
 	}
 
-	log.Infof("Setting Up Health Status Lambda")
-	err = installHealthStatusLambda(store, appconf)
-	if err != nil {
-		log.WithError(err).Error("Error installing Health Status")
-		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
-		if err != nil {
-			log.WithError(err).Error("Problem writing to auditlog")
-		}
-		return err
-	}
-
 	log.Infof("Setting Up Basic API Gateway from Marketplace")
 	err = installBasicAPIGateway(store, appconf)
 	if err != nil {
@@ -119,10 +113,10 @@ func BootstrapEnv(appconf *config.AppConfig) error {
 		return err
 	}
 
-	log.Infof("Setting Up Unity UI from Marketplace")
-	err = installUnityUi(store, appconf)
+	log.Infof("Setting Up Health Status Lambda and Unity UI from Marketplace in parallel")
+	err = installHealthStatusLambdaAndUnityUi(store, appconf)
 	if err != nil {
-		log.WithError(err).Error("Error installing unity-portal")
+		log.WithError(err).Error("Error installing Health Status Lambda and Unity UI")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
@@ -479,5 +473,174 @@ func installUnityUi(store database.Datastore, appConfig *config.AppConfig) error
 		log.WithError(err).Error("Issue installing Unity Navbar UI")
 		return err
 	}
+	return nil
+}
+
+func installHealthStatusLambdaAndUnityUi(store database.Datastore, appConfig *config.AppConfig) error {
+	// Get Health Status Lambda metadata and package
+	var lambdaName, lambdaVersion string
+	for _, item := range appConfig.MarketplaceItems {
+		if item.Name == "unity-cs-monitoring-lambda" {
+			lambdaName = item.Name
+			lambdaVersion = item.Version
+			break
+		}
+	}
+	if lambdaName == "" || lambdaVersion == "" {
+		log.Error("unity-cs-monitoring-lambda not found in MarketplaceItems")
+		return fmt.Errorf("unity-cs-monitoring-lambda not found in MarketplaceItems")
+	}
+	log.Infof("Found marketplace item - Name: %s, Version: %s", lambdaName, lambdaVersion)
+
+	lambdaMetadata, err := FetchMarketplaceMetadata(lambdaName, lambdaVersion, appConfig)
+	if err != nil {
+		log.Errorf("Unable to fetch metadata for application: %s, %v", lambdaName, err)
+		return errors.New("Unable to fetch package")
+	}
+
+	lambdaLocation, err := FetchPackage(&lambdaMetadata, appConfig)
+	if err != nil {
+		log.Errorf("Unable to fetch package for application: %s, %v", lambdaName, err)
+		return errors.New("Unable to fetch package")
+	}
+
+	// Get Unity UI metadata and package
+	var uiName, uiVersion string
+	for _, item := range appConfig.MarketplaceItems {
+		if item.Name == "unity-portal" {
+			uiName = item.Name
+			uiVersion = item.Version
+			break
+		}
+	}
+	if uiName == "" || uiVersion == "" {
+		log.Error("unity-portal not found in MarketplaceItems")
+		return fmt.Errorf("unity-portal not found in MarketplaceItems")
+	}
+	log.Infof("Found marketplace item - Name: %s, Version: %s", uiName, uiVersion)
+
+	uiMetadata, err := FetchMarketplaceMetadata(uiName, uiVersion, appConfig)
+	if err != nil {
+		log.Errorf("Unable to fetch metadata for application: %s, %v", uiName, err)
+		return errors.New("Unable to fetch package")
+	}
+
+	uiLocation, err := FetchPackage(&uiMetadata, appConfig)
+	if err != nil {
+		log.Errorf("Unable to fetch package for application: %s, %v", uiName, err)
+		return errors.New("Unable to fetch package")
+	}
+
+	// Generate module names and create application records
+	rand.Seed(time.Now().UnixNano())
+	chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	
+	lambdaRandomChars := make([]byte, 5)
+	for i, v := range rand.Perm(52)[:5] {
+		lambdaRandomChars[i] = chars[v]
+	}
+	lambdaDeploymentName := fmt.Sprintf("default-%s", lambdaName)
+	lambdaModuleName := fmt.Sprintf("%s-%s", lambdaDeploymentName, string(lambdaRandomChars))
+	
+	uiRandomChars := make([]byte, 5)
+	for i, v := range rand.Perm(52)[:5] {
+		uiRandomChars[i] = chars[v]
+	}
+	uiDeploymentName := fmt.Sprintf("default-%s", uiName)
+	uiModuleName := fmt.Sprintf("%s-%s", uiDeploymentName, string(uiRandomChars))
+
+	// Create application records in database
+	lambdaApp := &types.InstalledMarketplaceApplication{
+		Name:                lambdaName,
+		Version:             lambdaVersion,
+		DeploymentName:      lambdaDeploymentName,
+		PackageName:         lambdaMetadata.Name,
+		Source:              lambdaMetadata.Package,
+		Status:              "STAGED",
+		TerraformModuleName: lambdaModuleName,
+		Variables:           nil,
+	}
+
+	uiApp := &types.InstalledMarketplaceApplication{
+		Name:                uiName,
+		Version:             uiVersion,
+		DeploymentName:      uiDeploymentName,
+		PackageName:         uiMetadata.Name,
+		Source:              uiMetadata.Package,
+		Status:              "STAGED",
+		TerraformModuleName: uiModuleName,
+		Variables:           nil,
+	}
+
+	// Store applications in the database
+	store.StoreInstalledMarketplaceApplication(lambdaApp)
+	store.StoreInstalledMarketplaceApplication(uiApp)
+
+	// Update status to INSTALLING
+	lambdaApp.Status = "INSTALLING"
+	uiApp.Status = "INSTALLING"
+	store.UpdateInstalledMarketplaceApplication(lambdaApp)
+	store.UpdateInstalledMarketplaceApplication(uiApp)
+
+	// Run pre-install scripts if needed
+	err = runPreInstall(appConfig, &lambdaMetadata, lambdaApp)
+	if err != nil {
+		return err
+	}
+	
+	err = runPreInstall(appConfig, &uiMetadata, uiApp)
+	if err != nil {
+		return err
+	}
+
+	// Add both applications to the Terraform stack
+	terraform.AddApplicationToStack(appConfig, lambdaLocation, &lambdaMetadata, lambdaApp, store)
+	terraform.AddApplicationToStack(appConfig, uiLocation, &uiMetadata, uiApp, store)
+
+	// Run a single Terraform apply for both modules
+	executor := &terraform.RealTerraformExecutor{}
+	logDir := filepath.Join(appConfig.Workdir, "install_logs")
+	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
+		return fmt.Errorf("failed to create install_logs directory: %w", err)
+	}
+
+	logfile := filepath.Join(logDir, "batch_install_log")
+	err = terraform.RunTerraformLogOutToFile(appConfig, logfile, executor, "")
+	if err != nil {
+		lambdaApp.Status = "FAILED"
+		uiApp.Status = "FAILED"
+		store.UpdateInstalledMarketplaceApplication(lambdaApp)
+		store.UpdateInstalledMarketplaceApplication(uiApp)
+		return err
+	}
+
+	// Update status and run post-install
+	lambdaApp.Status = "INSTALLED"
+	uiApp.Status = "INSTALLED"
+	store.UpdateInstalledMarketplaceApplication(lambdaApp)
+	store.UpdateInstalledMarketplaceApplication(uiApp)
+
+	// Run post-install scripts
+	err = runPostInstallNew(appConfig, &lambdaMetadata, lambdaApp)
+	if err != nil {
+		lambdaApp.Status = "POSTINSTALL FAILED"
+		store.UpdateInstalledMarketplaceApplication(lambdaApp)
+		return err
+	}
+	
+	err = runPostInstallNew(appConfig, &uiMetadata, uiApp)
+	if err != nil {
+		uiApp.Status = "POSTINSTALL FAILED"
+		store.UpdateInstalledMarketplaceApplication(uiApp)
+		return err
+	}
+
+	// Update final status
+	lambdaApp.Status = "COMPLETE"
+	uiApp.Status = "COMPLETE"
+	store.UpdateInstalledMarketplaceApplication(lambdaApp)
+	store.UpdateInstalledMarketplaceApplication(uiApp)
+
+	fetchAllApplications(store)
 	return nil
 }
