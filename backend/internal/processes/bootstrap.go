@@ -173,13 +173,14 @@ required_providers {
     }
   }
   backend "s3" {
-  	use_lockfile = true 
+    use_lockfile = true 
   }
 }
 
 provider "aws" {
   region = "us-west-2"
-}`, appConfig.Project, appConfig.Venue)
+}
+`)
 
 	err := fs.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
 	if err != nil {
