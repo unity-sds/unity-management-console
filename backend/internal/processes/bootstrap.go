@@ -2,13 +2,13 @@ package processes
 
 import (
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 
 	// "github.com/unity-sds/unity-cs-manager/marketplace"
-	"path/filepath"
-	"strings"
 
 	"github.com/unity-sds/unity-management-console/backend/internal/application"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
@@ -86,10 +86,10 @@ func BootstrapEnv(appconf *config.AppConfig) error {
 	//	log.WithError(err).Error("Problem updating ssm config")
 	//}
 
-	log.Infof("Setting Up HTTPD Gateway from Marketplace")
-	err = installGateway(store, appconf)
+	log.Infof("Setting Up HTTPD Gateway and API Gateway from Marketplace in parallel")
+	err = installGatewayAndApiGateway(store, appconf)
 	if err != nil {
-		log.WithError(err).Error("Error installing HTTPD Gateway")
+		log.WithError(err).Error("Error installing Gateways")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
@@ -97,32 +97,10 @@ func BootstrapEnv(appconf *config.AppConfig) error {
 		return err
 	}
 
-	log.Infof("Setting Up Health Status Lambda")
-	err = installHealthStatusLambda(store, appconf)
+	log.Infof("Setting Up Health Status Lambda and Unity UI from Marketplace in parallel")
+	err = installHealthStatusLambdaAndUnityUi(store, appconf)
 	if err != nil {
-		log.WithError(err).Error("Error installing Health Status")
-		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
-		if err != nil {
-			log.WithError(err).Error("Problem writing to auditlog")
-		}
-		return err
-	}
-
-	log.Infof("Setting Up Basic API Gateway from Marketplace")
-	err = installBasicAPIGateway(store, appconf)
-	if err != nil {
-		log.WithError(err).Error("Error installing API Gateway")
-		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
-		if err != nil {
-			log.WithError(err).Error("Problem writing to auditlog")
-		}
-		return err
-	}
-
-	log.Infof("Setting Up Unity UI from Marketplace")
-	err = installUnityUi(store, appconf)
-	if err != nil {
-		log.WithError(err).Error("Error installing unity-portal")
+		log.WithError(err).Error("Error installing Health Status Lambda and Unity UI")
 		err = store.AddToAudit(application.Bootstrap_Unsuccessful, "test")
 		if err != nil {
 			log.WithError(err).Error("Problem writing to auditlog")
@@ -184,13 +162,14 @@ required_providers {
     }
   }
   backend "s3" {
-    dynamodb_table = "%s-%s-terraform-state"
+    use_lockfile = true 
   }
 }
 
 provider "aws" {
   region = "us-west-2"
-}`, appConfig.Project, appConfig.Venue)
+}
+`)
 
 	err := fs.MkdirAll(filepath.Join(appConfig.Workdir, "workspace"), 0755)
 	if err != nil {
@@ -233,89 +212,110 @@ func storeDefaultSSMParameters(appConfig *config.AppConfig, store database.Datas
 	return nil
 }
 
-func installGateway(store database.Datastore, appConfig *config.AppConfig) error {
+func installGatewayAndApiGateway(store database.Datastore, appConfig *config.AppConfig) error {
 	// Find the marketplace item for unity-proxy
-	var name, version string
+	var proxyName, proxyVersion string
 	for _, item := range appConfig.MarketplaceItems {
 		if item.Name == "unity-proxy" {
-			name = item.Name
-			version = item.Version
+			proxyName = item.Name
+			proxyVersion = item.Version
 			break
 		}
 	}
-
-	// Print the name and version
-	log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
-
-	// If the item wasn't found, log an error and return
-	if name == "" || version == "" {
+	if proxyName == "" || proxyVersion == "" {
 		log.Error("unity-proxy not found in MarketplaceItems")
 		return fmt.Errorf("unity-proxy not found in MarketplaceItems")
 	}
-
-	simplevars := make(map[string]string)
-	simplevars["mgmt_dns"] = appConfig.ConsoleHost
-	// variables := marketplace.Install_Variables{Values: simplevars}
-	// applications := marketplace.Install_Applications{
-	// 	Name:        name,
-	// 	Version:     version,
-	// 	Variables:   &variables,
-	// 	Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
-	// }
-	// install := marketplace.Install{
-	// 	Applications:   &applications,
-	// 	DeploymentName: "Core Mgmt Gateway",
-	// }
-
-	installParams := types.ApplicationInstallParams{
-		Name:           name,
-		Version:        version,
-		Variables:      simplevars,
-		DisplayName:    "Unity Health Status Lambda",
-		DeploymentName: fmt.Sprintf("default-%s", name),
-	}
-	err := TriggerInstall(store, &installParams, appConfig, true)
-	if err != nil {
-		log.WithError(err).Error("Issue installing Mgmt Gateway")
-		return err
-	}
-	return nil
-}
-
-func installBasicAPIGateway(store database.Datastore, appConfig *config.AppConfig) error {
+	
 	// Find the marketplace item for unity-apigateway
-	var name, version string
+	var apiName, apiVersion string
 	for _, item := range appConfig.MarketplaceItems {
 		if item.Name == "unity-apigateway" {
-			name = item.Name
-			version = item.Version
+			apiName = item.Name
+			apiVersion = item.Version
 			break
 		}
 	}
-
-	// Print the name and version
-	log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
-
-	// If the item wasn't found, log an error and return
-	if name == "" || version == "" {
+	if apiName == "" || apiVersion == "" {
 		log.Error("unity-apigateway not found in MarketplaceItems")
 		return fmt.Errorf("unity-apigateway not found in MarketplaceItems")
 	}
-
-	installParams := types.ApplicationInstallParams{
-		Name:           name,
-		Version:        version,
-		Variables:      nil,
-		DisplayName:    "Core API Gateway",
-		DeploymentName: fmt.Sprintf("default-%s", name),
+	
+	// Set up variables for unity-proxy
+	proxyVars := make(map[string]string)
+	proxyVars["mgmt_dns"] = appConfig.ConsoleHost
+	
+	// Create installation parameters for both applications
+	params := []*types.ApplicationInstallParams{
+		{
+			Name:           proxyName,
+			Version:        proxyVersion,
+			Variables:      proxyVars,
+			DisplayName:    "Core Mgmt Gateway",
+			DeploymentName: fmt.Sprintf("default-%s", proxyName),
+		},
+		{
+			Name:           apiName,
+			Version:        apiVersion,
+			Variables:      nil,
+			DisplayName:    "Core API Gateway",
+			DeploymentName: fmt.Sprintf("default-%s", apiName),
+		},
 	}
+	
+	// Install both applications in a single batch operation
+	return BatchTriggerInstall(store, params, appConfig)
+}
 
-	err := TriggerInstall(store, &installParams, appConfig, true)
-	if err != nil {
-		log.WithError(err).Error("Issue installing API Gateway")
-		return err
+func installHealthStatusLambdaAndUnityUi(store database.Datastore, appConfig *config.AppConfig) error {
+	// Find the marketplace item for health status lambda
+	var lambdaName, lambdaVersion string
+	for _, item := range appConfig.MarketplaceItems {
+		if item.Name == "unity-cs-monitoring-lambda" {
+			lambdaName = item.Name
+			lambdaVersion = item.Version
+			break
+		}
 	}
-	return nil
+	if lambdaName == "" || lambdaVersion == "" {
+		log.Error("unity-cs-monitoring-lambda not found in MarketplaceItems")
+		return fmt.Errorf("unity-cs-monitoring-lambda not found in MarketplaceItems")
+	}
+	
+	// Find the marketplace item for unity-portal
+	var uiName, uiVersion string
+	for _, item := range appConfig.MarketplaceItems {
+		if item.Name == "unity-portal" {
+			uiName = item.Name
+			uiVersion = item.Version
+			break
+		}
+	}
+	if uiName == "" || uiVersion == "" {
+		log.Error("unity-portal not found in MarketplaceItems")
+		return fmt.Errorf("unity-portal not found in MarketplaceItems")
+	}
+	
+	// Create installation parameters for both applications
+	params := []*types.ApplicationInstallParams{
+		{
+			Name:           lambdaName,
+			Version:        lambdaVersion,
+			Variables:      nil,
+			DisplayName:    "Unity Health Status Lambda",
+			DeploymentName: fmt.Sprintf("default-%s", lambdaName),
+		},
+		{
+			Name:           uiName,
+			Version:        uiVersion,
+			Variables:      nil,
+			DisplayName:    "Unity Navbar UI",
+			DeploymentName: fmt.Sprintf("default-%s", uiName),
+		},
+	}
+	
+	// Install both applications in a single batch operation
+	return BatchTriggerInstall(store, params, appConfig)
 }
 
 func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig) error {
@@ -392,91 +392,6 @@ func installUnityCloudEnv(store database.Datastore, appConfig *config.AppConfig)
 	err = TriggerInstall(store, &installParams, appConfig, true)
 	if err != nil {
 		log.WithError(err).Error("Issue installing Unity Cloud Env")
-		return err
-	}
-	return nil
-}
-
-func installHealthStatusLambda(store database.Datastore, appConfig *config.AppConfig) error {
-
-	// Find the marketplace item for the health status lambda
-	var name, version string
-	for _, item := range appConfig.MarketplaceItems {
-		if item.Name == "unity-cs-monitoring-lambda" {
-			name = item.Name
-			version = item.Version
-			break
-		}
-	}
-
-	// Print the name and version
-	log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
-
-	// If the item wasn't found, log an error and return
-	if name == "" || version == "" {
-		log.Error("unity-cs-monitoring-lambda not found in MarketplaceItems")
-		return fmt.Errorf("unity-cs-monitoring-lambda not found in MarketplaceItems")
-	}
-
-	// applications := marketplace.Install_Applications{
-	// 	Name:        name,
-	// 	Version:     version,
-	// 	Variables:   nil,
-	// 	Displayname: fmt.Sprintf("%s-%s", appConfig.InstallPrefix, name),
-	// }
-	// install := marketplace.Install{
-	// 	Applications:   &applications,
-	// 	DeploymentName: "Unity Health Status Lambda",
-	// }
-
-	installParams := types.ApplicationInstallParams{
-		Name:           name,
-		Version:        version,
-		Variables:      nil,
-		DisplayName:    "Unity Health Status Lambda",
-		DeploymentName: fmt.Sprintf("default-%s", name),
-	}
-
-	err := TriggerInstall(store, &installParams, appConfig, true)
-	if err != nil {
-		log.WithError(err).Error("Issue installing Unity Health Status Lambda")
-		return err
-	}
-	return nil
-}
-
-func installUnityUi(store database.Datastore, appConfig *config.AppConfig) error {
-
-	// Find the marketplace item for the unity-portal
-	var name, version string
-	for _, item := range appConfig.MarketplaceItems {
-		if item.Name == "unity-portal" {
-			name = item.Name
-			version = item.Version
-			break
-		}
-	}
-
-	// Print the name and version
-	log.Infof("Found marketplace item - Name: %s, Version: %s", name, version)
-
-	// If the item wasn't found, log an error and return
-	if name == "" || version == "" {
-		log.Error("unity-portal not found in MarketplaceItems")
-		return fmt.Errorf("unity-portal not found in MarketplaceItems")
-	}
-
-	installParams := types.ApplicationInstallParams{
-		Name:           name,
-		Version:        version,
-		Variables:      nil,
-		DisplayName:    "Unity Navbar UI",
-		DeploymentName: fmt.Sprintf("default-%s", name),
-	}
-
-	err := TriggerInstall(store, &installParams, appConfig, true)
-	if err != nil {
-		log.WithError(err).Error("Issue installing Unity Navbar UI")
 		return err
 	}
 	return nil
