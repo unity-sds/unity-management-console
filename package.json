@@ -1,6 +1,6 @@
 {
 	"name": "svelteapp-typescript-go",
-	"version": "0.1.0",
+	"version": "24.15-stable",
 	"license": "MIT",
 	"private": true,
 	"scripts": {
