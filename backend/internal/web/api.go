@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func handleHealthChecks(appConfig config.AppConfig) func(c *gin.Context) {
@@ -87,7 +88,7 @@ func handleApplicationInstall(appConfig config.AppConfig, db database.Datastore)
 			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
 		}
-		
+
 		c.Status(http.StatusOK)
 	}
 }
@@ -211,7 +212,7 @@ func handleConfigRequest(appConfig config.AppConfig, db database.Datastore) func
 		audit, _ := db.FindLastAuditLineByOperation(application.Config_Updated)
 		bootstrapFailed, _ := db.FindLastAuditLineByOperation(application.Bootstrap_Unsuccessful)
 		bootstrapSuccess, _ := db.FindLastAuditLineByOperation(application.Bootstrap_Successful)
-		
+
 		// Determine bootstrap status
 		bootstrapStatus := ""
 		if bootstrapSuccess.Owner != "" {
@@ -224,19 +225,19 @@ func handleConfigRequest(appConfig config.AppConfig, db database.Datastore) func
 		configResponse := gin.H{
 			"application_config": gin.H{
 				"marketplace_owner": appConfig.MarketplaceOwner,
-				"marketplace_user": appConfig.MarketplaceRepo,
-				"project": appConfig.Project,
-				"venue": appConfig.Venue,
-				"version": appConfig.Version,
+				"marketplace_user":  appConfig.MarketplaceRepo,
+				"project":           appConfig.Project,
+				"venue":             appConfig.Venue,
+				"version":           appConfig.Version,
 			},
 			"network_config": gin.H{
-				"public_subnets": pub,
+				"public_subnets":  pub,
 				"private_subnets": priv,
 			},
 			"last_updated": audit.CreatedAt.Format("2006-01-02T15:04:05.000"),
-			"updated_by": audit.Owner,
-			"bootstrap": bootstrapStatus,
-			"version": appConfig.Version,
+			"updated_by":   audit.Owner,
+			"bootstrap":    bootstrapStatus,
+			"version":      appConfig.Version,
 		}
 
 		c.JSON(http.StatusOK, configResponse)
@@ -247,19 +248,124 @@ func handleConfigRequest(appConfig config.AppConfig, db database.Datastore) func
 func handleUpdateManagementConsole(appConfig config.AppConfig) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		log.Info("Starting management console update process")
-		
+
 		err := update.UpdateManagementConsoleInPlace()
 		if err != nil {
 			log.WithError(err).Error("Failed to install release: %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"success": false,
-				"error": err.Error(),
+				"error":   err.Error(),
 			})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"success": true,
-			"error": nil,
+			"error":   nil,
+		})
+		return
+	}
+}
+
+func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		appName := c.Param("appName")
+		version := c.Param("version")
+
+		metadata, err := processes.FetchMarketplaceMetadata(appName, version, &appConfig)
+		if err != nil {
+			log.Errorf("Unable to fetch metadata for application: %s, %v", appName, err)
+			log.WithError(err).Error("Unable to fetch package")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		errors := false
+		results := make(map[string]string)
+		for label, ssmParam := range metadata.GetDependencies() {
+			formattedParam := strings.Replace(ssmParam, "${PROJ}", appConfig.Project, -1)
+			formattedParam = strings.Replace(formattedParam, "${VENUE}", appConfig.Venue, -1)
+			param, err := aws.ReadSSMParameter(formattedParam)
+
+			if err != nil {
+				log.WithError(err).Error("Unable to get SSM param.")
+				results[label] = ""
+				errors = true
+				continue
+			}
+			results[label] = *param.Parameter.Value
+		}
+
+		if errors {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"error":   "Missing SSM Parameters",
+				"params":  results,
+			})
+			return
+		}
+
+		log.Info("Checking dependencies for %s, version %s", appName, version)
+
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"error":   nil,
+			"params":  results,
+		})
+		return
+	}
+}
+func handleGetConfig(appConfig config.AppConfig) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		configOut := &types.Config{
+		}
+		appName := c.Param("appName")
+		version := c.Param("version")
+
+		metadata, err := processes.FetchMarketplaceMetadata(appName, version, &appConfig)
+		if err != nil {
+			log.Errorf("Unable to fetch metadata for application: %s, %v", appName, err)
+			log.WithError(err).Error("Unable to fetch package")
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"error":   err.Error(),
+			})
+			return
+		}
+
+		errors := false
+		results := make(map[string]string)
+		for label, ssmParam := range metadata.GetDependencies() {
+			formattedParam := strings.Replace(ssmParam, "${PROJ}", appConfig.Project, -1)
+			formattedParam = strings.Replace(formattedParam, "${VENUE}", appConfig.Venue, -1)
+			param, err := aws.ReadSSMParameter(formattedParam)
+
+			if err != nil {
+				log.WithError(err).Error("Unable to get SSM param.")
+				results[label] = ""
+				errors = true
+				continue
+			}
+			results[label] = *param.Parameter.Value
+		}
+
+		if errors {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"error":   "Missing SSM Parameters",
+				"params":  results,
+			})
+			return
+		}
+
+		log.Info("Checking dependencies for %s, version %s", appName, version)
+
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"error":   nil,
+			"params":  results,
 		})
 		return
 	}
