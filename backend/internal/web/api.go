@@ -320,7 +320,15 @@ func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context)
 func handleGetConfig(appConfig config.AppConfig) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		configOut := &types.Config{
+			ApplicationConfig: &types.ApplicationConfigDetails{},
 		}
+		configOut.ApplicationConfig.MarketplaceOwner = appConfig.MarketplaceOwner
+		configOut.ApplicationConfig.MarketplaceUser = appConfig.MarketplaceRepo // Assuming MarketplaceUser field maps to MarketplaceRepo from appConfig
+		configOut.ApplicationConfig.Project = appConfig.Project
+		configOut.ApplicationConfig.Venue = appConfig.Venue
+		configOut.ApplicationConfig.Version = appConfig.Version // Version within ApplicationConfig
+
+		configOut.Version = appConfig.Version // Top-level Version
 		appName := c.Param("appName")
 		version := c.Param("version")
 
