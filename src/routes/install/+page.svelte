@@ -1,20 +1,65 @@
 <script lang="ts">
   import { get } from 'svelte/store';
-  import { config } from '../../store/stores';
+  import { config, marketplaceStore, type MarketplaceMetadata, createEmptyMarketplaceMetadata } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
-  import { productInstall } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
   import AdvancedVar from './advanced_var.svelte';
+  import { page } from '$app/stores';
+  import { onMount } from 'svelte';
+  import { HttpHandler } from '../../data/httpHandler';
 
   type StartApplicationInstallResponse = {
     deploymentID: string;
   };
+  
+  // Make sure marketplace data is loaded
+  onMount(async () => {
+    // Get the marketplace data if needed
+    if (get(marketplaceStore).length === 0) {
+      const httpHandler = new HttpHandler();
+      await httpHandler.fetchConfig();
+    }
+  });
 
   type ApplicationInstallStatus = { Status: string };
 
   let nodeGroups: NodeGroupType[] = [];
-
-  let product = get(productInstall);
+  
+  // Initialize with an empty product
+  let product: MarketplaceMetadata | null = null;
+  
+  // Get name and version from URL parameters
+  $: name = $page.url.searchParams.get('name') || '';
+  $: version = $page.url.searchParams.get('version') || '';
+  
+  // Track if we have valid parameters
+  let paramError = false;
+  let errorMessage = '';
+  
+  // Function to find a product by name and version
+  function findProduct(name: string, version: string): MarketplaceMetadata | undefined {
+    return get(marketplaceStore).find(p => p.Name === name && p.Version === version);
+  }
+  
+  // Update product when URL parameters change
+  $: {
+    if (name && version) {
+      const foundProduct = findProduct(name, version);
+      if (foundProduct) {
+        product = foundProduct;
+        paramError = false;
+        errorMessage = '';
+      } else {
+        product = null;
+        paramError = true;
+        errorMessage = `Could not find product "${name}" with version "${version}"`;
+      }
+    } else {
+      product = null;
+      paramError = true;
+      errorMessage = 'Missing required URL parameters: name and version';
+    }
+  }
 
   let deploymentID: string;
 
@@ -25,7 +70,7 @@
   $: managedDependenciesKeys =
     product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
 
-  const steps = ['deploymentDetails', 'variables', 'summary'];
+  const steps = ['deploymentDetails', 'variables', 'dependencies', 'summary'];
   let currentStepIndex = 0;
 
   let applicationMetadata = {
@@ -42,8 +87,9 @@
     }
   }
 
-  $: Variables = product?.DefaultDeployment?.Variables?.Values || {};
-  $: AdvancedValues = product?.DefaultDeployment?.Variables?.AdvancedValues || {};
+  // Use empty objects as fallbacks when product is null
+  $: Variables = product ? product.DefaultDeployment?.Variables?.Values || {} : {};
+  $: AdvancedValues = product ? product.DefaultDeployment?.Variables?.AdvancedValues || {} : {};
 
   let varSetupDone = false;
   $: {
@@ -61,9 +107,16 @@
   let installComplete = false;
   let installFailed = false;
   function startStatusPoller() {
+    // Only start polling if product is not null
+    if (!product) return;
+    
+    // Capture product name and version to use in the interval
+    const productName = product.Name;
+    const productVersion = product.Version;
+    
     let poller = setInterval(async (_) => {
       const res = await fetch(
-        `../api/install_application/status/${product.Name}/${product.Version}/${applicationMetadata.DeploymentName}`
+        `../api/install_application/status/${productName}/${productVersion}/${applicationMetadata.DeploymentName}`
       );
       if (!res.ok) {
         console.warn("Couldn't get status!");
@@ -84,6 +137,13 @@
 
   let errMsg = '';
   async function installApplication() {
+    // Only proceed if product is not null
+    if (!product) {
+      errMsg = "Cannot install: product information is missing";
+      installFailed = true;
+      return;
+    }
+    
     const outObj = {
       Name: product.Name,
       Version: product.Version,
@@ -125,8 +185,17 @@
   let logInterval: any = null;
 
   async function getLogs() {
+    // Only proceed if product is not null
+    if (!product) {
+      console.warn('Cannot get logs: product information is missing');
+      return;
+    }
+    
+    // Capture product name to use in the fetch call
+    const productName = product.Name;
+    
     const res = await fetch(
-      `../api/install_application/logs/${product.Name}/${applicationMetadata.DeploymentName}`
+      `../api/install_application/logs/${productName}/${applicationMetadata.DeploymentName}`
     );
     if (!res.ok) {
       console.warn('Unable to get logs!');
@@ -182,15 +251,24 @@
 </script>
 
 <div class="container">
-  <div>
-    <div class="st-typography-header">
-      Installing Marketplace Application: <span class="st-typography-displayBody"
-        >{product.Name}</span
-      >
+  {#if paramError}
+    <div class="error-container">
+      <div class="st-typography-header" style="color: red;">Error</div>
+      <div class="st-typography-body">{errorMessage}</div>
+      <div class="st-typography-body" style="margin-top: 1rem;">
+        <a href="/management/ui/marketplace" class="st-button">Return to Marketplace</a>
+      </div>
     </div>
-  </div>
-  <hr />
-  <div class="wizardContainer">
+  {:else if product}
+    <div>
+      <div class="st-typography-header">
+        Installing Marketplace Application: <span class="st-typography-displayBody"
+          >{product.Name}</span
+        >
+      </div>
+    </div>
+    <hr />
+    <div class="wizardContainer">
     {#if steps[currentStepIndex] === 'deploymentDetails'}
       <div class="st-typography-displayBody">Deployment Details</div>
       <div class="variablesForm">
@@ -229,6 +307,13 @@
         <div class="variablesForm">
           <AdvancedVar bind:json={AdvancedValues} editMode={true} />
         </div>
+      {/if}
+    {:else if steps[currentStepIndex] === 'dependencies'}
+      <div class="st-typography-displayBody">Deployment Details</div>
+      {#if !product?.Dependencies}
+        <span class="st-typography-label">This product has no dependencies</span>
+      {:else}
+        <span class="st-typography-label">This product does have dependencies</span>
       {/if}
     {:else if steps[currentStepIndex] === 'summary'}
       <div class="st-typography-small-caps">Installation Summary</div>
@@ -287,6 +372,7 @@
       </div>
     {/if}
   </div>
+  {/if}
 </div>
 
 <style>
@@ -312,5 +398,16 @@
 
   .variablesForm input {
     width: 250px;
+  }
+
+  .error-container {
+    padding: 2rem;
+    border: 1px solid #f56565;
+    border-radius: 0.5rem;
+    background-color: #fff5f5;
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+    margin-top: 2rem;
   }
 </style>

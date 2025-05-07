@@ -6,11 +6,13 @@ import {
 	installRunning,
 	marketplaceStore,
 	messageStore,
-	parametersStore
+	parametersStore,
+	refreshConfig,
+	type MarketplaceMetadata,
+	createMarketplaceMetadataFromJSON
 } from '../store/stores';
 import { config } from '../store/stores';
 import { websocketStore } from '../data/websocketStore';
-import { MarketplaceMetadata } from './unity-cs-manager/protobuf/marketplace';
 import {
 	ConnectionSetup,
 	Parameters,
@@ -85,53 +87,16 @@ export class HttpHandler {
 		return '';
 	}
 
-	requestConfig(): UnityWebsocketMessage {
-		const configrequest = SimpleMessage.create({ operation: 'request config', payload: '' });
-		return UnityWebsocketMessage.create({ simplemessage: configrequest });
-	}
-
 	/**
-	 * Fetches config from HTTP API instead of WebSocket
+	 * Fetches config from HTTP API
 	 */
 	async fetchConfig(): Promise<void> {
 		if (!dev) {
 			try {
-				// Get configuration from the new HTTP API endpoint
-				const response = await Axios.get('../api/config');
-
-				if (response.status === 200) {
-					// Transform the HTTP JSON response to match the Config protobuf structure
-					const httpConfig = response.data;
-
-					// Create a Config object that matches the protobuf structure
-					const configData = {
-						applicationConfig: {
-							MarketplaceOwner: httpConfig.application_config.marketplace_owner,
-							MarketplaceUser: httpConfig.application_config.marketplace_user,
-							Project: httpConfig.application_config.project,
-							Venue: httpConfig.application_config.venue,
-							Version: httpConfig.application_config.version
-						},
-						networkConfig: {
-							publicsubnets: httpConfig.network_config.public_subnets,
-							privatesubnets: httpConfig.network_config.private_subnets
-						},
-						lastupdated: httpConfig.last_updated,
-						updatedby: httpConfig.updated_by,
-						bootstrap: httpConfig.bootstrap,
-						version: httpConfig.version
-					};
-
-					// Update the config store with the new data
-					config.set(configData);
-				}
+				// Use the new function from stores.ts to fetch and update the config
+				await refreshConfig();
 			} catch (error) {
 				console.error('Error fetching configuration via HTTP:', error);
-
-				// Fallback to WebSocket if HTTP fails
-				console.log('Falling back to WebSocket for config');
-				const wsm = this.requestConfig();
-				websocketStore.send(UnityWebsocketMessage.encode(wsm).finish());
 			}
 		} else {
 			// Dev environment - no need to fetch config
@@ -141,7 +106,7 @@ export class HttpHandler {
 
 	setupws() {
 		if (!dev) {
-			// Fetch config via HTTP API instead of immediately requesting via WebSocket
+			// Fetch config from HTTP API
 			this.fetchConfig();
 
 			let lastProcessedIndex = -1;
@@ -166,10 +131,6 @@ export class HttpHandler {
 						}
 					} else if (message.parameters) {
 						parametersStore.set(message.parameters);
-					} else if (message.config) {
-						// We're still listening for config updates via WebSocket
-						// but primarily fetching via HTTP
-						config.set(message.config);
 					} else if (message.logs) {
 						if (message.logs.line != undefined) {
 							console.log(message.logs?.line);
@@ -245,7 +206,7 @@ async function generateMarketplace() {
 			const c = JSON.parse(content);
 			const products: MarketplaceMetadata[] = [];
 			for (const p of c) {
-				const prod = MarketplaceMetadata.fromJSON(p);
+				const prod = createMarketplaceMetadataFromJSON(p);
 				products.push(prod);
 			}
 			marketplaceStore.set(products);
@@ -259,7 +220,7 @@ async function generateMarketplace() {
 		for (const p of c) {
 			const content = await getGitHubFileContents(marketplaceowner, marketplacerepo, p);
 			const j = JSON.parse(content);
-			const prod = MarketplaceMetadata.fromJSON(j);
+			const prod = createMarketplaceMetadataFromJSON(j);
 			products.push(prod);
 		}
 
@@ -268,7 +229,7 @@ async function generateMarketplace() {
 		const j = JSON.parse(mock_marketplace);
 		const products: MarketplaceMetadata[] = [];
 		for (const p of j) {
-			const prod = MarketplaceMetadata.fromJSON(p);
+			const prod = createMarketplaceMetadataFromJSON(p);
 			products.push(prod);
 		}
 		marketplaceStore.set(products);

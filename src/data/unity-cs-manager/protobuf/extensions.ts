@@ -89,7 +89,6 @@ export interface Config {
   lastupdated: string;
   updatedby: string;
   bootstrap: string;
-  version: string;
 }
 
 export interface Config_ApplicationConfig {
@@ -97,7 +96,6 @@ export interface Config_ApplicationConfig {
   MarketplaceUser: string;
   Project: string;
   Venue: string;
-  Version: string;
 }
 
 export interface Config_NetworkConfig {
@@ -1320,14 +1318,7 @@ export const SimpleMessage = {
 };
 
 function createBaseConfig(): Config {
-  return {
-    applicationConfig: undefined,
-    networkConfig: undefined,
-    lastupdated: "",
-    updatedby: "",
-    bootstrap: "",
-    version: "",
-  };
+  return { applicationConfig: undefined, networkConfig: undefined, lastupdated: "", updatedby: "", bootstrap: "" };
 }
 
 export const Config = {
@@ -1346,9 +1337,6 @@ export const Config = {
     }
     if (message.bootstrap !== "") {
       writer.uint32(42).string(message.bootstrap);
-    }
-    if (message.version !== "") {
-      writer.uint32(50).string(message.version);
     }
     return writer;
   },
@@ -1395,13 +1383,6 @@ export const Config = {
 
           message.bootstrap = reader.string();
           continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.version = reader.string();
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1420,7 +1401,6 @@ export const Config = {
       lastupdated: isSet(object.lastupdated) ? String(object.lastupdated) : "",
       updatedby: isSet(object.updatedby) ? String(object.updatedby) : "",
       bootstrap: isSet(object.bootstrap) ? String(object.bootstrap) : "",
-      version: isSet(object.version) ? String(object.version) : "",
     };
   },
 
@@ -1434,7 +1414,6 @@ export const Config = {
     message.lastupdated !== undefined && (obj.lastupdated = message.lastupdated);
     message.updatedby !== undefined && (obj.updatedby = message.updatedby);
     message.bootstrap !== undefined && (obj.bootstrap = message.bootstrap);
-    message.version !== undefined && (obj.version = message.version);
     return obj;
   },
 
@@ -1453,13 +1432,12 @@ export const Config = {
     message.lastupdated = object.lastupdated ?? "";
     message.updatedby = object.updatedby ?? "";
     message.bootstrap = object.bootstrap ?? "";
-    message.version = object.version ?? "";
     return message;
   },
 };
 
 function createBaseConfig_ApplicationConfig(): Config_ApplicationConfig {
-  return { MarketplaceOwner: "", MarketplaceUser: "", Project: "", Venue: "", Version: "" };
+  return { MarketplaceOwner: "", MarketplaceUser: "", Project: "", Venue: "" };
 }
 
 export const Config_ApplicationConfig = {
@@ -1475,9 +1453,6 @@ export const Config_ApplicationConfig = {
     }
     if (message.Venue !== "") {
       writer.uint32(42).string(message.Venue);
-    }
-    if (message.Version !== "") {
-      writer.uint32(50).string(message.Version);
     }
     return writer;
   },
@@ -1517,13 +1492,6 @@ export const Config_ApplicationConfig = {
 
           message.Venue = reader.string();
           continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.Version = reader.string();
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1539,7 +1507,6 @@ export const Config_ApplicationConfig = {
       MarketplaceUser: isSet(object.MarketplaceUser) ? String(object.MarketplaceUser) : "",
       Project: isSet(object.Project) ? String(object.Project) : "",
       Venue: isSet(object.Venue) ? String(object.Venue) : "",
-      Version: isSet(object.Version) ? String(object.Version) : "",
     };
   },
 
@@ -1549,7 +1516,6 @@ export const Config_ApplicationConfig = {
     message.MarketplaceUser !== undefined && (obj.MarketplaceUser = message.MarketplaceUser);
     message.Project !== undefined && (obj.Project = message.Project);
     message.Venue !== undefined && (obj.Venue = message.Venue);
-    message.Version !== undefined && (obj.Version = message.Version);
     return obj;
   },
 
@@ -1563,7 +1529,6 @@ export const Config_ApplicationConfig = {
     message.MarketplaceUser = object.MarketplaceUser ?? "";
     message.Project = object.Project ?? "";
     message.Venue = object.Venue ?? "";
-    message.Version = object.Version ?? "";
     return message;
   },
 };

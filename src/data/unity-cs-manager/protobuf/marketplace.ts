@@ -23,6 +23,7 @@ export interface MarketplaceMetadata {
   PostInstall: string;
   PreInstall: string;
   DefaultDeployment: MarketplaceMetadata_Defaultdeployment | undefined;
+  Dependencies: { [key: string]: string };
 }
 
 export interface MarketplaceMetadata_Statement {
@@ -49,6 +50,11 @@ export interface MarketplaceMetadata_Defaultdeployment {
   Variables: MarketplaceMetadata_Variables | undefined;
 }
 
+export interface MarketplaceMetadata_DependenciesEntry {
+  key: string;
+  value: string;
+}
+
 function createBaseMarketplaceMetadata(): MarketplaceMetadata {
   return {
     Name: "",
@@ -69,6 +75,7 @@ function createBaseMarketplaceMetadata(): MarketplaceMetadata {
     PostInstall: "",
     PreInstall: "",
     DefaultDeployment: undefined,
+    Dependencies: {},
   };
 }
 
@@ -128,6 +135,9 @@ export const MarketplaceMetadata = {
     if (message.DefaultDeployment !== undefined) {
       MarketplaceMetadata_Defaultdeployment.encode(message.DefaultDeployment, writer.uint32(114).fork()).ldelim();
     }
+    Object.entries(message.Dependencies).forEach(([key, value]) => {
+      MarketplaceMetadata_DependenciesEntry.encode({ key: key as any, value }, writer.uint32(154).fork()).ldelim();
+    });
     return writer;
   },
 
@@ -264,6 +274,16 @@ export const MarketplaceMetadata = {
 
           message.DefaultDeployment = MarketplaceMetadata_Defaultdeployment.decode(reader, reader.uint32());
           continue;
+        case 19:
+          if (tag !== 154) {
+            break;
+          }
+
+          const entry19 = MarketplaceMetadata_DependenciesEntry.decode(reader, reader.uint32());
+          if (entry19.value !== undefined) {
+            message.Dependencies[entry19.key] = entry19.value;
+          }
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -295,6 +315,12 @@ export const MarketplaceMetadata = {
       DefaultDeployment: isSet(object.DefaultDeployment)
         ? MarketplaceMetadata_Defaultdeployment.fromJSON(object.DefaultDeployment)
         : undefined,
+      Dependencies: isObject(object.Dependencies)
+        ? Object.entries(object.Dependencies).reduce<{ [key: string]: string }>((acc, [key, value]) => {
+          acc[key] = String(value);
+          return acc;
+        }, {})
+        : {},
     };
   },
 
@@ -325,6 +351,12 @@ export const MarketplaceMetadata = {
     message.DefaultDeployment !== undefined && (obj.DefaultDeployment = message.DefaultDeployment
       ? MarketplaceMetadata_Defaultdeployment.toJSON(message.DefaultDeployment)
       : undefined);
+    obj.Dependencies = {};
+    if (message.Dependencies) {
+      Object.entries(message.Dependencies).forEach(([k, v]) => {
+        obj.Dependencies[k] = v;
+      });
+    }
     return obj;
   },
 
@@ -356,6 +388,15 @@ export const MarketplaceMetadata = {
     message.DefaultDeployment = (object.DefaultDeployment !== undefined && object.DefaultDeployment !== null)
       ? MarketplaceMetadata_Defaultdeployment.fromPartial(object.DefaultDeployment)
       : undefined;
+    message.Dependencies = Object.entries(object.Dependencies ?? {}).reduce<{ [key: string]: string }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = String(value);
+        }
+        return acc;
+      },
+      {},
+    );
     return message;
   },
 };
@@ -742,6 +783,78 @@ export const MarketplaceMetadata_Defaultdeployment = {
     message.Variables = (object.Variables !== undefined && object.Variables !== null)
       ? MarketplaceMetadata_Variables.fromPartial(object.Variables)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseMarketplaceMetadata_DependenciesEntry(): MarketplaceMetadata_DependenciesEntry {
+  return { key: "", value: "" };
+}
+
+export const MarketplaceMetadata_DependenciesEntry = {
+  encode(message: MarketplaceMetadata_DependenciesEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): MarketplaceMetadata_DependenciesEntry {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseMarketplaceMetadata_DependenciesEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): MarketplaceMetadata_DependenciesEntry {
+    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object.value) ? String(object.value) : "" };
+  },
+
+  toJSON(message: MarketplaceMetadata_DependenciesEntry): unknown {
+    const obj: any = {};
+    message.key !== undefined && (obj.key = message.key);
+    message.value !== undefined && (obj.value = message.value);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<MarketplaceMetadata_DependenciesEntry>, I>>(
+    base?: I,
+  ): MarketplaceMetadata_DependenciesEntry {
+    return MarketplaceMetadata_DependenciesEntry.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<MarketplaceMetadata_DependenciesEntry>, I>>(
+    object: I,
+  ): MarketplaceMetadata_DependenciesEntry {
+    const message = createBaseMarketplaceMetadata_DependenciesEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
     return message;
   },
 };

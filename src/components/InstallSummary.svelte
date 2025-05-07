@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { MarketplaceMetadata } from "../data/unity-cs-manager/protobuf/marketplace";
+  import type { MarketplaceMetadata } from "../store/stores";
   import { getEntries } from "../data/utils";
 
   export let product: MarketplaceMetadata | undefined;

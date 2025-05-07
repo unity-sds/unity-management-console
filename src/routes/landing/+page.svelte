@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { config, parametersStore } from '../../store/stores';
-  import type { Config } from '../../data/unity-cs-manager/protobuf/extensions';
+  import { config, parametersStore, type Config } from '../../store/stores';
   import ControlPanelItem from '../../components/ControlPanelItem.svelte';
   import { onMount } from 'svelte';
   import ExtendedSemver from '../../lib/ExtendedSemver';

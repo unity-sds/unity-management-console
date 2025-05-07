@@ -1,4 +1,4 @@
-import type {MarketplaceMetadata} from "./unity-cs-manager/protobuf/marketplace";
+import type { MarketplaceMetadata } from "../store/stores";
 
 export interface NodeGroupType {
 	name: string;

@@ -103,7 +103,7 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 	router.GET("/ws", handleWebsocket)
 
 	api := router.Group("/api") 
-	{
+	{	
 		api.GET("/health_checks", gin.HandlerFunc(handleHealthChecks(appConfig)))
 		api.GET("/installed_applications", gin.HandlerFunc(getInstalledApplications(appConfig, store)))
 		api.POST("/uninstall", gin.HandlerFunc(handleUninstall(appConfig)))
@@ -115,6 +115,7 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 		api.DELETE("/application/:appName/:deploymentName", gin.HandlerFunc(handleDeleteApplication(appConfig, store)))
 		api.GET("/config", gin.HandlerFunc(handleConfigRequest(appConfig, store)))
 		api.POST("/update-management-console", gin.HandlerFunc(handleUpdateManagementConsole(appConfig)))
+		api.GET("/check_application_dependencies/:appName/:version", gin.HandlerFunc(handleCheckAppDependencies(appConfig)))
 	}
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
 

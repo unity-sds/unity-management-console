@@ -223,19 +223,19 @@ func handleConfigRequest(appConfig config.AppConfig, db database.Datastore) func
 
 		// Create response object
 		configResponse := gin.H{
-			"application_config": gin.H{
-				"marketplace_owner": appConfig.MarketplaceOwner,
-				"marketplace_user":  appConfig.MarketplaceRepo,
-				"project":           appConfig.Project,
-				"venue":             appConfig.Venue,
-				"version":           appConfig.Version,
+			"applicationConfig": gin.H{
+				"MarketplaceOwner": appConfig.MarketplaceOwner,
+				"MarketplaceUser":  appConfig.MarketplaceRepo,
+				"Project":           appConfig.Project,
+				"Venue":             appConfig.Venue,
+				"Version":           appConfig.Version,
 			},
-			"network_config": gin.H{
-				"public_subnets":  pub,
-				"private_subnets": priv,
+			"networkConfig": gin.H{
+				"publicsubnets":  pub,
+				"privatesubnets": priv,
 			},
-			"last_updated": audit.CreatedAt.Format("2006-01-02T15:04:05.000"),
-			"updated_by":   audit.Owner,
+			"lastupdated": audit.CreatedAt.Format("2006-01-02T15:04:05.000"),
+			"updatedby":   audit.Owner,
 			"bootstrap":    bootstrapStatus,
 			"version":      appConfig.Version,
 		}
@@ -268,67 +268,6 @@ func handleUpdateManagementConsole(appConfig config.AppConfig) func(c *gin.Conte
 
 func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		appName := c.Param("appName")
-		version := c.Param("version")
-
-		metadata, err := processes.FetchMarketplaceMetadata(appName, version, &appConfig)
-		if err != nil {
-			log.Errorf("Unable to fetch metadata for application: %s, %v", appName, err)
-			log.WithError(err).Error("Unable to fetch package")
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"success": false,
-				"error":   err.Error(),
-			})
-			return
-		}
-
-		errors := false
-		results := make(map[string]string)
-		for label, ssmParam := range metadata.GetDependencies() {
-			formattedParam := strings.Replace(ssmParam, "${PROJ}", appConfig.Project, -1)
-			formattedParam = strings.Replace(formattedParam, "${VENUE}", appConfig.Venue, -1)
-			param, err := aws.ReadSSMParameter(formattedParam)
-
-			if err != nil {
-				log.WithError(err).Error("Unable to get SSM param.")
-				results[label] = ""
-				errors = true
-				continue
-			}
-			results[label] = *param.Parameter.Value
-		}
-
-		if errors {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"success": false,
-				"error":   "Missing SSM Parameters",
-				"params":  results,
-			})
-			return
-		}
-
-		log.Info("Checking dependencies for %s, version %s", appName, version)
-
-		c.JSON(http.StatusOK, gin.H{
-			"success": true,
-			"error":   nil,
-			"params":  results,
-		})
-		return
-	}
-}
-func handleGetConfig(appConfig config.AppConfig) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		configOut := &types.Config{
-			ApplicationConfig: &types.ApplicationConfigDetails{},
-		}
-		configOut.ApplicationConfig.MarketplaceOwner = appConfig.MarketplaceOwner
-		configOut.ApplicationConfig.MarketplaceUser = appConfig.MarketplaceRepo // Assuming MarketplaceUser field maps to MarketplaceRepo from appConfig
-		configOut.ApplicationConfig.Project = appConfig.Project
-		configOut.ApplicationConfig.Venue = appConfig.Venue
-		configOut.ApplicationConfig.Version = appConfig.Version // Version within ApplicationConfig
-
-		configOut.Version = appConfig.Version // Top-level Version
 		appName := c.Param("appName")
 		version := c.Param("version")
 

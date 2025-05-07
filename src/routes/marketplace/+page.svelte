@@ -3,8 +3,7 @@
   import ProductItem from '../../components/ProductItem.svelte';
   import CategoryList from '../../components/CategoryList.svelte';
   import Header from '../../components/Header.svelte';
-  import { marketplaceStore, selectedCategory, order, productInstall } from '../../store/stores';
-  import type { MarketplaceMetadata } from '../../data/unity-cs-manager/protobuf/marketplace';
+  import { marketplaceStore, selectedCategory, order, type MarketplaceMetadata } from '../../store/stores';
   import type { OrderLine } from '../../data/entities';
   import { fade, slide } from 'svelte/transition';
   import { goto } from '$app/navigation';
@@ -67,8 +66,8 @@
   function handleStartInstall(name: string) {
     return () => {
       const product = selectedVersionsForProducts[name];
-      productInstall.set(product);
-      goto('/management/ui/install', { replaceState: true });
+      // Navigate to the install page with name and version as URL parameters only
+      goto(`/management/ui/install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(product.Version)}`, { replaceState: true });
     };
   }
 </script>

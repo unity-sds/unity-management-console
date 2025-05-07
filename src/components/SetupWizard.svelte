@@ -1,12 +1,11 @@
 <script lang="ts">
   import ProductForm from "./ProductForm.svelte";
-  import { deploymentStore, installError, productInstall, installRunning } from "../store/stores";
+  import { deploymentStore, installError, productInstall, installRunning, type MarketplaceMetadata, createEmptyMarketplaceMetadata } from "../store/stores";
   import VariablesForm from "./VariablesForm.svelte";
   import { fetchDeployedApplications, HttpHandler } from "../data/httpHandler";
   import { Deployments, Install_Applications, Install_Variables } from "../data/unity-cs-manager/protobuf/extensions";
   import { goto } from "$app/navigation";
   import InstallSummary from "./InstallSummary.svelte";
-  import { MarketplaceMetadata } from "../data/unity-cs-manager/protobuf/marketplace";
   import { onMount } from "svelte";
   import Deployment from "./Deployment.svelte";
 
@@ -15,7 +14,7 @@
   });
   let dependencyMap: { [key: string]: string } = {};
 
-  let product: MarketplaceMetadata = MarketplaceMetadata.create();
+  let product: MarketplaceMetadata = createEmptyMarketplaceMetadata();
 
   productInstall.subscribe(value => {
     product = value;

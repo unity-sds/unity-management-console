@@ -2,17 +2,15 @@
   import { createEventDispatcher } from 'svelte';
   import type { Application } from '../data/entities';
   import { goto } from '$app/navigation';
-  import { productInstall } from '../store/stores';
-  import type { MarketplaceMetadata } from '../data/unity-cs-manager/protobuf/marketplace';
+  import type { MarketplaceMetadata } from '../store/stores';
 
   const dispatch = createEventDispatcher<{ installApp: Application }>();
 
   export let product: MarketplaceMetadata;
 
   const handleInstallApp = () => {
-    productInstall.set(product);
-    //localStorage.setItem('product', JSON.stringify(product));  // Store product in local storage
-    goto('/management/ui/install', { replaceState: true });
+    // Navigate with URL parameters only
+    goto(`/management/ui/install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(product.Version)}`, { replaceState: true });
   };
 </script>
 
