@@ -12,12 +12,32 @@
     deploymentID: string;
   };
   
-  // Make sure marketplace data is loaded
+  // Load data properties from the +page.ts load function
+  export let data;
+  
+  // Make sure marketplace data is loaded, but only once
+  let dataLoadInitiated = false;
   onMount(async () => {
-    // Get the marketplace data if needed
-    if (get(marketplaceStore).length === 0) {
-      const httpHandler = new HttpHandler();
-      await httpHandler.fetchConfig();
+    // Only attempt to load marketplace data if we don't have it
+    // and we haven't already started loading it
+    if (!dataLoadInitiated && get(marketplaceStore).length === 0) {
+      dataLoadInitiated = true;
+      try {
+        // Instead of creating a new HttpHandler, use our store function directly
+        await refreshConfig();
+        
+        // After config is updated, check if we need to find the product again
+        if (name && version) {
+          const foundProduct = findProduct(name, version);
+          if (foundProduct) {
+            product = foundProduct;
+            paramError = false;
+            errorMessage = '';
+          }
+        }
+      } catch (error) {
+        console.error('Error loading marketplace data:', error);
+      }
     }
   });
 
