@@ -63,19 +63,17 @@
     };
   }
 
+  // Function to create a direct URL to the install page
+  function getInstallUrl(product: MarketplaceMetadata) {
+    // For SvelteKit apps, use a relative URL that's sibling to the current route
+    return `../install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(product.Version)}`;
+  }
+
   function handleStartInstall(name: string) {
     return () => {
       const product = selectedVersionsForProducts[name];
-      
-      // Construct URL relative to current window location
-      const baseUrl = window.location.pathname.endsWith('/') 
-        ? window.location.pathname.slice(0, -1) 
-        : window.location.pathname;
-      
-      const installPath = baseUrl.substring(0, baseUrl.lastIndexOf('/')) + '/install';
-      
-      // Navigate to the install page with name and version as URL parameters only
-      goto(`${installPath}?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(product.Version)}`, { replaceState: true });
+      // Use window.location for direct navigation
+      window.location.href = getInstallUrl(product);
     };
   }
 </script>
@@ -102,7 +100,9 @@
                   <option value={product.Version}>{product.Version}</option>
                 {/each}
               </select>
-              <button class="st-button" on:click={handleStartInstall(name)}>Install</button>
+              <a href={getInstallUrl(selectedVersionsForProducts[name])} class="st-button">Install</a>
+              <!-- Alternative button using event handler -->
+              <!-- <button class="st-button" on:click={handleStartInstall(name)}>Install</button> -->
             </div>
             <ProductItem
               product={selectedVersionsForProducts[name]}

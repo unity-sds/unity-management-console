@@ -8,21 +8,16 @@
 
   export let product: MarketplaceMetadata;
 
+  // Function to create a direct URL to the install page
+  function getInstallUrl() {
+    // For SvelteKit apps, we can use a relative URL that's sibling to the current route
+    // This assumes the app structure has 'marketplace' and 'install' at the same level
+    return `../install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(product.Version)}`;
+  }
+  
+  // We can also use a traditional navigation if needed
   const handleInstallApp = () => {
-    // Construct URL relative to current window location
-    const baseUrl = window.location.pathname.endsWith('/') 
-      ? window.location.pathname.slice(0, -1) 
-      : window.location.pathname;
-    
-    const installPath = baseUrl.substring(0, baseUrl.lastIndexOf('/')) + '/install';
-    
-    // Navigate with URL parameters only
-    goto(
-      `${installPath}?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(
-        product.Version
-      )}`,
-      { replaceState: true }
-    );
+    window.location.href = getInstallUrl();
   };
 </script>
 
