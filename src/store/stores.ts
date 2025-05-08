@@ -110,7 +110,12 @@ export function createMarketplaceMetadataFromJSON(json: any): MarketplaceMetadat
 						},
 						{}
 				  )
-				: {}
+				: {
+						shared_services_account: '/unity/shared-services/aws/account',
+						shared_services_region: '/unity/shared-services/aws/account/region',
+						venue_proxy_baseurl: '/unity/${PROJ}/${VENUE}/management/httpd/loadbalancer-url',
+						venue_subnet_list: '/unity/account/network/subnet_list'
+				  }
 	};
 }
 
