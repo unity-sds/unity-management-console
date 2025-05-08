@@ -1,12 +1,11 @@
 <script lang="ts">
   import { get } from 'svelte/store';
-  import { config, marketplaceStore, type MarketplaceMetadata, createEmptyMarketplaceMetadata } from '../../store/stores';
+  import { config, marketplaceStore, type MarketplaceMetadata, createEmptyMarketplaceMetadata, refreshConfig } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
   import SetupWizard from '../../components/SetupWizard.svelte';
   import AdvancedVar from './advanced_var.svelte';
   import { page } from '$app/stores';
   import { onMount } from 'svelte';
-  import { HttpHandler } from '../../data/httpHandler';
 
   type StartApplicationInstallResponse = {
     deploymentID: string;
