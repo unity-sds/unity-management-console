@@ -1,6 +1,12 @@
 <script lang="ts">
   import { get } from 'svelte/store';
-  import { config, marketplaceStore, type MarketplaceMetadata, createEmptyMarketplaceMetadata, refreshConfig } from '../../store/stores';
+  import {
+    config,
+    marketplaceStore,
+    type MarketplaceMetadata,
+    createEmptyMarketplaceMetadata,
+    refreshConfig
+  } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
   import SetupWizard from '../../components/SetupWizard.svelte';
   import AdvancedVar from './advanced_var.svelte';
@@ -10,10 +16,10 @@
   type StartApplicationInstallResponse = {
     deploymentID: string;
   };
-  
+
   // Load data properties from the +page.ts load function
   export let data;
-  
+
   // Make sure marketplace data is loaded, but only once
   let dataLoadInitiated = false;
   onMount(async () => {
@@ -24,7 +30,7 @@
       try {
         // Instead of creating a new HttpHandler, use our store function directly
         await refreshConfig();
-        
+
         // After config is updated, check if we need to find the product again
         if (name && version) {
           const foundProduct = findProduct(name, version);
@@ -43,23 +49,23 @@
   type ApplicationInstallStatus = { Status: string };
 
   let nodeGroups: NodeGroupType[] = [];
-  
+
   // Initialize with an empty product
   let product: MarketplaceMetadata | null = null;
-  
+
   // Get name and version from URL parameters
   $: name = $page.url.searchParams.get('name') || '';
   $: version = $page.url.searchParams.get('version') || '';
-  
+
   // Track if we have valid parameters
   let paramError = false;
   let errorMessage = '';
-  
+
   // Function to find a product by name and version
   function findProduct(name: string, version: string): MarketplaceMetadata | undefined {
-    return get(marketplaceStore).find(p => p.Name === name && p.Version === version);
+    return get(marketplaceStore).find((p) => p.Name === name && p.Version === version);
   }
-  
+
   // Update product when URL parameters change
   $: {
     if (name && version) {
@@ -128,11 +134,11 @@
   function startStatusPoller() {
     // Only start polling if product is not null
     if (!product) return;
-    
+
     // Capture product name and version to use in the interval
     const productName = product.Name;
     const productVersion = product.Version;
-    
+
     let poller = setInterval(async (_) => {
       const res = await fetch(
         `../api/install_application/status/${productName}/${productVersion}/${applicationMetadata.DeploymentName}`
@@ -158,11 +164,11 @@
   async function installApplication() {
     // Only proceed if product is not null
     if (!product) {
-      errMsg = "Cannot install: product information is missing";
+      errMsg = 'Cannot install: product information is missing';
       installFailed = true;
       return;
     }
-    
+
     const outObj = {
       Name: product.Name,
       Version: product.Version,
@@ -209,10 +215,10 @@
       console.warn('Cannot get logs: product information is missing');
       return;
     }
-    
+
     // Capture product name to use in the fetch call
     const productName = product.Name;
-    
+
     const res = await fetch(
       `../api/install_application/logs/${productName}/${applicationMetadata.DeploymentName}`
     );
@@ -288,109 +294,109 @@
     </div>
     <hr />
     <div class="wizardContainer">
-    {#if steps[currentStepIndex] === 'deploymentDetails'}
-      <div class="st-typography-displayBody">Deployment Details</div>
-      <div class="variablesForm">
-        <div class="st-typography-label">
-          Deployment Name (this should be a unique identifier for this installation of the
-          Marketplace item)
-        </div>
-        {#if validationErrors.deploymentName}
-          <span class="st-typography-label" style="color:red;"
-            >{validationErrors.deploymentName}</span
-          >
-        {/if}
-        <input class="st-input" bind:value={applicationMetadata.DeploymentName} maxlength="32" />
-      </div>
-    {:else if steps[currentStepIndex] === 'variables'}
-      <div class="st-typography-small-caps">Variables</div>
-      <div class="variablesForm">
-        {#each Object.entries(Variables) as [key, value]}
-          <div>
-            <div class="st-typography-label">
-              {key}
-            </div>
-            <div style="display: flex; flex-direction: column;">
-              {#if validationErrors.variables[key]}
-                <span class="st-typography-label" style="color:red;"
-                  >{validationErrors.variables[key]}</span
-                >
-              {/if}
-              <input class="st-input" bind:value={applicationMetadata.Variables[key]} />
-            </div>
-          </div>
-        {/each}
-      </div>
-      {#if AdvancedValues}
-        <hr style="margin-top:10px" />
+      {#if steps[currentStepIndex] === 'deploymentDetails'}
+        <div class="st-typography-displayBody">Deployment Details</div>
         <div class="variablesForm">
-          <AdvancedVar bind:json={AdvancedValues} editMode={true} />
+          <div class="st-typography-label">
+            Deployment Name (this should be a unique identifier for this installation of the
+            Marketplace item)
+          </div>
+          {#if validationErrors.deploymentName}
+            <span class="st-typography-label" style="color:red;"
+              >{validationErrors.deploymentName}</span
+            >
+          {/if}
+          <input class="st-input" bind:value={applicationMetadata.DeploymentName} maxlength="32" />
         </div>
-      {/if}
-    {:else if steps[currentStepIndex] === 'dependencies'}
-      <div class="st-typography-displayBody">Deployment Details</div>
-      {#if !product?.Dependencies}
-        <span class="st-typography-label">This product has no dependencies</span>
-      {:else}
-        <span class="st-typography-label">This product does have dependencies</span>
-      {/if}
-    {:else if steps[currentStepIndex] === 'summary'}
-      <div class="st-typography-small-caps">Installation Summary</div>
-      <div class="variablesForm">
-        <div style="display: flex;">
-          <div class="st-typography-label">Version:&nbsp;</div>
-          <div class="st-typography-bold">{product.Version}</div>
-        </div>
-        <hr />
-        <div>
-          <div class="st-typography-bold">Variables</div>
-          {#each Object.entries(applicationMetadata.Variables) as [key, value]}
-            <div style="display: flex;">
-              <div class="st-typography-label">{key}:&nbsp;</div>
-              <div class="st-typography-bold">{value}</div>
+      {:else if steps[currentStepIndex] === 'variables'}
+        <div class="st-typography-small-caps">Variables</div>
+        <div class="variablesForm">
+          {#each Object.entries(Variables) as [key, value]}
+            <div>
+              <div class="st-typography-label">
+                {key}
+              </div>
+              <div style="display: flex; flex-direction: column;">
+                {#if validationErrors.variables[key]}
+                  <span class="st-typography-label" style="color:red;"
+                    >{validationErrors.variables[key]}</span
+                  >
+                {/if}
+                <input class="st-input" bind:value={applicationMetadata.Variables[key]} />
+              </div>
             </div>
           {/each}
-          {#if AdvancedValues}
-            <AdvancedVar bind:json={AdvancedValues} />
-          {/if}
         </div>
-      </div>
-    {/if}
-    <hr style="margin-top:10px" />
-    <div style="margin-top:10px;">
-      {#if currentStepIndex > 0}
-        <button class="st-button secondary" on:click={(_) => currentStepIndex--}>Back</button>
+        {#if AdvancedValues}
+          <hr style="margin-top:10px" />
+          <div class="variablesForm">
+            <AdvancedVar bind:json={AdvancedValues} editMode={true} />
+          </div>
+        {/if}
+      {:else if steps[currentStepIndex] === 'dependencies'}
+        <div class="st-typography-displayBody">Dependencies</div>
+        {#if !Object.keys(product.Dependencies).length}
+          <span class="st-typography-label">This product has no dependencies</span>
+        {:else}
+          <span class="st-typography-label">This product does have dependencies</span>
+        {/if}
+      {:else if steps[currentStepIndex] === 'summary'}
+        <div class="st-typography-small-caps">Installation Summary</div>
+        <div class="variablesForm">
+          <div style="display: flex;">
+            <div class="st-typography-label">Version:&nbsp;</div>
+            <div class="st-typography-bold">{product.Version}</div>
+          </div>
+          <hr />
+          <div>
+            <div class="st-typography-bold">Variables</div>
+            {#each Object.entries(applicationMetadata.Variables) as [key, value]}
+              <div style="display: flex;">
+                <div class="st-typography-label">{key}:&nbsp;</div>
+                <div class="st-typography-bold">{value}</div>
+              </div>
+            {/each}
+            {#if AdvancedValues}
+              <AdvancedVar bind:json={AdvancedValues} />
+            {/if}
+          </div>
+        </div>
       {/if}
-      {#if installInProgress}
-        <button class="st-button" disabled>Installing...</button>
-      {:else if installFailed}
-        <button class="st-button" disabled style="color:red;">Install Failed!</button>
-      {:else if installComplete}
-        <button class="st-button" disabled on:click={installApplication}>Install Complete</button>
-      {:else if currentStepIndex === steps.length - 1}
-        <button class="st-button" on:click={installApplication}>Install</button>
-      {:else}
-        <button class="st-button" on:click={gotoNextStep}>Next</button>
-      {/if}
+      <hr style="margin-top:10px" />
+      <div style="margin-top:10px;">
+        {#if currentStepIndex > 0}
+          <button class="st-button secondary" on:click={(_) => currentStepIndex--}>Back</button>
+        {/if}
+        {#if installInProgress}
+          <button class="st-button" disabled>Installing...</button>
+        {:else if installFailed}
+          <button class="st-button" disabled style="color:red;">Install Failed!</button>
+        {:else if installComplete}
+          <button class="st-button" disabled on:click={installApplication}>Install Complete</button>
+        {:else if currentStepIndex === steps.length - 1}
+          <button class="st-button" on:click={installApplication}>Install</button>
+        {:else}
+          <button class="st-button" on:click={gotoNextStep}>Next</button>
+        {/if}
 
-      {#if installInProgress || installComplete}
-        <button class="st-button" on:click={(_) => (showLogs = !showLogs)}
-          >{showLogs ? 'Hide' : 'Show'} Logs</button
-        >
+        {#if installInProgress || installComplete}
+          <button class="st-button" on:click={(_) => (showLogs = !showLogs)}
+            >{showLogs ? 'Hide' : 'Show'} Logs</button
+          >
+        {/if}
+      </div>
+      {#if errMsg}
+        <div class="st-typography-label" style="color:red;">{errMsg}</div>
       {/if}
-    </div>
-    {#if errMsg}
-      <div class="st-typography-label" style="color:red;">{errMsg}</div>
-    {/if}
-    {#if showLogs && logs}
-      <div style="margin-top:10px">
-        <hr />
-        <pre bind:this={logsDiv}>
+      {#if showLogs && logs}
+        <div style="margin-top:10px">
+          <hr />
+          <pre bind:this={logsDiv}>
       {logs}
     </pre>
-      </div>
-    {/if}
-  </div>
+        </div>
+      {/if}
+    </div>
   {/if}
 </div>
 

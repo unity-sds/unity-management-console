@@ -12,9 +12,11 @@
   function getInstallUrl() {
     // For SvelteKit apps, we can use a relative URL that's sibling to the current route
     // This assumes the app structure has 'marketplace' and 'install' at the same level
-    return `../install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(product.Version)}`;
+    return `./install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(
+      product.Version
+    )}`;
   }
-  
+
   // We can also use a traditional navigation if needed
   const handleInstallApp = () => {
     window.location.href = getInstallUrl();
