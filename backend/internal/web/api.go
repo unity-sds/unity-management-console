@@ -271,7 +271,7 @@ func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context)
 		appName := c.Param("appName")
 		version := c.Param("version")
 
-		_, err := processes.FetchMarketplaceMetadata(appName, version, &appConfig)
+		metadata, err := processes.FetchMarketplaceMetadata(appName, version, &appConfig)
 		if err != nil {
 			log.Errorf("Unable to fetch metadata for application: %s, %v", appName, err)
 			log.WithError(err).Error("Unable to fetch package")
@@ -282,6 +282,7 @@ func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context)
 			return
 		}
 
+log.Info("Metadata %v", metadata)
 		dependencies := map[string]string{
 			"shared_services_account": "/unity/shared-services/aws/account",
 			"shared_services_region":  "/unity/shared-services/aws/account/region",
