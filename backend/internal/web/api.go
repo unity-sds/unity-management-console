@@ -271,7 +271,7 @@ func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context)
 		appName := c.Param("appName")
 		version := c.Param("version")
 
-		metadata, err := processes.FetchMarketplaceMetadata(appName, version, &appConfig)
+		_, err := processes.FetchMarketplaceMetadata(appName, version, &appConfig)
 		if err != nil {
 			log.Errorf("Unable to fetch metadata for application: %s, %v", appName, err)
 			log.WithError(err).Error("Unable to fetch package")
@@ -282,9 +282,16 @@ func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context)
 			return
 		}
 
+		dependencies := map[string]string{
+    "shared_services_account":  "/unity/shared-services/aws/account",
+    "shared_services_region":   "/unity/shared-services/aws/account/region",
+    "venue_proxy_baseurl":      "/unity/${PROJ}/${VENUE}/management/httpd/loadbalancer-url",
+    "venue_subnet_list":        "/unity/account/network/subnet_list",
+}
+
 		errors := false
 		results := make(map[string]string)
-		for label, ssmParam := range metadata.GetDependencies() {
+		for label, ssmParam := range dependencies {
 			formattedParam := strings.Replace(ssmParam, "${PROJ}", appConfig.Project, -1)
 			formattedParam = strings.Replace(formattedParam, "${VENUE}", appConfig.Venue, -1)
 			param, err := aws.ReadSSMParameter(formattedParam)
