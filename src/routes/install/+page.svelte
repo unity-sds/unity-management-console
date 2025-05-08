@@ -273,7 +273,9 @@
 
   async function getDependencyCheck() {
     if (!product) return {};
-    const res = await fetch(`../check_application_dependencies/${product.Name}/${product.Version}`);
+    const res = await fetch(
+      `../api/check_application_dependencies/${product.Name}/${product.Version}`
+    );
     if (!res.ok) return;
     return await res.json();
   }
