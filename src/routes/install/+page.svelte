@@ -271,6 +271,13 @@
     currentStepIndex = currentStepIndex + 1;
   }
 
+  async function getDependencyCheck() {
+    if (!product) return {};
+    const res = await fetch(`../check_application_dependencies/${product.Name}/${product.Version}`);
+    if (!res.ok) return;
+    return await res.json();
+  }
+
   $: console.log(product);
   $: console.log($config);
 </script>
@@ -336,9 +343,12 @@
       {:else if steps[currentStepIndex] === 'dependencies'}
         <div class="st-typography-displayBody">Dependencies</div>
         {#if !Object.keys(product.Dependencies).length}
-          <span class="st-typography-label">This product has no dependencies</span>
+          <span class="st-typography-label">This product has no dependencies.</span>
         {:else}
-          <span class="st-typography-label">This product does have dependencies</span>
+          {#await getDependencyCheck() then depInfo}
+            {console.log(depInfo)}
+            <span class="st-typography-label">This product does have dependencies</span>
+          {/await}
         {/if}
       {:else if steps[currentStepIndex] === 'summary'}
         <div class="st-typography-small-caps">Installation Summary</div>
