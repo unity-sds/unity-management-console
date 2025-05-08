@@ -11,7 +11,7 @@
   const handleInstallApp = () => {
     // Navigate with URL parameters only
     goto(
-      `../install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(
+      `./install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(
         product.Version
       )}`,
       { replaceState: true }
