@@ -66,8 +66,16 @@
   function handleStartInstall(name: string) {
     return () => {
       const product = selectedVersionsForProducts[name];
+      
+      // Construct URL relative to current window location
+      const baseUrl = window.location.pathname.endsWith('/') 
+        ? window.location.pathname.slice(0, -1) 
+        : window.location.pathname;
+      
+      const installPath = baseUrl.substring(0, baseUrl.lastIndexOf('/')) + '/install';
+      
       // Navigate to the install page with name and version as URL parameters only
-      goto(`/management/ui/install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(product.Version)}`, { replaceState: true });
+      goto(`${installPath}?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(product.Version)}`, { replaceState: true });
     };
   }
 </script>
