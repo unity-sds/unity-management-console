@@ -10,7 +10,12 @@
 
   const handleInstallApp = () => {
     // Navigate with URL parameters only
-    goto(`/management/ui/install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(product.Version)}`, { replaceState: true });
+    goto(
+      `../management/ui/install?name=${encodeURIComponent(
+        product.Name
+      )}&version=${encodeURIComponent(product.Version)}`,
+      { replaceState: true }
+    );
   };
 </script>
 
