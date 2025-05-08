@@ -226,9 +226,9 @@ func handleConfigRequest(appConfig config.AppConfig, db database.Datastore) func
 			"applicationConfig": gin.H{
 				"MarketplaceOwner": appConfig.MarketplaceOwner,
 				"MarketplaceUser":  appConfig.MarketplaceRepo,
-				"Project":           appConfig.Project,
-				"Venue":             appConfig.Venue,
-				"Version":           appConfig.Version,
+				"Project":          appConfig.Project,
+				"Venue":            appConfig.Venue,
+				"Version":          appConfig.Version,
 			},
 			"networkConfig": gin.H{
 				"publicsubnets":  pub,
@@ -236,8 +236,8 @@ func handleConfigRequest(appConfig config.AppConfig, db database.Datastore) func
 			},
 			"lastupdated": audit.CreatedAt.Format("2006-01-02T15:04:05.000"),
 			"updatedby":   audit.Owner,
-			"bootstrap":    bootstrapStatus,
-			"version":      appConfig.Version,
+			"bootstrap":   bootstrapStatus,
+			"version":     appConfig.Version,
 		}
 
 		c.JSON(http.StatusOK, configResponse)
@@ -283,20 +283,20 @@ func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context)
 		}
 
 		dependencies := map[string]string{
-    "shared_services_account":  "/unity/shared-services/aws/account",
-    "shared_services_region":   "/unity/shared-services/aws/account/region",
-    "venue_proxy_baseurl":      "/unity/${PROJ}/${VENUE}/management/httpd/loadbalancer-url",
-    "venue_subnet_list":        "/unity/account/network/subnet_list",
-}
+			"shared_services_account": "/unity/shared-services/aws/account",
+			"shared_services_region":  "/unity/shared-services/aws/account/region",
+			"venue_proxy_baseurl":     "/unity/${PROJ}/${VENUE}/management/httpd/loadbalancer-url",
+			"venue_subnet_list":       "/unity/account/network/subnet_list",
+		}
 
-log.Errorf("Dependencies %v", dependencies)
+		log.Info("Dependencies %v", dependencies)
 		errors := false
 		results := make(map[string]string)
 		for label, ssmParam := range dependencies {
 			formattedParam := strings.Replace(ssmParam, "${PROJ}", appConfig.Project, -1)
 			formattedParam = strings.Replace(formattedParam, "${VENUE}", appConfig.Venue, -1)
 
-			log.Errorf("Looking up key %s", formattedParam)
+			log.Info("Looking up key %s", formattedParam)
 			param, err := aws.ReadSSMParameter(formattedParam)
 
 			if err != nil {
@@ -305,7 +305,7 @@ log.Errorf("Dependencies %v", dependencies)
 				errors = true
 				continue
 			}
-			log.Errorf("Got param %s", *param.Parameter.Value)
+			log.Info("Got param %s", *param.Parameter.Value)
 			results[label] = *param.Parameter.Value
 		}
 
