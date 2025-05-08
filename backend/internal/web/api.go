@@ -289,11 +289,14 @@ func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context)
     "venue_subnet_list":        "/unity/account/network/subnet_list",
 }
 
+log.Errorf("Dependencies %v", dependencies)
 		errors := false
 		results := make(map[string]string)
 		for label, ssmParam := range dependencies {
 			formattedParam := strings.Replace(ssmParam, "${PROJ}", appConfig.Project, -1)
 			formattedParam = strings.Replace(formattedParam, "${VENUE}", appConfig.Venue, -1)
+
+			log.Errorf("Looking up key %s", formattedParam)
 			param, err := aws.ReadSSMParameter(formattedParam)
 
 			if err != nil {
@@ -302,6 +305,7 @@ func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context)
 				errors = true
 				continue
 			}
+			log.Errorf("Got param %s", *param.Parameter.Value)
 			results[label] = *param.Parameter.Value
 		}
 
