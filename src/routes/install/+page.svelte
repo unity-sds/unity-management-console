@@ -17,6 +17,7 @@
 
   let nodeGroups: NodeGroupType[] = [];
   let errorMessage = '';
+  let isLoading = true;
   let deploymentID: string;
 
   let product: MarketplaceMetadata = createEmptyMarketplaceMetadata();
