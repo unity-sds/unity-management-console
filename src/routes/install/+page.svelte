@@ -4,7 +4,7 @@
   import { page } from '$app/stores';
   import { config } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
-  import { marketplaceStore, isLoading, createEmptyMarketplaceMetadata } from '../../store/stores';
+  import { marketplaceStore, isLoading, createEmptyMarketplaceMetadata, type MarketplaceMetadata } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
   import AdvancedVar from './advanced_var.svelte';
 
@@ -18,7 +18,7 @@
   let errorMessage = '';
   let deploymentID: string;
 
-  let product;
+  let product: MarketplaceMetadata | undefined;
 
   console.log($page.params);
   // Use reactive statement to find the product based on URL parameters
@@ -33,7 +33,7 @@
         errorMessage = '';
       } else {
         errorMessage = `Product ${data.name} version ${data.version} not found`;
-        productInstall.set(createEmptyMarketplaceMetadata());
+        // No need to set productInstall as we're using the local product variable
       }
       $isLoading = false;
     } else if (data.name && data.version) {
