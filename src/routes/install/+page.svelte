@@ -54,6 +54,20 @@
   onMount(() => {
     if (!data.hasMarketplaceData && data.name && data.version) {
       $isLoading = true;
+      
+      // Add a timeout to prevent infinite loading state
+      const checkMarketplaceData = setInterval(() => {
+        if ($marketplaceStore.length > 0) {
+          clearInterval(checkMarketplaceData);
+        } else {
+          // If after 10 seconds we still don't have data, stop loading
+          setTimeout(() => {
+            clearInterval(checkMarketplaceData);
+            $isLoading = false;
+            errorMessage = "Could not load marketplace data. Please try again.";
+          }, 10000);
+        }
+      }, 1000);
     }
   });
 
