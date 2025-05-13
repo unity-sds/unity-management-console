@@ -75,10 +75,22 @@ function createWebsocketStore(url: string): WebsocketStore {
 		}
 	}
 
+	// Cache for derived stores to prevent recreation on each call
+	const filteredStoreCache: Record<string, Readable<UnityWebsocketMessage[]>> = {};
+
 	function filterByType(type: keyof UnityWebsocketMessage): Readable<UnityWebsocketMessage[]> {
-		return derived({ subscribe }, ($messages, set) => {
+		// Return cached store if it exists
+		if (filteredStoreCache[type as string]) {
+			return filteredStoreCache[type as string];
+		}
+
+		// Create and cache a new derived store
+		const filteredStore = derived({ subscribe }, ($messages, set) => {
 			set($messages.filter((message: UnityWebsocketMessage) => message[type] !== undefined));
 		});
+		
+		filteredStoreCache[type as string] = filteredStore;
+		return filteredStore;
 	}
 
 	return {
