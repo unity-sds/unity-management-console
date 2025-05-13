@@ -32,8 +32,6 @@
   if (!errorMessage) {
   }
 
-  console.log($marketplaceData);
-
   // onMount(() => {
   //   if (!product.Name && data.name && data.version) {
   //     $isLoading = true;
