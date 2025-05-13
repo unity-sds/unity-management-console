@@ -1,9 +1,10 @@
 import { readable } from 'svelte/store';
+import { type MarketplaceMetadata } from './stores';
 
 const marketplaceowner = 'unity-sds';
 const marketplacerepo = 'unity-marketplace';
 
-export const marketplaceData = readable({}, (set) => {
+export const marketplaceData = readable(MarketplaceMetadata[]=[], (set) => {
 	const url = `https://api.github.com/repos/${marketplaceowner}/${marketplacerepo}/contents/manifest.json`;
 	fetch(url)
 		.then((res) => res.json())
@@ -18,16 +19,16 @@ export const marketplaceData = readable({}, (set) => {
 					set(parsedContent);
 				} catch (e) {
 					console.error('Error parsing marketplace data:', e);
-					set({});
+					set([]);
 				}
 			} else {
 				console.error('No content found in GitHub response');
-				set({});
+				set([]);
 			}
 		})
 		.catch((error) => {
 			console.error('Error fetching marketplace data:', error);
-			set({});
+			set([]);
 		});
 });
 
