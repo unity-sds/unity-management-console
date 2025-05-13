@@ -22,12 +22,13 @@
 
   // Make sure marketplace data is loaded, but only once
   let dataLoadInitiated = false;
-  
+
   onMount(async () => {
+    debugger;
     // Get URL parameters once on mount
     name = $page.url.searchParams.get('name') || '';
     version = $page.url.searchParams.get('version') || '';
-    
+
     // Immediate validation of parameters
     if (name && version) {
       // We'll find the product after we ensure marketplace data is loaded
@@ -36,7 +37,7 @@
       paramError = true;
       errorMessage = 'Missing required URL parameters: name and version';
     }
-    
+
     // Only attempt to load marketplace data if we don't have it
     // and we haven't already started loading it
     if (!dataLoadInitiated && get(marketplaceStore).length === 0) {
@@ -44,7 +45,7 @@
       try {
         // Instead of creating a new HttpHandler, use our store function directly
         await refreshConfig();
-        
+
         // Now that we have the marketplace data, find the product
         if (name && version) {
           const foundProduct = findProduct(name, version);
@@ -86,7 +87,7 @@
   // Get name and version from URL parameters once, not reactively
   let name = '';
   let version = '';
-  
+
   // We'll initialize these in onMount instead of using reactive declarations
 
   // Track if we have valid parameters
@@ -109,7 +110,7 @@
 
   // Calculate this only when product changes (non-reactive)
   let managedDependenciesKeys: string[] = [];
-  
+
   $: if (product && product.ManagedDependencies) {
     managedDependenciesKeys = getObjectKeys(product.ManagedDependencies);
   } else {
