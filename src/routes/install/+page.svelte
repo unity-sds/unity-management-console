@@ -3,6 +3,7 @@
   import { config } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
   import { productInstall, marketplaceStore, isLoading, createEmptyMarketplaceMetadata } from '../../store/stores';
+  import type { MarketplaceMetadata } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
   import AdvancedVar from './advanced_var.svelte';
 
@@ -19,65 +20,73 @@
   let errorMessage = '';
   let deploymentID: string;
   
+  // Create a stable reference for the empty product state
+  const emptyProduct: MarketplaceMetadata = createEmptyMarketplaceMetadata();
+  
   // Main reactive block for handling product loading and state
   $: {
     const appName = data.name;
     const appVersion = data.version;
 
+    let targetProduct: MarketplaceMetadata | undefined = undefined;
+    let targetIsLoading: boolean = false;
+    let targetErrorMessage: string = '';
+
     if (appName && appVersion) {
       // Parameters are present
       if ($marketplaceStore && $marketplaceStore.length > 0) {
-        // Marketplace data is available.
-        // We are past the initial loading phase for marketplaceStore.
-        
+        // Marketplace data is available. Find the product.
         const foundProduct = $marketplaceStore.find(
           (p) => p.Name === appName && p.Version === appVersion
         );
 
         if (foundProduct) {
-          // Product found. Update store only if it's a different product.
-          if ($productInstall?.Name !== foundProduct.Name || $productInstall?.Version !== foundProduct.Version) {
-            productInstall.set(foundProduct);
-          }
-          errorMessage = ''; // Clear any previous error.
+          targetProduct = foundProduct;
+          targetIsLoading = false;
+          targetErrorMessage = '';
         } else {
           // Product not found in marketplace.
-          const notFoundErrorMessage = `Product "${appName}" (Version: "${appVersion}") not found in the marketplace.`;
-          // Update to "empty" state only if not already effectively empty or error message needs update.
-          if ($productInstall?.Name !== '' || errorMessage !== notFoundErrorMessage) {
-            // Check against Name === '' because createEmptyMarketplaceMetadata() sets Name to ''.
-            productInstall.set(createEmptyMarketplaceMetadata());
-            errorMessage = notFoundErrorMessage;
-          }
-        }
-        // Data processed, ensure isLoading is false.
-        if ($isLoading) {
-            isLoading.set(false);
+          targetProduct = emptyProduct; // Use the stable empty product reference
+          targetIsLoading = false;
+          targetErrorMessage = `Product "${appName}" (Version: "${appVersion}") not found in the marketplace.`;
         }
       } else {
         // Marketplace data not yet available or store is empty. This is the loading phase.
-        if (!$isLoading) {
-            isLoading.set(true);
-        }
-        errorMessage = 'Marketplace data is loading...';
-        // If a product was previously set, clear it, as marketplace context is now "loading".
-        if ($productInstall?.Name !== '') { // Check if not already the "empty" state
-            productInstall.set(createEmptyMarketplaceMetadata());
-        }
+        targetProduct = emptyProduct; // Use the stable empty product reference
+        targetIsLoading = true;
+        targetErrorMessage = 'Marketplace data is loading...';
       }
     } else {
       // No application name/version in URL parameters.
-      if ($isLoading) {
-        isLoading.set(false);
-      }
-
-      // If no product is in productInstall (i.e., it's in the "empty" state), show message.
-      if (!($productInstall && $productInstall.Name)) { 
-          errorMessage = 'No application specified. Please select an application from the marketplace.';
+      targetIsLoading = false;
+      // If a product is already selected (not empty), keep it. Otherwise, set to empty and show message.
+      if ($productInstall && $productInstall.Name !== '') {
+         targetProduct = $productInstall; // Keep existing product
+         targetErrorMessage = '';
       } else {
-          // A product is already in $productInstall, and no new one from URL, so clear any URL-related error.
-          errorMessage = '';
+         targetProduct = emptyProduct; // Use the stable empty product reference
+         targetErrorMessage = 'No application specified. Please select an application from the marketplace.';
       }
+    }
+
+    // Update stores and variables only if the target state differs from the current state
+    
+    // Update isLoading store
+    if ($isLoading !== targetIsLoading) {
+      isLoading.set(targetIsLoading);
+    }
+
+    // Update productInstall store
+    // Compare targetProduct with current $productInstall. Use Name/Version for comparison.
+    // Also handle the case where $productInstall might be initially undefined.
+    const currentProduct = $productInstall ?? emptyProduct; 
+    if (targetProduct && (currentProduct.Name !== targetProduct.Name || currentProduct.Version !== targetProduct.Version)) {
+       productInstall.set(targetProduct);
+    }
+    
+    // Update local errorMessage variable
+    if (errorMessage !== targetErrorMessage) {
+      errorMessage = targetErrorMessage;
     }
   }
 
@@ -244,6 +253,8 @@
   }
 
   $: console.log("Current productInstall state:", $productInstall);
+  $: console.log("Current isLoading state:", $isLoading);
+  $: console.log("Current errorMessage:", errorMessage);
   $: console.log("Current config state:", $config);
 </script>
 
@@ -256,7 +267,7 @@
     <div>
       <div class="st-typography-header">
         Installing Marketplace Application: <span class="st-typography-displayBody"
-          >{$productInstall.Name}</span
+          >{$productInstall.DisplayName || $productInstall.Name}</span
         >
       </div>
     </div>
