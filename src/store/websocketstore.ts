@@ -5,7 +5,6 @@ import {
 	ConnectionSetup,
 	UnityWebsocketMessage
 } from '../data/unity-cs-manager/protobuf/extensions';
-import { websocketStore } from '../data/websocketStore';
 
 type WritableStore = Writable<UnityWebsocketMessage[]>;
 
@@ -16,7 +15,8 @@ export type WebsocketStore = {
 };
 
 function createWebsocketStore(url: string): WebsocketStore {
-	const { subscribe, update } = writable<UnityWebsocketMessage[]>([]);
+	const writableStore: Writable<UnityWebsocketMessage[]> = writable<UnityWebsocketMessage[]>([]);
+	const { subscribe, update } = writableStore;
 
 	let socket: WebSocket;
 	let messageQueue: Uint8Array[] = [];
@@ -32,7 +32,7 @@ function createWebsocketStore(url: string): WebsocketStore {
 			console.log('Socket is open');
 			const set = ConnectionSetup.create({ type: 'register', userID: 'test' });
 			console.log(ConnectionSetup.toJSON(set));
-			websocketStore.send(ConnectionSetup.encode(set).finish());
+			socket.send(ConnectionSetup.encode(set).finish());
 
 			sendQueuedMessages();
 		};
@@ -85,9 +85,9 @@ function createWebsocketStore(url: string): WebsocketStore {
 		}
 
 		// Create and cache a new derived store
-		const filteredStore = derived({ subscribe }, ($messages, set) => {
-			set($messages.filter((message: UnityWebsocketMessage) => message[type] !== undefined));
-		});
+		const filteredStore = derived(writableStore, ($messages) => 
+			$messages.filter((message: UnityWebsocketMessage) => message[type] !== undefined)
+		);
 		
 		filteredStoreCache[type as string] = filteredStore;
 		return filteredStore;
