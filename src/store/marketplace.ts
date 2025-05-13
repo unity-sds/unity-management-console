@@ -8,8 +8,23 @@ export const marketplaceData = readable({}, (set) => {
 	fetch(url)
 		.then((res) => res.json())
 		.then((json) => {
-			console.log(json);
-			set({ hi: 'hi!' });
+			// GitHub API returns content as base64 encoded
+			if (json.content) {
+				// Decode the base64 content
+				const decodedContent = atob(json.content.replace(/\n/g, ''));
+				// Parse the JSON content
+				try {
+					const parsedContent = JSON.parse(decodedContent);
+					console.log(parsedContent);
+					set(parsedContent);
+				} catch (e) {
+					console.error('Error parsing marketplace data:', e);
+					set({});
+				}
+			} else {
+				console.error('No content found in GitHub response');
+				set({});
+			}
 		})
 		.catch((error) => {
 			console.error('Error fetching marketplace data:', error);
