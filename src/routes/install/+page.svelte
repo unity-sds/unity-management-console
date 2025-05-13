@@ -36,6 +36,7 @@
     const foundProduct = $marketplaceData.find(
       (p: MarketplaceMetadata) => p.Name === appName && p.Version == version
     );
+    console.log({ foundProduct });
     if (foundProduct === undefined) {
       errorMessage = `Couldn't find info for product: ${appName}, version: ${version}`;
     } else {
