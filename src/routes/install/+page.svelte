@@ -24,7 +24,7 @@
   let dataLoadInitiated = false;
 
   onMount(async () => {
-    debugger;
+    console.log('mount!');
     // Get URL parameters once on mount
     name = $page.url.searchParams.get('name') || '';
     version = $page.url.searchParams.get('version') || '';
