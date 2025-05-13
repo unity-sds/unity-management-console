@@ -4,7 +4,7 @@ import { type MarketplaceMetadata } from './stores';
 const marketplaceowner = 'unity-sds';
 const marketplacerepo = 'unity-marketplace';
 
-export const marketplaceData = readable(MarketplaceMetadata[]=[], (set) => {
+export const marketplaceData = readable<MarketplaceMetadata[]>([], (set) => {
 	const url = `https://api.github.com/repos/${marketplaceowner}/${marketplacerepo}/contents/manifest.json`;
 	fetch(url)
 		.then((res) => res.json())
