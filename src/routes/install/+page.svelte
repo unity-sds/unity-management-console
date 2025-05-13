@@ -25,6 +25,8 @@
 
   let product: MarketplaceMetadata = createEmptyMarketplaceMetadata();
 
+  console.log($page.params);
+
   // onMount(() => {
   //   if (!product.Name && data.name && data.version) {
   //     $isLoading = true;
