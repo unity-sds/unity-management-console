@@ -15,7 +15,6 @@ export const marketplaceData = readable({}, (set) => {
 				// Parse the JSON content
 				try {
 					const parsedContent = JSON.parse(decodedContent);
-					console.log({ parsedContent });
 					set(parsedContent);
 				} catch (e) {
 					console.error('Error parsing marketplace data:', e);
