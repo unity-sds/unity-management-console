@@ -28,9 +28,19 @@
     const appName = data.name;
     const appVersion = data.version;
 
-    let targetProduct: MarketplaceMetadata | undefined = undefined;
+    // --- Add Logging Start ---
+    console.log('--- Reactive Block Start ---');
+    console.log(`URL Params: name=${appName}, version=${appVersion}`);
+    console.log(`Marketplace Store Length: ${$marketplaceStore?.length ?? 'undefined'}`);
+    console.log(`Current $isLoading: ${$isLoading}`);
+    console.log(`Current $productInstall Name: ${$productInstall?.Name ?? 'undefined'}`);
+    console.log(`Current errorMessage: "${errorMessage}"`);
+    // --- Add Logging End ---
+
+    let targetProduct: MarketplaceMetadata = emptyProduct; // Default to empty
     let targetIsLoading: boolean = false;
     let targetErrorMessage: string = '';
+    let stateChanged = false; // Flag to track if any state needs updating
 
     if (appName && appVersion) {
       // Parameters are present
@@ -45,49 +55,69 @@
           targetIsLoading = false;
           targetErrorMessage = '';
         } else {
-          // Product not found in marketplace.
-          targetProduct = emptyProduct; // Use the stable empty product reference
+          // Product not found
+          targetProduct = emptyProduct;
           targetIsLoading = false;
           targetErrorMessage = `Product "${appName}" (Version: "${appVersion}") not found in the marketplace.`;
         }
       } else {
-        // Marketplace data not yet available or store is empty. This is the loading phase.
-        targetProduct = emptyProduct; // Use the stable empty product reference
+        // Marketplace data not yet available or store is empty. Loading phase.
+        targetProduct = emptyProduct;
         targetIsLoading = true;
         targetErrorMessage = 'Marketplace data is loading...';
       }
     } else {
       // No application name/version in URL parameters.
       targetIsLoading = false;
-      // If a product is already selected (not empty), keep it. Otherwise, set to empty and show message.
+      // Keep existing product if valid, otherwise set to empty and show message.
       if ($productInstall && $productInstall.Name !== '') {
-         targetProduct = $productInstall; // Keep existing product
+         targetProduct = $productInstall;
          targetErrorMessage = '';
       } else {
-         targetProduct = emptyProduct; // Use the stable empty product reference
+         targetProduct = emptyProduct;
          targetErrorMessage = 'No application specified. Please select an application from the marketplace.';
       }
     }
 
-    // Update stores and variables only if the target state differs from the current state
-    
-    // Update isLoading store
+    // --- Compare target state with current state and update only if changed ---
+
+    // Compare isLoading
     if ($isLoading !== targetIsLoading) {
+      // --- Add Logging ---
+      console.log(`>>> Updating isLoading: ${$isLoading} -> ${targetIsLoading}`);
+      // --- End Logging ---
       isLoading.set(targetIsLoading);
+      stateChanged = true;
     }
 
-    // Update productInstall store
-    // Compare targetProduct with current $productInstall. Use Name/Version for comparison.
-    // Also handle the case where $productInstall might be initially undefined.
-    const currentProduct = $productInstall ?? emptyProduct; 
+    // Compare productInstall (more robust comparison)
+    const currentProduct = $productInstall ?? emptyProduct;
+    // Check if Name or Version differs
     if (targetProduct && (currentProduct.Name !== targetProduct.Name || currentProduct.Version !== targetProduct.Version)) {
+       // --- Add Logging ---
+       console.log(`>>> Updating productInstall: ${currentProduct.Name}/${currentProduct.Version} -> ${targetProduct.Name}/${targetProduct.Version}`);
+       // --- End Logging ---
        productInstall.set(targetProduct);
+       stateChanged = true;
     }
-    
-    // Update local errorMessage variable
+
+    // Compare errorMessage
     if (errorMessage !== targetErrorMessage) {
+      // --- Add Logging ---
+      console.log(`>>> Updating errorMessage: "${errorMessage}" -> "${targetErrorMessage}"`);
+      // --- End Logging ---
       errorMessage = targetErrorMessage;
+      // No store update here, just a local variable
     }
+
+    // --- Add Logging State Change ---
+    if (stateChanged) {
+        console.log('--- State Updated This Cycle ---');
+    } else {
+        console.log('--- State Unchanged This Cycle ---');
+    }
+    console.log('--- Reactive Block End ---');
+    // --- End Logging State Change ---
   }
 
   // Make product reactive to changes in productInstall store
@@ -109,11 +139,23 @@
   };
 
   $: {
+    let configProjectChanged = false;
+    let configVenueChanged = false;
     if ($config?.applicationConfig?.Project) {
-      applicationMetadata.Variables.project = $config?.applicationConfig?.Project;
+      if (applicationMetadata.Variables.project !== $config.applicationConfig.Project) {
+        applicationMetadata.Variables.project = $config.applicationConfig.Project;
+        configProjectChanged = true;
+      }
     }
     if ($config?.applicationConfig?.Venue) {
-      applicationMetadata.Variables.venue = $config?.applicationConfig?.Venue;
+       if (applicationMetadata.Variables.venue !== $config.applicationConfig.Venue) {
+        applicationMetadata.Variables.venue = $config.applicationConfig.Venue;
+        configVenueChanged = true;
+      }
+    }
+    // Log only if something actually changed in this block
+    if (configProjectChanged || configVenueChanged) {
+        console.log(`--- Config Reactive Block: Updated project=${applicationMetadata.Variables.project}, venue=${applicationMetadata.Variables.venue} ---`);
     }
   }
 
@@ -122,13 +164,19 @@
 
   let varSetupDone = false;
   $: {
+    // This block depends on 'Variables', which depends on '$productInstall'
+    // Check if it runs unnecessarily
     if (!varSetupDone && Object.keys(Variables).length) {
+      console.log('--- Variable Setup Block Running ---'); // Add log
       Object.entries(Variables).forEach(([key, value]) => {
         if (value) {
+          // Avoid overwriting if already set, maybe? Or just log
+          // console.log(`Setting applicationMetadata.Variables[${key}] from Variables`);
           applicationMetadata.Variables[key] = value;
         }
       });
       varSetupDone = true;
+      console.log('--- Variable Setup Block Done ---'); // Add log
     }
   }
 
@@ -252,10 +300,11 @@
     currentStepIndex = currentStepIndex + 1;
   }
 
-  $: console.log("Current productInstall state:", $productInstall);
-  $: console.log("Current isLoading state:", $isLoading);
-  $: console.log("Current errorMessage:", errorMessage);
-  $: console.log("Current config state:", $config);
+  // --- Remove or comment out final state logs if too noisy, keep initial ones in the main block ---
+  // $: console.log("Final productInstall state:", $productInstall);
+  // $: console.log("Final isLoading state:", $isLoading);
+  // $: console.log("Final errorMessage:", errorMessage);
+  // $: console.log("Final config state:", $config);
 </script>
 
 <div class="container">
