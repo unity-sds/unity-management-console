@@ -40,7 +40,9 @@
       errorMessage = `Couldn't find info for product: ${appName}, version: ${version}`;
     } else {
       product = foundProduct;
+      console.log(product);
     }
+    isLoading = false;
   }
 
   // onMount(() => {
