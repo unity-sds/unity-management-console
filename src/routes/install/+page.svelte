@@ -22,6 +22,8 @@
 
   // Make sure marketplace data is loaded, but only once
   let dataLoadInitiated = false;
+  let productUpdateFromUrl = false;
+  
   onMount(async () => {
     // Only attempt to load marketplace data if we don't have it
     // and we haven't already started loading it
@@ -30,16 +32,10 @@
       try {
         // Instead of creating a new HttpHandler, use our store function directly
         await refreshConfig();
-
-        // After config is updated, check if we need to find the product again
-        if (name && version) {
-          const foundProduct = findProduct(name, version);
-          if (foundProduct) {
-            product = foundProduct;
-            paramError = false;
-            errorMessage = '';
-          }
-        }
+        
+        // After config is updated, we'll let the reactive name/version handling take care of product lookup
+        // This prevents duplicate product lookups that could cause refresh loops
+        productUpdateFromUrl = true;
       } catch (error) {
         console.error('Error loading marketplace data:', error);
       }
@@ -67,17 +63,25 @@
   }
 
   // Update product when URL parameters change
+  // We need to make sure our reactive updates don't get stuck in a loop
+  // by tracking whether we're in the process of a product update
   $: {
     if (name && version) {
-      const foundProduct = findProduct(name, version);
-      if (foundProduct) {
-        product = foundProduct;
-        paramError = false;
-        errorMessage = '';
-      } else {
-        product = null;
-        paramError = true;
-        errorMessage = `Could not find product "${name}" with version "${version}"`;
+      // Only search for the product if we have marketplace data
+      if (get(marketplaceStore).length > 0) {
+        const foundProduct = findProduct(name, version);
+        if (foundProduct) {
+          // Only update product if it's different to avoid unnecessary re-renders
+          if (!product || product.Name !== foundProduct.Name || product.Version !== foundProduct.Version) {
+            product = foundProduct;
+            paramError = false;
+            errorMessage = '';
+          }
+        } else {
+          product = null;
+          paramError = true;
+          errorMessage = `Could not find product "${name}" with version "${version}"`;
+        }
       }
     } else {
       product = null;
@@ -280,8 +284,9 @@
     return await res.json();
   }
 
-  $: console.log(product);
-  $: console.log($config);
+  // Commented out console logs that were causing refresh loops
+  // $: console.log(product);
+  // $: console.log($config);
 </script>
 
 <div class="container">
@@ -348,7 +353,7 @@
           <span class="st-typography-label">This product has no dependencies.</span>
         {:else}
           {#await getDependencyCheck() then depInfo}
-            {console.log(depInfo)}
+            {/* Removing console.log that could cause refresh issues */}
             <span class="st-typography-label">This product does have dependencies</span>
           {/await}
         {/if}
