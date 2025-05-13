@@ -352,8 +352,9 @@
         {#if !Object.keys(product.Dependencies).length}
           <span class="st-typography-label">This product has no dependencies.</span>
         {:else}
-          {#await getDependencyCheck() then depInfo}
-            {/* Removing console.log that could cause refresh issues */}
+          {#await getDependencyCheck()}
+            <span class="st-typography-label">Checking dependencies...</span>
+          {:then depInfo}
             <span class="st-typography-label">This product does have dependencies</span>
           {/await}
         {/if}
