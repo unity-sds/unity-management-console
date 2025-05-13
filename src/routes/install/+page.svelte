@@ -22,9 +22,21 @@
 
   // Make sure marketplace data is loaded, but only once
   let dataLoadInitiated = false;
-  let productUpdateFromUrl = false;
   
   onMount(async () => {
+    // Get URL parameters once on mount
+    name = $page.url.searchParams.get('name') || '';
+    version = $page.url.searchParams.get('version') || '';
+    
+    // Immediate validation of parameters
+    if (name && version) {
+      // We'll find the product after we ensure marketplace data is loaded
+    } else {
+      product = null;
+      paramError = true;
+      errorMessage = 'Missing required URL parameters: name and version';
+    }
+    
     // Only attempt to load marketplace data if we don't have it
     // and we haven't already started loading it
     if (!dataLoadInitiated && get(marketplaceStore).length === 0) {
@@ -33,11 +45,33 @@
         // Instead of creating a new HttpHandler, use our store function directly
         await refreshConfig();
         
-        // After config is updated, we'll let the reactive name/version handling take care of product lookup
-        // This prevents duplicate product lookups that could cause refresh loops
-        productUpdateFromUrl = true;
+        // Now that we have the marketplace data, find the product
+        if (name && version) {
+          const foundProduct = findProduct(name, version);
+          if (foundProduct) {
+            product = foundProduct;
+            paramError = false;
+            errorMessage = '';
+          } else {
+            product = null;
+            paramError = true;
+            errorMessage = `Could not find product "${name}" with version "${version}"`;
+          }
+        }
       } catch (error) {
         console.error('Error loading marketplace data:', error);
+      }
+    } else if (name && version) {
+      // If marketplace data is already loaded, find the product
+      const foundProduct = findProduct(name, version);
+      if (foundProduct) {
+        product = foundProduct;
+        paramError = false;
+        errorMessage = '';
+      } else {
+        product = null;
+        paramError = true;
+        errorMessage = `Could not find product "${name}" with version "${version}"`;
       }
     }
   });
@@ -49,9 +83,11 @@
   // Initialize with an empty product
   let product: MarketplaceMetadata | null = null;
 
-  // Get name and version from URL parameters
-  $: name = $page.url.searchParams.get('name') || '';
-  $: version = $page.url.searchParams.get('version') || '';
+  // Get name and version from URL parameters once, not reactively
+  let name = '';
+  let version = '';
+  
+  // We'll initialize these in onMount instead of using reactive declarations
 
   // Track if we have valid parameters
   let paramError = false;
@@ -62,33 +98,8 @@
     return get(marketplaceStore).find((p) => p.Name === name && p.Version === version);
   }
 
-  // Update product when URL parameters change
-  // We need to make sure our reactive updates don't get stuck in a loop
-  // by tracking whether we're in the process of a product update
-  $: {
-    if (name && version) {
-      // Only search for the product if we have marketplace data
-      if (get(marketplaceStore).length > 0) {
-        const foundProduct = findProduct(name, version);
-        if (foundProduct) {
-          // Only update product if it's different to avoid unnecessary re-renders
-          if (!product || product.Name !== foundProduct.Name || product.Version !== foundProduct.Version) {
-            product = foundProduct;
-            paramError = false;
-            errorMessage = '';
-          }
-        } else {
-          product = null;
-          paramError = true;
-          errorMessage = `Could not find product "${name}" with version "${version}"`;
-        }
-      }
-    } else {
-      product = null;
-      paramError = true;
-      errorMessage = 'Missing required URL parameters: name and version';
-    }
-  }
+  // We've removed the reactive product lookup block
+  // and now handle this once in onMount to prevent refresh loops
 
   let deploymentID: string;
 
@@ -96,8 +107,14 @@
     return Object.keys(obj);
   }
 
-  $: managedDependenciesKeys =
-    product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
+  // Calculate this only when product changes (non-reactive)
+  let managedDependenciesKeys: string[] = [];
+  
+  $: if (product && product.ManagedDependencies) {
+    managedDependenciesKeys = getObjectKeys(product.ManagedDependencies);
+  } else {
+    managedDependenciesKeys = [];
+  }
 
   const steps = ['deploymentDetails', 'variables', 'dependencies', 'summary'];
   let currentStepIndex = 0;
