@@ -226,9 +226,6 @@
     if (hasErrors) return;
     currentStepIndex = currentStepIndex + 1;
   }
-
-  $: console.log(product);
-  $: console.log($config);
 </script>
 
 <div class="container">
