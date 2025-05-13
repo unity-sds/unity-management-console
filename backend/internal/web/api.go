@@ -312,7 +312,6 @@ log.Info("Metadata %v", metadata)
 
 		if errors {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"success": false,
 				"error":   "Missing SSM Parameters",
 				"params":  results,
 			})
@@ -322,7 +321,6 @@ log.Info("Metadata %v", metadata)
 		log.Info("Checking dependencies for %s, version %s", appName, version)
 
 		c.JSON(http.StatusOK, gin.H{
-			"success": true,
 			"error":   nil,
 			"params":  results,
 		})

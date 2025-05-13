@@ -32,51 +32,20 @@ export const marketplaceData = readable<MarketplaceMetadata[]>([], (set) => {
 		});
 });
 
-// async function generateMarketplace() {
-// 	if (!dev) {
-// 		console.log('Checking if manifest.json exists in the repository...');
-// 		const manifestExists = await checkIfFileExists(
-// 			marketplaceowner,
-// 			marketplacerepo,
-// 			'manifest.json'
-// 		);
-// 		if (manifestExists) {
-// 			console.log('manifest.json exists in the repository.');
-// 			const content = await getGitHubFileContents(
-// 				marketplaceowner,
-// 				marketplacerepo,
-// 				'manifest.json'
-// 			);
-// 			const c = JSON.parse(content);
-// 			const products: MarketplaceMetadata[] = [];
-// 			for (const p of c) {
-// 				const prod = MarketplaceMetadata.fromJSON(p);
-// 				products.push(prod);
-// 			}
-// 			marketplaceStore.set(products);
-// 			return;
-// 		}
+type InstalledMarketplaceApplication = {
+	DeploymentName: string;
+	PackageName: string;
+	Name: string;
+	Source: string;
+	Version: string;
+	Status: string;
+};
 
-// 		console.log('fetching repo contents: ' + marketplaceowner);
-// 		const c = await getRepoContents(marketplaceowner, marketplacerepo);
-
-// 		const products: MarketplaceMetadata[] = [];
-// 		for (const p of c) {
-// 			const content = await getGitHubFileContents(marketplaceowner, marketplacerepo, p);
-// 			const j = JSON.parse(content);
-// 			const prod = MarketplaceMetadata.fromJSON(j);
-// 			products.push(prod);
-// 		}
-
-// 		marketplaceStore.set(products);
-// 	} else {
-// 		const j = JSON.parse(mock_marketplace);
-// 		const products: MarketplaceMetadata[] = [];
-// 		for (const p of j) {
-// 			const prod = MarketplaceMetadata.fromJSON(p);
-// 			products.push(prod);
-// 		}
-// 		marketplaceStore.set(products);
-// 		return;
-// 	}
-// }
+export const installedApplications = readable<InstalledMarketplaceApplication[]>([], (set) => {
+	fetch('../api/installed_applications')
+		.then((res) => res.json())
+		.then((json) => set(json))
+		.catch((e) => {
+			console.warn('Unable to get application list!');
+		});
+});

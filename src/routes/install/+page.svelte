@@ -3,7 +3,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { config } from '../../store/stores';
-  import { marketplaceData } from '../../store/marketplace';
+  import { marketplaceData, installedApplications } from '../../store/marketplace';
   import type { NodeGroupType } from '../../data/entities';
   import { createEmptyMarketplaceMetadata, type MarketplaceMetadata } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
@@ -309,11 +309,18 @@
           <div class="st-typography-label">This product has no dependencies</div>
         {:else}
           {#await getProductDependencies() then dependencies}
+            {#if dependencies.error}
+              <span class="st-typography-bold" style="color: red;">{dependencies.error}</span>
+            {/if}
             {#each Object.entries(dependencies.params) as [key, value]}
               <span class="st-typography-bold">{key}:</span><span class="st-typography-label"
                 >{value}</span
               >
             {/each}
+            {#if dependencies.error}
+              <hr />
+              {console.log(installedApplications)}
+            {/if}
           {/await}
         {/if}
       {:else if steps[currentStepIndex] === 'summary'}
