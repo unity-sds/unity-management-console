@@ -322,9 +322,16 @@
               >
             {/each}
             {#if dependencies.error}
+              <span class="st-typography-bold"
+                >You may need to install the following items to satisfy this application's
+                dependencies:</span
+              >
               <hr />
-              {#each Object.entries(product.Apps).filter(([key, value]) => !$installedApplications.find((installedApp) => installedApp.Name === key && installedApp.Version !== value.MinimumVersion)) as [appToInstall]}
-                <span class="st-typography-label">{appToInstall}</span>
+              {#each Object.entries(product.Apps).filter(([key, value]) => !$installedApplications.find((installedApp) => installedApp.Name === key && installedApp.Version !== value.MinimumVersion)) as [key, value]}
+                <span
+                  class="st-typography-label"
+                  href={`./?name=${key}&version=${value.MinimumVersion}`}>{key}</span
+                >
               {/each}
             {/if}
           {/await}
