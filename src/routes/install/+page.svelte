@@ -32,7 +32,7 @@
   if (!errorMessage) {
   }
 
-  console.log($marketplaceData);
+  $: console.log($marketplaceData);
 
   // onMount(() => {
   //   if (!product.Name && data.name && data.version) {
