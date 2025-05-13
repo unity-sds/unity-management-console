@@ -25,7 +25,7 @@
 
   let product: MarketplaceMetadata = createEmptyMarketplaceMetadata();
 
-  console.log($page.params);
+  $: console.log($page.params);
 
   // onMount(() => {
   //   if (!product.Name && data.name && data.version) {
