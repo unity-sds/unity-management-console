@@ -120,15 +120,12 @@
     // --- End Logging State Change ---
   }
 
-  // Make product reactive to changes in productInstall store
-  $: product = $productInstall;
-
   function getObjectKeys(obj: object): string[] {
     return Object.keys(obj);
   }
 
   $: managedDependenciesKeys =
-    product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
+    $productInstall && $productInstall.ManagedDependencies ? getObjectKeys($productInstall.ManagedDependencies) : [];
 
   const steps = ['deploymentDetails', 'variables', 'summary'];
   let currentStepIndex = 0;
@@ -184,9 +181,14 @@
   let installComplete = false;
   let installFailed = false;
   function startStatusPoller() {
+    // Add a check to ensure $productInstall is valid before starting
+    if (!$productInstall || !$productInstall.Name || !$productInstall.Version || !applicationMetadata.DeploymentName) {
+        console.warn("Cannot start status poller: Missing product details or deployment name.");
+        return;
+    }
     let poller = setInterval(async (_) => {
       const res = await fetch(
-        `../api/install_application/status/${product.Name}/${product.Version}/${applicationMetadata.DeploymentName}`
+        `../api/install_application/status/${$productInstall.Name}/${$productInstall.Version}/${applicationMetadata.DeploymentName}`
       );
       if (!res.ok) {
         console.warn("Couldn't get status!");
@@ -207,9 +209,15 @@
 
   let errMsg = '';
   async function installApplication() {
+    // Add a check for valid product
+    if (!$productInstall || !$productInstall.Name) {
+        errMsg = "Cannot install: No product selected.";
+        installFailed = true;
+        return;
+    }
     const outObj = {
-      Name: product.Name,
-      Version: product.Version,
+      Name: $productInstall.Name,
+      Version: $productInstall.Version,
       AdvancedValues,
       ...applicationMetadata
     };
@@ -366,7 +374,7 @@
       <div class="variablesForm">
         <div style="display: flex;">
           <div class="st-typography-label">Version:&nbsp;</div>
-          <div class="st-typography-bold">{product.Version}</div>
+          <div class="st-typography-bold">{$productInstall.Version}</div>
         </div>
         <hr />
         <div>
