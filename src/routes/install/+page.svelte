@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { config } from '../../store/stores';
+  import { marketplaceData } from '../../store/marketplace';
   import type { NodeGroupType } from '../../data/entities';
   import { createEmptyMarketplaceMetadata, type MarketplaceMetadata } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
@@ -17,7 +18,6 @@
   let nodeGroups: NodeGroupType[] = [];
   let errorMessage = '';
   let deploymentID: string;
-  let isLoading = true;
 
   let product: MarketplaceMetadata = createEmptyMarketplaceMetadata();
 
@@ -30,6 +30,8 @@
 
   if (!errorMessage) {
   }
+
+  console.log($marketplaceData);
 
   // onMount(() => {
   //   if (!product.Name && data.name && data.version) {
