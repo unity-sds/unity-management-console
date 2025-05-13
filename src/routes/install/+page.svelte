@@ -23,50 +23,34 @@
   let errorMessage = '';
   let deploymentID: string;
 
-  let product: MarketplaceMetadata = createEmptyMarketplaceMetadata();
-
-  console.log($page.params);
-  // Use reactive statement to find the product based on URL parameters
-  // $: {
-  // //   if (data.name && data.version && $marketplaceStore.length > 0) {
-  // //     const foundProduct = $marketplaceStore.find(
-  // //       (p) => p.Name === data.name && p.Version === data.version
-  // //     );
-
-  // //     if (foundProduct) {
-  // //       product = foundProduct;
-  // //       errorMessage = '';
-  // //     } else {
-  // //       errorMessage = `Product ${data.name} version ${data.version} not found`;
-  // //       // No need to set productInstall as we're using the local product variable
-  // //     }
-  // //     $isLoading = false;
-  // //   } else if (data.name && data.version) {
-  // //     // We have parameters but no marketplace data yet
-  // //     $isLoading = true;
-  // //   }
-  // // }
-
-  // // If we don't have marketplace data on initial load, we need to wait
-  // onMount(() => {
-  //   if (!data.hasMarketplaceData && data.name && data.version) {
-  //     $isLoading = true;
-
-  //     // Add a timeout to prevent infinite loading state
-  //     const checkMarketplaceData = setInterval(() => {
-  //       if ($marketplaceStore.length > 0) {
-  //         clearInterval(checkMarketplaceData);
-  //       } else {
-  //         // If after 10 seconds we still don't have data, stop loading
-  //         setTimeout(() => {
-  //           clearInterval(checkMarketplaceData);
-  //           $isLoading = false;
-  //           errorMessage = 'Could not load marketplace data. Please try again.';
-  //         }, 10000);
-  //       }
-  //     }, 1000);
-  //   }
-  // });
+  let product: MarketplaceMetadata = data.product || createEmptyMarketplaceMetadata();
+  
+  onMount(() => {
+    if (!product.Name && data.name && data.version) {
+      $isLoading = true;
+      
+      // Try to fetch the product directly if not provided in data
+      fetch(`/api/marketplace/item/${data.name}/${data.version}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Product ${data.name} version ${data.version} not found`);
+          }
+          return response.json();
+        })
+        .then(productData => {
+          product = productData;
+          errorMessage = '';
+          $isLoading = false;
+        })
+        .catch(error => {
+          console.error("Error fetching product:", error);
+          errorMessage = error.message;
+          $isLoading = false;
+        });
+    } else {
+      $isLoading = false;
+    }
+  });
 
   function getObjectKeys(obj: object): string[] {
     return Object.keys(obj);
