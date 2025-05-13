@@ -1,8 +1,10 @@
 <script lang="ts">
   import { get } from 'svelte/store';
+  import { onMount } from 'svelte';
+  import { page } from '$app/stores';
   import { config } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
-  import { productInstall } from '../../store/stores';
+  import { productInstall, marketplaceStore, isLoading, createEmptyMarketplaceMetadata } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
   import AdvancedVar from './advanced_var.svelte';
 
@@ -12,11 +14,43 @@
 
   type ApplicationInstallStatus = { Status: string };
 
+  // Get data from the load function
+  export let data;
+
   let nodeGroups: NodeGroupType[] = [];
-
-  let product = get(productInstall);
-
+  let errorMessage = '';
   let deploymentID: string;
+  
+  // Use reactive statement to find the product based on URL parameters
+  $: {
+    if (data.name && data.version && $marketplaceStore.length > 0) {
+      const foundProduct = $marketplaceStore.find(
+        (p) => p.Name === data.name && p.Version === data.version
+      );
+      
+      if (foundProduct) {
+        productInstall.set(foundProduct);
+        errorMessage = '';
+      } else {
+        errorMessage = `Product ${data.name} version ${data.version} not found`;
+        productInstall.set(createEmptyMarketplaceMetadata());
+      }
+      $isLoading = false;
+    } else if (data.name && data.version) {
+      // We have parameters but no marketplace data yet
+      $isLoading = true;
+    }
+  }
+
+  // Make product reactive to changes in productInstall store
+  $: product = $productInstall;
+
+  // If we don't have marketplace data on initial load, we need to wait
+  onMount(() => {
+    if (!data.hasMarketplaceData && data.name && data.version) {
+      $isLoading = true;
+    }
+  });
 
   function getObjectKeys(obj: object): string[] {
     return Object.keys(obj);
@@ -42,8 +76,8 @@
     }
   }
 
-  $: Variables = product?.DefaultDeployment?.Variables?.Values || {};
-  $: AdvancedValues = product?.DefaultDeployment?.Variables?.AdvancedValues || {};
+  $: Variables = $productInstall?.DefaultDeployment?.Variables?.Values || {};
+  $: AdvancedValues = $productInstall?.DefaultDeployment?.Variables?.AdvancedValues || {};
 
   let varSetupDone = false;
   $: {
@@ -177,20 +211,25 @@
     currentStepIndex = currentStepIndex + 1;
   }
 
-  $: console.log(product);
+  $: console.log($productInstall);
   $: console.log($config);
 </script>
 
 <div class="container">
-  <div>
-    <div class="st-typography-header">
-      Installing Marketplace Application: <span class="st-typography-displayBody"
-        >{product.Name}</span
-      >
+  {#if $isLoading}
+    <div class="st-typography-header">Loading product information...</div>
+  {:else if errorMessage}
+    <div class="st-typography-header" style="color: red;">{errorMessage}</div>
+  {:else if $productInstall?.Name}
+    <div>
+      <div class="st-typography-header">
+        Installing Marketplace Application: <span class="st-typography-displayBody"
+          >{$productInstall.Name}</span
+        >
+      </div>
     </div>
-  </div>
-  <hr />
-  <div class="wizardContainer">
+    <hr />
+    <div class="wizardContainer">
     {#if steps[currentStepIndex] === 'deploymentDetails'}
       <div class="st-typography-displayBody">Deployment Details</div>
       <div class="variablesForm">
@@ -287,6 +326,7 @@
       </div>
     {/if}
   </div>
+  {/if}
 </div>
 
 <style>
