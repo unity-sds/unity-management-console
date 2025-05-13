@@ -319,7 +319,9 @@
             {/each}
             {#if dependencies.error}
               <hr />
-              {console.log($installedApplications)}
+              {#each Object.entries(product.Apps).filter(([key, value]) => !$installedApplications.find((installedApp) => installedApp.Name === key && installedApp.Version !== value.MinimumVersion)) as [appToInstall]}
+                <span class="st-typography-label">{appToInstall}</span>
+              {/each}
             {/if}
           {/await}
         {/if}

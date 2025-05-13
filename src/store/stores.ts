@@ -46,6 +46,7 @@ export interface MarketplaceMetadata {
 	PreInstall: string;
 	DefaultDeployment?: MarketplaceMetadataDefaultDeployment;
 	Dependencies: { [key: string]: string };
+	Apps: { [key: string]: { MinimumVersion: string } };
 }
 
 // Helper function to create a MarketplaceMetadata object from JSON data (replacing the protobuf fromJSON method)
@@ -115,7 +116,8 @@ export function createMarketplaceMetadataFromJSON(json: any): MarketplaceMetadat
 						shared_services_region: '/unity/shared-services/aws/account/region',
 						venue_proxy_baseurl: '/unity/${PROJ}/${VENUE}/management/httpd/loadbalancer-url',
 						venue_subnet_list: '/unity/account/network/subnet_list'
-				  }
+				  },
+		Apps: json.Apps || {}
 	};
 }
 
@@ -140,7 +142,8 @@ export function createEmptyMarketplaceMetadata(): MarketplaceMetadata {
 		PostInstall: '',
 		PreInstall: '',
 		DefaultDeployment: undefined,
-		Dependencies: {}
+		Dependencies: {},
+		Apps: {}
 	};
 }
 
