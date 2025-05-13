@@ -5,7 +5,7 @@
   import { config } from '../../store/stores';
   import { marketplaceData } from '../../store/marketplace';
   import type { NodeGroupType } from '../../data/entities';
-  import { isLoading, type MarketplaceMetadata } from '../../store/stores';
+  import { createEmptyMarketplaceMetadata, type MarketplaceMetadata } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
   import AdvancedVar from './advanced_var.svelte';
 
