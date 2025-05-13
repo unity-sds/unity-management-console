@@ -1,7 +1,6 @@
 import { browser } from '$app/environment';
 import type { PageLoad } from './$types';
-import { get } from 'svelte/store';
-import { marketplaceStore, refreshConfig } from '../../store/stores';
+import { refreshConfig } from '../../store/stores';
 
 export const load: PageLoad = async ({ url }) => {
   // Only run in the browser
@@ -19,7 +18,6 @@ export const load: PageLoad = async ({ url }) => {
   return {
     name,
     version,
-    hasMarketplaceData: get(marketplaceStore).length > 0,
     success: true
   };
 };
