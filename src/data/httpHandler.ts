@@ -188,54 +188,7 @@ export async function fetchDeployedApplications() {
 	}
 }
 
-async function generateMarketplace() {
-	if (!dev) {
-		console.log('Checking if manifest.json exists in the repository...');
-		const manifestExists = await checkIfFileExists(
-			marketplaceowner,
-			marketplacerepo,
-			'manifest.json'
-		);
-		if (manifestExists) {
-			console.log('manifest.json exists in the repository.');
-			const content = await getGitHubFileContents(
-				marketplaceowner,
-				marketplacerepo,
-				'manifest.json'
-			);
-			const c = JSON.parse(content);
-			const products: MarketplaceMetadata[] = [];
-			for (const p of c) {
-				const prod = createMarketplaceMetadataFromJSON(p);
-				products.push(prod);
-			}
-			marketplaceStore.set(products);
-			return;
-		}
-
-		console.log('fetching repo contents: ' + marketplaceowner);
-		const c = await getRepoContents(marketplaceowner, marketplacerepo);
-
-		const products: MarketplaceMetadata[] = [];
-		for (const p of c) {
-			const content = await getGitHubFileContents(marketplaceowner, marketplacerepo, p);
-			const j = JSON.parse(content);
-			const prod = createMarketplaceMetadataFromJSON(j);
-			products.push(prod);
-		}
-
-		marketplaceStore.set(products);
-	} else {
-		const j = JSON.parse(mock_marketplace);
-		const products: MarketplaceMetadata[] = [];
-		for (const p of j) {
-			const prod = createMarketplaceMetadataFromJSON(p);
-			products.push(prod);
-		}
-		marketplaceStore.set(products);
-		return;
-	}
-}
+async function generateMarketplace() {}
 
 async function checkIfFileExists(user: string, repo: string, filePath: string): Promise<boolean> {
 	const url = `/repos/${user}/${repo}/contents/${filePath}`;
