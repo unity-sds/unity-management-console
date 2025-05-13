@@ -4,12 +4,7 @@
   import { page } from '$app/stores';
   import { config } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
-  import {
-    productInstall,
-    marketplaceStore,
-    isLoading,
-    createEmptyMarketplaceMetadata
-  } from '../../store/stores';
+  import { marketplaceStore, isLoading, createEmptyMarketplaceMetadata } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
   import AdvancedVar from './advanced_var.svelte';
 
@@ -26,6 +21,7 @@
   let errorMessage = '';
   let deploymentID: string;
 
+  let product;
   // Use reactive statement to find the product based on URL parameters
   $: {
     if (data.name && data.version && $marketplaceStore.length > 0) {
@@ -34,7 +30,7 @@
       );
 
       if (foundProduct) {
-        productInstall.set(foundProduct);
+        product = foundProduct;
         errorMessage = '';
       } else {
         errorMessage = `Product ${data.name} version ${data.version} not found`;
@@ -47,14 +43,11 @@
     }
   }
 
-  // Make product reactive to changes in productInstall store
-  $: product = $productInstall;
-
   // If we don't have marketplace data on initial load, we need to wait
   onMount(() => {
     if (!data.hasMarketplaceData && data.name && data.version) {
       $isLoading = true;
-      
+
       // Add a timeout to prevent infinite loading state
       const checkMarketplaceData = setInterval(() => {
         if ($marketplaceStore.length > 0) {
@@ -64,7 +57,7 @@
           setTimeout(() => {
             clearInterval(checkMarketplaceData);
             $isLoading = false;
-            errorMessage = "Could not load marketplace data. Please try again.";
+            errorMessage = 'Could not load marketplace data. Please try again.';
           }, 10000);
         }
       }, 1000);
