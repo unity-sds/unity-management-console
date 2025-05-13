@@ -319,7 +319,7 @@
             {/each}
             {#if dependencies.error}
               <hr />
-              {console.log(installedApplications)}
+              {console.log($installedApplications)}
             {/if}
           {/await}
         {/if}
