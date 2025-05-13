@@ -14,14 +14,13 @@
 
   type ApplicationInstallStatus = { Status: string };
 
-  // Get data from the load function
-  export let data;
-
   let nodeGroups: NodeGroupType[] = [];
   let errorMessage = '';
   let deploymentID: string;
 
   let product;
+
+  console.log($page.params);
   // Use reactive statement to find the product based on URL parameters
   $: {
     if (data.name && data.version && $marketplaceStore.length > 0) {
@@ -43,26 +42,26 @@
     }
   }
 
-  // If we don't have marketplace data on initial load, we need to wait
-  onMount(() => {
-    if (!data.hasMarketplaceData && data.name && data.version) {
-      $isLoading = true;
+  // // If we don't have marketplace data on initial load, we need to wait
+  // onMount(() => {
+  //   if (!data.hasMarketplaceData && data.name && data.version) {
+  //     $isLoading = true;
 
-      // Add a timeout to prevent infinite loading state
-      const checkMarketplaceData = setInterval(() => {
-        if ($marketplaceStore.length > 0) {
-          clearInterval(checkMarketplaceData);
-        } else {
-          // If after 10 seconds we still don't have data, stop loading
-          setTimeout(() => {
-            clearInterval(checkMarketplaceData);
-            $isLoading = false;
-            errorMessage = 'Could not load marketplace data. Please try again.';
-          }, 10000);
-        }
-      }, 1000);
-    }
-  });
+  //     // Add a timeout to prevent infinite loading state
+  //     const checkMarketplaceData = setInterval(() => {
+  //       if ($marketplaceStore.length > 0) {
+  //         clearInterval(checkMarketplaceData);
+  //       } else {
+  //         // If after 10 seconds we still don't have data, stop loading
+  //         setTimeout(() => {
+  //           clearInterval(checkMarketplaceData);
+  //           $isLoading = false;
+  //           errorMessage = 'Could not load marketplace data. Please try again.';
+  //         }, 10000);
+  //       }
+  //     }, 1000);
+  //   }
+  // });
 
   function getObjectKeys(obj: object): string[] {
     return Object.keys(obj);
