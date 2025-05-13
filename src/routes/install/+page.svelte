@@ -47,6 +47,10 @@
         venue_proxy_baseurl: '/unity/${PROJ}/${VENUE}/management/httpd/loadbalancer-url',
         venue_subnet_list: '/unity/account/network/subnet_list'
       };
+      product.Apps = {
+        'unity-sps-eks': { MinimumVersion: '0.3' },
+        'unity-sps-karpenter': { MinimumVersion: '0.3' }
+      };
       console.log(product);
     }
     isLoading = false;
