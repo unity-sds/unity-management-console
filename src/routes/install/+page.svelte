@@ -305,7 +305,7 @@
       {:else if steps[currentStepIndex] === 'dependencies'}
         <div class="st-typography-small-caps">Dependencies</div>
         {console.log(product)}
-        {#if !product.Dependencies || !product.Dependencies.length}
+        {#if !product.Dependencies || !Object.keys(product.Dependencies).length}
           <div class="st-typography-label">This product has no dependencies</div>
         {:else}
           {#each Object.keys(product.Dependencies) as key}
