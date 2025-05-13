@@ -56,7 +56,7 @@
     const res = await fetch(`./api/check_application_dependencies/${appName}/${version}`);
     if (!res.ok) {
       errorMessage = 'Unable to check dependencies';
-      return;
+      return {};
     }
     return await res.json();
   }
@@ -304,13 +304,17 @@
         {/if}
       {:else if steps[currentStepIndex] === 'dependencies'}
         <div class="st-typography-small-caps">Dependencies</div>
-        {console.log(product)}
+
         {#if !product.Dependencies || !Object.keys(product.Dependencies).length}
           <div class="st-typography-label">This product has no dependencies</div>
         {:else}
-          {#each Object.keys(product.Dependencies) as key}
-            <span>{key}</span>
-          {/each}
+          {#await getProductDependencies() then dependencies}
+            {#each Object.entries(dependencies) as [key, value]}
+              <span class="st-typography-bold">{key}:</span><span class="st-typography-label"
+                >{value}</span
+              >
+            {/each}
+          {/await}
         {/if}
       {:else if steps[currentStepIndex] === 'summary'}
         <div class="st-typography-small-caps">Installation Summary</div>
