@@ -28,7 +28,6 @@
 
   // Use reactive statement to find the product based on URL parameters
   $: {
-    debugger;
     if (data.name && data.version && $marketplaceStore.length > 0) {
       const foundProduct = $marketplaceStore.find(
         (p) => p.Name === data.name && p.Version === data.version
