@@ -80,7 +80,7 @@
   $: managedDependenciesKeys =
     product && product.ManagedDependencies ? getObjectKeys(product.ManagedDependencies) : [];
 
-  const steps = ['deploymentDetails', 'variables', 'summary'];
+  const steps = ['deploymentDetails', 'variables', 'dependencies', 'summary'];
   let currentStepIndex = 0;
 
   let applicationMetadata = {
@@ -287,6 +287,11 @@
             <AdvancedVar bind:json={AdvancedValues} editMode={true} />
           </div>
         {/if}
+      {:else if steps[currentStepIndex] === 'dependencies'}
+        <div class="st-typography-small-caps">Dependencies</div>
+        {#if !product.Dependencies.length}
+          <div class="st-typography-bold">This product has no dependencies</div>
+        {:else}{/if}
       {:else if steps[currentStepIndex] === 'summary'}
         <div class="st-typography-small-caps">Installation Summary</div>
         <div class="variablesForm">
