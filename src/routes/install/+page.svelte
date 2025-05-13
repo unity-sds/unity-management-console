@@ -88,8 +88,8 @@
     }
   }
 
-  $: Variables = $productInstall?.DefaultDeployment?.Variables?.Values || {};
-  $: AdvancedValues = $productInstall?.DefaultDeployment?.Variables?.AdvancedValues || {};
+  $: Variables = product?.DefaultDeployment?.Variables?.Values || {};
+  $: AdvancedValues = product?.DefaultDeployment?.Variables?.AdvancedValues || {};
 
   let varSetupDone = false;
   $: {
@@ -223,7 +223,7 @@
     currentStepIndex = currentStepIndex + 1;
   }
 
-  $: console.log($productInstall);
+  $: console.log(product);
   $: console.log($config);
 </script>
 
@@ -232,11 +232,11 @@
     <div class="st-typography-header">Loading product information...</div>
   {:else if errorMessage}
     <div class="st-typography-header" style="color: red;">{errorMessage}</div>
-  {:else if $productInstall?.Name}
+  {:else if product?.Name}
     <div>
       <div class="st-typography-header">
         Installing Marketplace Application: <span class="st-typography-displayBody"
-          >{$productInstall.Name}</span
+          >{product.Name}</span
         >
       </div>
     </div>
