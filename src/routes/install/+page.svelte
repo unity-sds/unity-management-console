@@ -23,34 +23,34 @@
   let errorMessage = '';
   let deploymentID: string;
 
-  let product: MarketplaceMetadata = data.product || createEmptyMarketplaceMetadata();
-  
-  onMount(() => {
-    if (!product.Name && data.name && data.version) {
-      $isLoading = true;
-      
-      // Try to fetch the product directly if not provided in data
-      fetch(`/api/marketplace/item/${data.name}/${data.version}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Product ${data.name} version ${data.version} not found`);
-          }
-          return response.json();
-        })
-        .then(productData => {
-          product = productData;
-          errorMessage = '';
-          $isLoading = false;
-        })
-        .catch(error => {
-          console.error("Error fetching product:", error);
-          errorMessage = error.message;
-          $isLoading = false;
-        });
-    } else {
-      $isLoading = false;
-    }
-  });
+  let product: MarketplaceMetadata = createEmptyMarketplaceMetadata();
+
+  // onMount(() => {
+  //   if (!product.Name && data.name && data.version) {
+  //     $isLoading = true;
+
+  //     // Try to fetch the product directly if not provided in data
+  //     fetch(`/api/marketplace/item/${data.name}/${data.version}`)
+  //       .then(response => {
+  //         if (!response.ok) {
+  //           throw new Error(`Product ${data.name} version ${data.version} not found`);
+  //         }
+  //         return response.json();
+  //       })
+  //       .then(productData => {
+  //         product = productData;
+  //         errorMessage = '';
+  //         $isLoading = false;
+  //       })
+  //       .catch(error => {
+  //         console.error("Error fetching product:", error);
+  //         errorMessage = error.message;
+  //         $isLoading = false;
+  //       });
+  //   } else {
+  //     $isLoading = false;
+  //   }
+  // });
 
   function getObjectKeys(obj: object): string[] {
     return Object.keys(obj);
