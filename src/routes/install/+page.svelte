@@ -309,7 +309,7 @@
           <div class="st-typography-label">This product has no dependencies</div>
         {:else}
           {#await getProductDependencies() then dependencies}
-            {#each Object.entries(dependencies) as [key, value]}
+            {#each Object.entries(dependencies.params) as [key, value]}
               <span class="st-typography-bold">{key}:</span><span class="st-typography-label"
                 >{value}</span
               >
