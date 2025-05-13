@@ -23,8 +23,14 @@
   // Create a stable reference for the empty product state
   const emptyProduct: MarketplaceMetadata = createEmptyMarketplaceMetadata();
   
+  import { onMount } from 'svelte';
+  
+  // Variables to track initialization state
+  let initialized = false;
+  let initialProductSet = false;
+  
   // Main reactive block for handling product loading and state
-  $: {
+  $: if (initialized) {
     const appName = data.name;
     const appVersion = data.version;
 
@@ -93,11 +99,12 @@
     // Compare productInstall (more robust comparison)
     const currentProduct = $productInstall ?? emptyProduct;
     // Check if Name or Version differs
-    if (targetProduct && (currentProduct.Name !== targetProduct.Name || currentProduct.Version !== targetProduct.Version)) {
+    if (!initialProductSet || (targetProduct && (currentProduct.Name !== targetProduct.Name || currentProduct.Version !== targetProduct.Version))) {
        // --- Add Logging ---
        console.log(`>>> Updating productInstall: ${currentProduct.Name}/${currentProduct.Version} -> ${targetProduct.Name}/${targetProduct.Version}`);
        // --- End Logging ---
        productInstall.set(targetProduct);
+       initialProductSet = true;
        stateChanged = true;
     }
 
@@ -119,6 +126,12 @@
     console.log('--- Reactive Block End ---');
     // --- End Logging State Change ---
   }
+  
+  // Use onMount to initialize the component once
+  onMount(() => {
+    // Set initialized to true after the component is mounted
+    initialized = true;
+  });
 
   function getObjectKeys(obj: object): string[] {
     return Object.keys(obj);
@@ -135,7 +148,7 @@
     Variables: {} as { [key: string]: string }
   };
 
-  $: {
+  $: if (initialized && $config) {
     let configProjectChanged = false;
     let configVenueChanged = false;
     if ($config?.applicationConfig?.Project) {
@@ -160,21 +173,17 @@
   $: AdvancedValues = $productInstall?.DefaultDeployment?.Variables?.AdvancedValues || {};
 
   let varSetupDone = false;
-  $: {
-    // This block depends on 'Variables', which depends on '$productInstall'
-    // Check if it runs unnecessarily
-    if (!varSetupDone && Object.keys(Variables).length) {
-      console.log('--- Variable Setup Block Running ---'); // Add log
-      Object.entries(Variables).forEach(([key, value]) => {
-        if (value) {
-          // Avoid overwriting if already set, maybe? Or just log
-          // console.log(`Setting applicationMetadata.Variables[${key}] from Variables`);
-          applicationMetadata.Variables[key] = value;
-        }
-      });
-      varSetupDone = true;
-      console.log('--- Variable Setup Block Done ---'); // Add log
-    }
+  $: if (initialized && !varSetupDone && Object.keys(Variables).length) {
+    console.log('--- Variable Setup Block Running ---'); // Add log
+    Object.entries(Variables).forEach(([key, value]) => {
+      if (value) {
+        // Avoid overwriting if already set, maybe? Or just log
+        // console.log(`Setting applicationMetadata.Variables[${key}] from Variables`);
+        applicationMetadata.Variables[key] = value;
+      }
+    });
+    varSetupDone = true;
+    console.log('--- Variable Setup Block Done ---'); // Add log
   }
 
   let installInProgress = false;
