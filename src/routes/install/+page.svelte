@@ -4,7 +4,12 @@
   import { page } from '$app/stores';
   import { config } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
-  import { marketplaceStore, isLoading, createEmptyMarketplaceMetadata, type MarketplaceMetadata } from '../../store/stores';
+  import {
+    marketplaceStore,
+    isLoading,
+    createEmptyMarketplaceMetadata,
+    type MarketplaceMetadata
+  } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
   import AdvancedVar from './advanced_var.svelte';
 
@@ -18,29 +23,29 @@
   let errorMessage = '';
   let deploymentID: string;
 
-  let product: MarketplaceMetadata | undefined;
+  let product: MarketplaceMetadata = createEmptyMarketplaceMetadata();
 
   console.log($page.params);
   // Use reactive statement to find the product based on URL parameters
-  $: {
-    if (data.name && data.version && $marketplaceStore.length > 0) {
-      const foundProduct = $marketplaceStore.find(
-        (p) => p.Name === data.name && p.Version === data.version
-      );
+  // $: {
+  // //   if (data.name && data.version && $marketplaceStore.length > 0) {
+  // //     const foundProduct = $marketplaceStore.find(
+  // //       (p) => p.Name === data.name && p.Version === data.version
+  // //     );
 
-      if (foundProduct) {
-        product = foundProduct;
-        errorMessage = '';
-      } else {
-        errorMessage = `Product ${data.name} version ${data.version} not found`;
-        // No need to set productInstall as we're using the local product variable
-      }
-      $isLoading = false;
-    } else if (data.name && data.version) {
-      // We have parameters but no marketplace data yet
-      $isLoading = true;
-    }
-  }
+  // //     if (foundProduct) {
+  // //       product = foundProduct;
+  // //       errorMessage = '';
+  // //     } else {
+  // //       errorMessage = `Product ${data.name} version ${data.version} not found`;
+  // //       // No need to set productInstall as we're using the local product variable
+  // //     }
+  // //     $isLoading = false;
+  // //   } else if (data.name && data.version) {
+  // //     // We have parameters but no marketplace data yet
+  // //     $isLoading = true;
+  // //   }
+  // // }
 
   // // If we don't have marketplace data on initial load, we need to wait
   // onMount(() => {
