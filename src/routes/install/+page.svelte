@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { config } from '../../store/stores';
+  import { marketplaceData } from '../../store/marketplace';
   import type { NodeGroupType } from '../../data/entities';
   import {
     marketplaceStore,
@@ -31,6 +32,11 @@
   if (!appName || !version) {
     errorMessage = 'Please specify an app name and version in the URL parameters.';
   }
+
+  if (!errorMessage) {
+  }
+
+  $: console.log($marketplaceData);
 
   // onMount(() => {
   //   if (!product.Name && data.name && data.version) {
