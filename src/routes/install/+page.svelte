@@ -265,8 +265,14 @@
   let logInterval: any = null;
 
   async function getLogs() {
+    // Check if product details and deployment name are available
+    if (!$productInstall || !$productInstall.Name || !applicationMetadata.DeploymentName) {
+      console.warn("Cannot get logs: Missing product details or deployment name.");
+      return;
+    }
+    
     const res = await fetch(
-      `../api/install_application/logs/${product.Name}/${applicationMetadata.DeploymentName}`
+      `../api/install_application/logs/${$productInstall.Name}/${applicationMetadata.DeploymentName}`
     );
     if (!res.ok) {
       console.warn('Unable to get logs!');
