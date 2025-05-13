@@ -1,5 +1,5 @@
 import { readable } from 'svelte/store';
-import { type MarketplaceMetadata } from './stores';
+import type { MarketplaceMetadata } from './stores';
 
 const marketplaceowner = 'unity-sds';
 const marketplacerepo = 'unity-marketplace';

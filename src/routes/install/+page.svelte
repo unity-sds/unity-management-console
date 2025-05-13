@@ -32,7 +32,16 @@
   if (!errorMessage) {
   }
 
-  $: console.log($marketplaceData);
+  $: if ($marketplaceData && !product.Name) {
+    const foundProduct = $marketplaceData.find(
+      (p: MarketplaceMetadata) => p.Name === appName && p.Version == version
+    );
+    if (!foundProduct) {
+      errorMessage = `Couldn't find info for product: ${appName}, version: ${version}`;
+    } else {
+      product = foundProduct;
+    }
+  }
 
   // onMount(() => {
   //   if (!product.Name && data.name && data.version) {
