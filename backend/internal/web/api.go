@@ -321,7 +321,7 @@ log.Info("Metadata %v", metadata)
 		log.Info("Checking dependencies for %s, version %s", appName, version)
 
 		c.JSON(http.StatusOK, gin.H{
-			"error":   nil,
+			"error":   "asdfsdfs",
 			"params":  results,
 		})
 		return
