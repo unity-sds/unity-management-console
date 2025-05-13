@@ -289,7 +289,7 @@
         {/if}
       {:else if steps[currentStepIndex] === 'dependencies'}
         <div class="st-typography-small-caps">Dependencies</div>
-        {#if !product.Dependencies.length}
+        {#if !product.Dependencies || !product.Dependencies.length}
           <div class="st-typography-bold">This product has no dependencies</div>
         {:else}{/if}
       {:else if steps[currentStepIndex] === 'summary'}
