@@ -4,7 +4,7 @@ const marketplaceowner = 'unity-sds';
 const marketplacerepo = 'unity-marketplace';
 
 export const marketplaceData = readable({}, (set) => {
-	const url = `/repos/${marketplaceowner}/${marketplacerepo}/contents/manifest.json`;
+	const url = `https://api.github.com/repos/${marketplaceowner}/${marketplacerepo}/contents/manifest.json`;
 	fetch(url)
 		.then((res) => res.json())
 		.then((json) => set(json))
