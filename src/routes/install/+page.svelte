@@ -25,7 +25,12 @@
 
   let product: MarketplaceMetadata = createEmptyMarketplaceMetadata();
 
-  $: console.log({ params: $page.url.searchParams.get('version') });
+  const appName = $page.url.searchParams.get('name');
+  const version = $page.url.searchParams.get('version');
+
+  if (!appName || !version) {
+    errorMessage = 'Please specify an app name and version in the URL parameters.';
+  }
 
   // onMount(() => {
   //   if (!product.Name && data.name && data.version) {
