@@ -4,7 +4,12 @@
   import { page } from '$app/stores';
   import { config } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
-  import { productInstall, marketplaceStore, isLoading, createEmptyMarketplaceMetadata } from '../../store/stores';
+  import {
+    productInstall,
+    marketplaceStore,
+    isLoading,
+    createEmptyMarketplaceMetadata
+  } from '../../store/stores';
   import SetupWizard from '../../components/SetupWizard.svelte';
   import AdvancedVar from './advanced_var.svelte';
 
@@ -20,14 +25,15 @@
   let nodeGroups: NodeGroupType[] = [];
   let errorMessage = '';
   let deploymentID: string;
-  
+
   // Use reactive statement to find the product based on URL parameters
   $: {
+    debugger;
     if (data.name && data.version && $marketplaceStore.length > 0) {
       const foundProduct = $marketplaceStore.find(
         (p) => p.Name === data.name && p.Version === data.version
       );
-      
+
       if (foundProduct) {
         productInstall.set(foundProduct);
         errorMessage = '';
@@ -230,102 +236,102 @@
     </div>
     <hr />
     <div class="wizardContainer">
-    {#if steps[currentStepIndex] === 'deploymentDetails'}
-      <div class="st-typography-displayBody">Deployment Details</div>
-      <div class="variablesForm">
-        <div class="st-typography-label">
-          Deployment Name (this should be a unique identifier for this installation of the
-          Marketplace item)
-        </div>
-        {#if validationErrors.deploymentName}
-          <span class="st-typography-label" style="color:red;"
-            >{validationErrors.deploymentName}</span
-          >
-        {/if}
-        <input class="st-input" bind:value={applicationMetadata.DeploymentName} maxlength="32" />
-      </div>
-    {:else if steps[currentStepIndex] === 'variables'}
-      <div class="st-typography-small-caps">Variables</div>
-      <div class="variablesForm">
-        {#each Object.entries(Variables) as [key, value]}
-          <div>
-            <div class="st-typography-label">
-              {key}
-            </div>
-            <div style="display: flex; flex-direction: column;">
-              {#if validationErrors.variables[key]}
-                <span class="st-typography-label" style="color:red;"
-                  >{validationErrors.variables[key]}</span
-                >
-              {/if}
-              <input class="st-input" bind:value={applicationMetadata.Variables[key]} />
-            </div>
-          </div>
-        {/each}
-      </div>
-      {#if AdvancedValues}
-        <hr style="margin-top:10px" />
+      {#if steps[currentStepIndex] === 'deploymentDetails'}
+        <div class="st-typography-displayBody">Deployment Details</div>
         <div class="variablesForm">
-          <AdvancedVar bind:json={AdvancedValues} editMode={true} />
+          <div class="st-typography-label">
+            Deployment Name (this should be a unique identifier for this installation of the
+            Marketplace item)
+          </div>
+          {#if validationErrors.deploymentName}
+            <span class="st-typography-label" style="color:red;"
+              >{validationErrors.deploymentName}</span
+            >
+          {/if}
+          <input class="st-input" bind:value={applicationMetadata.DeploymentName} maxlength="32" />
         </div>
-      {/if}
-    {:else if steps[currentStepIndex] === 'summary'}
-      <div class="st-typography-small-caps">Installation Summary</div>
-      <div class="variablesForm">
-        <div style="display: flex;">
-          <div class="st-typography-label">Version:&nbsp;</div>
-          <div class="st-typography-bold">{product.Version}</div>
-        </div>
-        <hr />
-        <div>
-          <div class="st-typography-bold">Variables</div>
-          {#each Object.entries(applicationMetadata.Variables) as [key, value]}
-            <div style="display: flex;">
-              <div class="st-typography-label">{key}:&nbsp;</div>
-              <div class="st-typography-bold">{value}</div>
+      {:else if steps[currentStepIndex] === 'variables'}
+        <div class="st-typography-small-caps">Variables</div>
+        <div class="variablesForm">
+          {#each Object.entries(Variables) as [key, value]}
+            <div>
+              <div class="st-typography-label">
+                {key}
+              </div>
+              <div style="display: flex; flex-direction: column;">
+                {#if validationErrors.variables[key]}
+                  <span class="st-typography-label" style="color:red;"
+                    >{validationErrors.variables[key]}</span
+                  >
+                {/if}
+                <input class="st-input" bind:value={applicationMetadata.Variables[key]} />
+              </div>
             </div>
           {/each}
-          {#if AdvancedValues}
-            <AdvancedVar bind:json={AdvancedValues} />
-          {/if}
         </div>
-      </div>
-    {/if}
-    <hr style="margin-top:10px" />
-    <div style="margin-top:10px;">
-      {#if currentStepIndex > 0}
-        <button class="st-button secondary" on:click={(_) => currentStepIndex--}>Back</button>
+        {#if AdvancedValues}
+          <hr style="margin-top:10px" />
+          <div class="variablesForm">
+            <AdvancedVar bind:json={AdvancedValues} editMode={true} />
+          </div>
+        {/if}
+      {:else if steps[currentStepIndex] === 'summary'}
+        <div class="st-typography-small-caps">Installation Summary</div>
+        <div class="variablesForm">
+          <div style="display: flex;">
+            <div class="st-typography-label">Version:&nbsp;</div>
+            <div class="st-typography-bold">{product.Version}</div>
+          </div>
+          <hr />
+          <div>
+            <div class="st-typography-bold">Variables</div>
+            {#each Object.entries(applicationMetadata.Variables) as [key, value]}
+              <div style="display: flex;">
+                <div class="st-typography-label">{key}:&nbsp;</div>
+                <div class="st-typography-bold">{value}</div>
+              </div>
+            {/each}
+            {#if AdvancedValues}
+              <AdvancedVar bind:json={AdvancedValues} />
+            {/if}
+          </div>
+        </div>
       {/if}
-      {#if installInProgress}
-        <button class="st-button" disabled>Installing...</button>
-      {:else if installFailed}
-        <button class="st-button" disabled style="color:red;">Install Failed!</button>
-      {:else if installComplete}
-        <button class="st-button" disabled on:click={installApplication}>Install Complete</button>
-      {:else if currentStepIndex === steps.length - 1}
-        <button class="st-button" on:click={installApplication}>Install</button>
-      {:else}
-        <button class="st-button" on:click={gotoNextStep}>Next</button>
-      {/if}
+      <hr style="margin-top:10px" />
+      <div style="margin-top:10px;">
+        {#if currentStepIndex > 0}
+          <button class="st-button secondary" on:click={(_) => currentStepIndex--}>Back</button>
+        {/if}
+        {#if installInProgress}
+          <button class="st-button" disabled>Installing...</button>
+        {:else if installFailed}
+          <button class="st-button" disabled style="color:red;">Install Failed!</button>
+        {:else if installComplete}
+          <button class="st-button" disabled on:click={installApplication}>Install Complete</button>
+        {:else if currentStepIndex === steps.length - 1}
+          <button class="st-button" on:click={installApplication}>Install</button>
+        {:else}
+          <button class="st-button" on:click={gotoNextStep}>Next</button>
+        {/if}
 
-      {#if installInProgress || installComplete}
-        <button class="st-button" on:click={(_) => (showLogs = !showLogs)}
-          >{showLogs ? 'Hide' : 'Show'} Logs</button
-        >
+        {#if installInProgress || installComplete}
+          <button class="st-button" on:click={(_) => (showLogs = !showLogs)}
+            >{showLogs ? 'Hide' : 'Show'} Logs</button
+          >
+        {/if}
+      </div>
+      {#if errMsg}
+        <div class="st-typography-label" style="color:red;">{errMsg}</div>
       {/if}
-    </div>
-    {#if errMsg}
-      <div class="st-typography-label" style="color:red;">{errMsg}</div>
-    {/if}
-    {#if showLogs && logs}
-      <div style="margin-top:10px">
-        <hr />
-        <pre bind:this={logsDiv}>
+      {#if showLogs && logs}
+        <div style="margin-top:10px">
+          <hr />
+          <pre bind:this={logsDiv}>
       {logs}
     </pre>
-      </div>
-    {/if}
-  </div>
+        </div>
+      {/if}
+    </div>
   {/if}
 </div>
 
