@@ -25,34 +25,53 @@
     const appVersion = data.version;
 
     if (appName && appVersion) {
-      // Parameters are present, attempt to load product
+      // Parameters are present
       if ($marketplaceStore && $marketplaceStore.length > 0) {
-        // Marketplace data is available
-        isLoading.set(true); // Indicate processing started (can be brief)
+        // Marketplace data is available.
+        // We are past the initial loading phase for marketplaceStore.
         
         const foundProduct = $marketplaceStore.find(
           (p) => p.Name === appName && p.Version === appVersion
         );
 
         if (foundProduct) {
-          productInstall.set(foundProduct);
-          errorMessage = ''; // Clear any previous error
+          // Product found. Update store only if it's a different product.
+          if ($productInstall?.Name !== foundProduct.Name || $productInstall?.Version !== foundProduct.Version) {
+            productInstall.set(foundProduct);
+          }
+          errorMessage = ''; // Clear any previous error.
         } else {
-          errorMessage = `Product "${appName}" (Version: "${appVersion}") not found in the marketplace.`;
-          productInstall.set(createEmptyMarketplaceMetadata());
+          // Product not found in marketplace.
+          const notFoundErrorMessage = `Product "${appName}" (Version: "${appVersion}") not found in the marketplace.`;
+          // Update to "empty" state only if not already effectively empty or error message needs update.
+          if ($productInstall?.Name !== '' || errorMessage !== notFoundErrorMessage) {
+            // Check against Name === '' because createEmptyMarketplaceMetadata() sets Name to ''.
+            productInstall.set(createEmptyMarketplaceMetadata());
+            errorMessage = notFoundErrorMessage;
+          }
         }
-        isLoading.set(false); // Processing finished
+        // Data processed, ensure isLoading is false.
+        if ($isLoading) {
+            isLoading.set(false);
+        }
       } else {
-        // Marketplace data not yet available, or store is empty
-        isLoading.set(true); // Set to loading, wait for $marketplaceStore to update
-        errorMessage = 'Marketplace data is loading...'; // Inform user
+        // Marketplace data not yet available or store is empty. This is the loading phase.
+        if (!$isLoading) {
+            isLoading.set(true);
+        }
+        errorMessage = 'Marketplace data is loading...';
+        // If a product was previously set, clear it, as marketplace context is now "loading".
+        if ($productInstall?.Name !== '') { // Check if not already the "empty" state
+            productInstall.set(createEmptyMarketplaceMetadata());
+        }
       }
     } else {
-      // No application name/version in URL parameters
-      isLoading.set(false); // Not actively loading based on URL parameters
+      // No application name/version in URL parameters.
+      if ($isLoading) {
+        isLoading.set(false);
+      }
 
-      // If a product is already in $productInstall (e.g., user navigated back), don't clear it.
-      // Otherwise, show an appropriate message.
+      // If no product is in productInstall (i.e., it's in the "empty" state), show message.
       if (!($productInstall && $productInstall.Name)) { 
           errorMessage = 'No application specified. Please select an application from the marketplace.';
       } else {
