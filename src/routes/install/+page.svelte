@@ -32,7 +32,7 @@
   if (!errorMessage) {
   }
 
-  $: if ($marketplaceData && !product.Name) {
+  $: if ($marketplaceData.length && !product.Name) {
     const foundProduct = $marketplaceData.find(
       (p: MarketplaceMetadata) => p.Name === appName && p.Version == version
     );
