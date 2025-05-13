@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { get } from 'svelte/store';
-  import { onMount } from 'svelte';
   import { page } from '$app/stores';
   import { config } from '../../store/stores';
   import type { NodeGroupType } from '../../data/entities';
@@ -21,36 +19,51 @@
   let errorMessage = '';
   let deploymentID: string;
   
-  // Use reactive statement to find the product based on URL parameters
+  // Main reactive block for handling product loading and state
   $: {
-    if (data.name && data.version && $marketplaceStore.length > 0) {
-      const foundProduct = $marketplaceStore.find(
-        (p) => p.Name === data.name && p.Version === data.version
-      );
-      
-      if (foundProduct) {
-        productInstall.set(foundProduct);
-        errorMessage = '';
+    const appName = data.name;
+    const appVersion = data.version;
+
+    if (appName && appVersion) {
+      // Parameters are present, attempt to load product
+      if ($marketplaceStore && $marketplaceStore.length > 0) {
+        // Marketplace data is available
+        isLoading.set(true); // Indicate processing started (can be brief)
+        
+        const foundProduct = $marketplaceStore.find(
+          (p) => p.Name === appName && p.Version === appVersion
+        );
+
+        if (foundProduct) {
+          productInstall.set(foundProduct);
+          errorMessage = ''; // Clear any previous error
+        } else {
+          errorMessage = `Product "${appName}" (Version: "${appVersion}") not found in the marketplace.`;
+          productInstall.set(createEmptyMarketplaceMetadata());
+        }
+        isLoading.set(false); // Processing finished
       } else {
-        errorMessage = `Product ${data.name} version ${data.version} not found`;
-        productInstall.set(createEmptyMarketplaceMetadata());
+        // Marketplace data not yet available, or store is empty
+        isLoading.set(true); // Set to loading, wait for $marketplaceStore to update
+        errorMessage = 'Marketplace data is loading...'; // Inform user
       }
-      $isLoading = false;
-    } else if (data.name && data.version) {
-      // We have parameters but no marketplace data yet
-      $isLoading = true;
+    } else {
+      // No application name/version in URL parameters
+      isLoading.set(false); // Not actively loading based on URL parameters
+
+      // If a product is already in $productInstall (e.g., user navigated back), don't clear it.
+      // Otherwise, show an appropriate message.
+      if (!($productInstall && $productInstall.Name)) { 
+          errorMessage = 'No application specified. Please select an application from the marketplace.';
+      } else {
+          // A product is already in $productInstall, and no new one from URL, so clear any URL-related error.
+          errorMessage = '';
+      }
     }
   }
 
   // Make product reactive to changes in productInstall store
   $: product = $productInstall;
-
-  // If we don't have marketplace data on initial load, we need to wait
-  onMount(() => {
-    if (!data.hasMarketplaceData && data.name && data.version) {
-      $isLoading = true;
-    }
-  });
 
   function getObjectKeys(obj: object): string[] {
     return Object.keys(obj);
@@ -211,8 +224,8 @@
     currentStepIndex = currentStepIndex + 1;
   }
 
-  $: console.log($productInstall);
-  $: console.log($config);
+  $: console.log("Current productInstall state:", $productInstall);
+  $: console.log("Current config state:", $config);
 </script>
 
 <div class="container">
