@@ -41,6 +41,12 @@
       errorMessage = `Couldn't find info for product: ${appName}, version: ${version}`;
     } else {
       product = foundProduct;
+      product.Dependencies = {
+        shared_services_account: '/unity/shared-services/aws/account',
+        shared_services_region: '/unity/shared-services/aws/account/region',
+        venue_proxy_baseurl: '/unity/${PROJ}/${VENUE}/management/httpd/loadbalancer-url',
+        venue_subnet_list: '/unity/account/network/subnet_list'
+      };
       console.log(product);
     }
     isLoading = false;
@@ -290,8 +296,12 @@
       {:else if steps[currentStepIndex] === 'dependencies'}
         <div class="st-typography-small-caps">Dependencies</div>
         {#if !product.Dependencies || !product.Dependencies.length}
-          <div class="st-typography-bold">This product has no dependencies</div>
-        {:else}{/if}
+          <div class="st-typography-label">This product has no dependencies</div>
+        {:else}
+          {#each Object.keys(product.Dependencies) as key}
+            <span>{key}</span>
+          {/each}
+        {/if}
       {:else if steps[currentStepIndex] === 'summary'}
         <div class="st-typography-small-caps">Installation Summary</div>
         <div class="variablesForm">
