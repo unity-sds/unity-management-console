@@ -18,6 +18,7 @@
   let nodeGroups: NodeGroupType[] = [];
   let errorMessage = '';
   let deploymentID: string;
+  let isLoading = true;
 
   let product: MarketplaceMetadata = createEmptyMarketplaceMetadata();
 
@@ -221,7 +222,7 @@
 </script>
 
 <div class="container">
-  {#if $isLoading}
+  {#if isLoading}
     <div class="st-typography-header">Loading product information...</div>
   {:else if errorMessage}
     <div class="st-typography-header" style="color: red;">{errorMessage}</div>
