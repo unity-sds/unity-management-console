@@ -7,7 +7,10 @@ export const marketplaceData = readable({}, (set) => {
 	const url = `https://api.github.com/repos/${marketplaceowner}/${marketplacerepo}/contents/manifest.json`;
 	fetch(url)
 		.then((res) => res.json())
-		.then((json) => set(json))
+		.then((json) => {
+			console.log({ json });
+			set(json);
+		})
 		.catch((e) => set({}));
 });
 
