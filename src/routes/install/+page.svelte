@@ -52,6 +52,15 @@
     isLoading = false;
   }
 
+  async function getProductDependencies() {
+    const res = await fetch(`./api/check_application_dependencies/${appName}/${version}`);
+    if (!res.ok) {
+      errorMessage = 'Unable to check dependencies';
+      return;
+    }
+    return await res.json();
+  }
+
   // onMount(() => {
   //   if (!product.Name && data.name && data.version) {
   //     $isLoading = true;
