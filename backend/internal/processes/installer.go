@@ -134,6 +134,17 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 	if err != nil {
 		application.Status = "OUTPUT SSM PARAM CHECK FAILED"
 		db.UpdateInstalledMarketplaceApplication(application)
+		// Log the results to the specific logfile
+		f, openErr := os.OpenFile(logfile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if openErr != nil {
+			log.Errorf("Failed to open logfile %s to write SSM check results: %v", logfile, openErr)
+		} else {
+			defer f.Close()
+			logMessage := fmt.Sprintf("\n--- SSM Parameter Check Results ---\nFailed to validate all output SSM parameters.\nChecked parameters and their resolved values (empty if not found or error during fetch):\n%v\n---------------------------------\n", results)
+			if _, writeErr := f.WriteString(logMessage); writeErr != nil {
+				log.Errorf("Failed to write SSM check results to logfile %s: %v", logfile, writeErr)
+			}
+		}
 		return fmt.Errorf("Error getting required SSM params: %v", results)
 	}
 
