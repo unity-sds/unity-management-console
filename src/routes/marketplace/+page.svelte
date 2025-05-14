@@ -3,12 +3,7 @@
   import ProductItem from '../../components/ProductItem.svelte';
   import CategoryList from '../../components/CategoryList.svelte';
   import Header from '../../components/Header.svelte';
-  import {
-    marketplaceStore,
-    selectedCategory,
-    order,
-    type MarketplaceMetadata
-  } from '../../store/stores';
+  import { selectedCategory, order, type MarketplaceMetadata } from '../../store/stores';
   import { marketplaceData } from '../../store/marketplace';
   import type { OrderLine } from '../../data/entities';
   import { fade, slide } from 'svelte/transition';
@@ -16,7 +11,7 @@
 
   const semver = new ExtendedSemver();
 
-  $: categories = ['All', ...new Set($marketplaceStore.map((p) => p.Category))];
+  $: categories = ['All', ...new Set($marketplaceData.map((p) => p.Category))];
   $: filteredProducts = $marketplaceData.filter(
     (p) => $selectedCategory === 'All' || $selectedCategory === p.Category
   );
@@ -72,7 +67,7 @@
   // Function to create a direct URL to the install page
   function getInstallUrl(product: MarketplaceMetadata) {
     // For SvelteKit apps, use a relative URL that's sibling to the current route
-    return `../install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(
+    return `./install?name=${encodeURIComponent(product.Name)}&version=${encodeURIComponent(
       product.Version
     )}`;
   }
