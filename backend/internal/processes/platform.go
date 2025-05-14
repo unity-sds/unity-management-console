@@ -1,12 +1,14 @@
 package processes
 
-import "github.com/unity-sds/unity-cs-manager/marketplace"
+import (
+	"github.com/unity-sds/unity-management-console/backend/types"
+)
 
 func fetchInstalledApplications() {
 
 }
 
-func checkExistingInstallation(metadata marketplace.MarketplaceMetadata) (bool, error) {
+func checkExistingInstallation(metadata types.MarketplaceMetadata) (bool, error) {
 
 	// Fetch installed applications
 	fetchInstalledApplications()
@@ -17,7 +19,7 @@ func checkExistingInstallation(metadata marketplace.MarketplaceMetadata) (bool, 
 
 	return false, nil
 }
-func checkDependencies(metadata marketplace.MarketplaceMetadata) (bool, error) {
+func checkDependencies(metadata types.MarketplaceMetadata) (bool, error) {
 
 	// Check metadata for dependencies
 
