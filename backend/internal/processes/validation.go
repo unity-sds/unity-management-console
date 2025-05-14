@@ -2,8 +2,8 @@ package processes
 
 import (
 	log "github.com/sirupsen/logrus"
-	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/types"
 )
 
 func CheckIAMPolicies() error {
@@ -15,7 +15,7 @@ func CheckIAMPolicies() error {
 	return nil
 }
 
-func ValidateMarketplaceInstallation(name string, version string, appConfig *config.AppConfig) (bool, marketplace.MarketplaceMetadata, error) {
+func ValidateMarketplaceInstallation(name string, version string, appConfig *config.AppConfig) (bool, types.MarketplaceMetadata, error) {
 	// Validate installation
 
 	// Check Marketplace Installation Exists
@@ -39,18 +39,18 @@ func ValidateMarketplaceInstallation(name string, version string, appConfig *con
 	return true, meta, nil
 }
 
-func validateAndPrepareInstallation(app *marketplace.Install_Applications, appConfig *config.AppConfig) (*marketplace.MarketplaceMetadata, error) {
+func validateAndPrepareInstallation(app *types.ApplicationInstallParams, appConfig *config.AppConfig) (*types.MarketplaceMetadata, error) {
 	log.Info("Validating installation")
 	validMarket, meta, err := ValidateMarketplaceInstallation(app.Name, app.Version, appConfig)
 	if err != nil || !validMarket {
 		log.Error("Invalid marketplace installation:", err)
-		return &marketplace.MarketplaceMetadata{}, err
+		return nil, err
 	}
 
 	log.Info("Checking IAM Policies")
 	if err := CheckIAMPolicies(); err != nil {
 		log.Error("Error checking IAM policies:", err)
-		return &marketplace.MarketplaceMetadata{}, err
+		return nil, err
 	}
 
 	return &meta, nil
