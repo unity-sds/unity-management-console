@@ -55,14 +55,14 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 		terraformModuleName := fmt.Sprintf("%s-%s", installParams.DeploymentName, string(randomChars))
 
 		application := &types.InstalledMarketplaceApplication{
-			Name:                     installParams.Name,
-			Version:                  installParams.Version,
-			DeploymentName:           installParams.DeploymentName,
-			PackageName:              meta.Name,
-			Source:                   meta.Package,
-			Status:                   "STAGED",
-			TerraformModuleName:      terraformModuleName,
-			Variables:                installParams.Variables,
+			Name:                installParams.Name,
+			Version:             installParams.Version,
+			DeploymentName:      installParams.DeploymentName,
+			PackageName:         meta.Name,
+			Source:              meta.Package,
+			Status:              "STAGED",
+			TerraformModuleName: terraformModuleName,
+			Variables:           installParams.Variables,
 		}
 
 		db.StoreInstalledMarketplaceApplication(application)
@@ -401,9 +401,36 @@ func BatchTriggerInstall(store database.Datastore, params []*types.ApplicationIn
 func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, store database.Datastore, received *marketplace.Uninstall, conf *config.AppConfig) error {
 	if received.All == true {
 		return UninstallAll(conf, wsManager, userid, received)
-	} 
+	}
 	// else {
 	// 	return UninstallApplication(received.Application, received.DeploymentName, received.DisplayName, conf, store, wsManager, userid)
 	// }
 	return nil
+}
+
+func checkInstalledDependencies(metadata marketplace.MarketplaceMetadata, conf *config.AppConfig) (map[string]string, error) {
+	errors := false
+	results := make(map[string]string)
+	for outputParam := range metadata.OutputSsmParameters {
+		formattedParam := strings.Replace(ssmParam, "${PROJ}", appConfig.Project, -1)
+		formattedParam = strings.Replace(formattedParam, "${VENUE}", appConfig.Venue, -1)
+
+		log.Info("Looking up key %s", formattedParam)
+		param, err := aws.ReadSSMParameter(formattedParam)
+
+		if err != nil {
+			log.WithError(err).Error("Unable to get SSM param.")
+			results[label] = ""
+			errors = true
+			continue
+		}
+		log.Info("Got param %s", *param.Parameter.Value)
+		results[label] = *param.Parameter.Value
+	}
+
+	if errors {
+		return results, fmt.Errorf("Output SSM Params Not found")
+	}
+
+	return results, nil
 }

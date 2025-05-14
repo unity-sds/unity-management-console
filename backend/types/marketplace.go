@@ -36,6 +36,7 @@ type MarketplaceMetadata struct {
 	AdvancedVariables   []MarketplaceVariable  `json:"advancedVariables"`
 	Outputs             []MarketplaceOutput    `json:"outputs"`
 	Screenshots         []MarketplaceScreenshot `json:"screenshots"`
+	OutputSsmParameters []string				`json:"OutputSsmParameters"`
 }
 
 type MarketplaceVariable struct {
