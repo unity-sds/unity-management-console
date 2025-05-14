@@ -36,14 +36,14 @@ func fetchMandatoryVars() ([]terraform.Varstruct, error) {
 
 }
 
-func startApplicationInstallTerraform(appConfig *config.AppConfig, location string, application *types.InstalledMarketplaceApplication, meta *marketplace.MarketplaceMetadata, db database.Datastore) {
+func startApplicationInstallTerraform(appConfig *config.AppConfig, location string, application *types.InstalledMarketplaceApplication, meta *types.MarketplaceMetadata, db database.Datastore) {
 	log.Errorf("Application name is: %s", application.Name)
 	terraform.AddApplicationToStack(appConfig, location, meta, application, db)
 	executeTerraformInstall(db, appConfig, meta, application)
 }
 
-func InstallMarketplaceApplication(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *marketplace.MarketplaceMetadata, db database.Datastore, sync bool) error {
-	if meta.Backend == "terraform" {
+func InstallMarketplaceApplication(appConfig *config.AppConfig, location string, installParams *types.ApplicationInstallParams, meta *types.MarketplaceMetadata, db database.Datastore, sync bool) error {
+	if meta.TerraformModuleName != "" {
 
 		rand.Seed(time.Now().UnixNano())
 		chars := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -84,7 +84,7 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 	}
 }
 
-func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, application *types.InstalledMarketplaceApplication) error {
+func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig, meta *types.MarketplaceMetadata, application *types.InstalledMarketplaceApplication) error {
 	// Create install_logs directory if it doesn't exist
 	logDir := filepath.Join(appConfig.Workdir, "install_logs")
 	if err := os.MkdirAll(logDir, 0755); err != nil && !os.IsExist(err) {
@@ -169,11 +169,10 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 	return nil
 }
 
-func runPostInstallNew(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, application *types.InstalledMarketplaceApplication) error {
+func runPostInstallNew(appConfig *config.AppConfig, meta *types.MarketplaceMetadata, application *types.InstalledMarketplaceApplication) error {
 
 	if meta.PostInstall != "" {
-		//TODO UNPIN ME
-		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PostInstall)
+		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.PostInstall)
 		log.Infof("Post install command path: %s", path)
 		cmd := exec.Command(path)
 		cmd.Env = os.Environ()
@@ -204,10 +203,9 @@ func runPostInstallNew(appConfig *config.AppConfig, meta *marketplace.Marketplac
 	return nil
 }
 
-func runPreInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMetadata, application *types.InstalledMarketplaceApplication) error {
+func runPreInstall(appConfig *config.AppConfig, meta *types.MarketplaceMetadata, application *types.InstalledMarketplaceApplication) error {
 	if meta.PreInstall != "" {
-		// TODO UNPIN ME
-		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PreInstall)
+		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.PreInstall)
 		log.Infof("Pre install command path: %s", path)
 		cmd := exec.Command(path)
 		cmd.Env = os.Environ()
@@ -275,7 +273,7 @@ func BatchTriggerInstall(store database.Datastore, params []*types.ApplicationIn
 	}
 
 	applications := make([]*types.InstalledMarketplaceApplication, 0, len(params))
-	metadatas := make([]*marketplace.MarketplaceMetadata, 0, len(params))
+	metadatas := make([]*types.MarketplaceMetadata, 0, len(params))
 	locations := make([]string, 0, len(params))
 
 	// First pass: validate and prepare all applications
@@ -408,27 +406,27 @@ func TriggerUninstall(wsManager *websocket.WebSocketManager, userid string, stor
 	return nil
 }
 
-func checkInstalledDependencies(metadata marketplace.MarketplaceMetadata, conf *config.AppConfig) (map[string]string, error) {
-	errors := false
+func checkInstalledDependencies(metadata types.MarketplaceMetadata, conf *config.AppConfig) (map[string]string, error) {
+	errorsEncountered := false
 	results := make(map[string]string)
-	for outputParam := range metadata.OutputSsmParameters {
-		formattedParam := strings.Replace(ssmParam, "${PROJ}", appConfig.Project, -1)
-		formattedParam = strings.Replace(formattedParam, "${VENUE}", appConfig.Venue, -1)
+	for _, ssmParamName := range metadata.OutputSsmParameters {
+		formattedParam := strings.Replace(ssmParamName, "${PROJ}", conf.Project, -1)
+		formattedParam = strings.Replace(formattedParam, "${VENUE}", conf.Venue, -1)
 
-		log.Info("Looking up key %s", formattedParam)
+		log.Infof("Looking up key %s", formattedParam)
 		param, err := aws.ReadSSMParameter(formattedParam)
 
 		if err != nil {
 			log.WithError(err).Error("Unable to get SSM param.")
-			results[label] = ""
-			errors = true
+			results[ssmParamName] = ""
+			errorsEncountered = true
 			continue
 		}
-		log.Info("Got param %s", *param.Parameter.Value)
-		results[label] = *param.Parameter.Value
+		log.Infof("Got param %s", *param.Parameter.Value)
+		results[ssmParamName] = *param.Parameter.Value
 	}
 
-	if errors {
+	if errorsEncountered {
 		return results, fmt.Errorf("Output SSM Params Not found")
 	}
 
