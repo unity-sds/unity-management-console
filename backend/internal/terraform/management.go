@@ -159,7 +159,7 @@ func appendBlockToBody(body *hclwrite.Body, blockType string, labels []string, s
 // AddApplicationToStack adds the given application configuration to the stack.
 // It takes care of creating the necessary workspace directory, generating the
 // HCL file, and writing the required attributes.
-func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *marketplace.MarketplaceMetadata, application *types.InstalledMarketplaceApplication, db database.Datastore) error {
+func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *types.MarketplaceMetadata, application *types.InstalledMarketplaceApplication, db database.Datastore) error {
 	log.Infof("Adding application to stack. Location: %v, meta %v, install: %v, module ID: %s", location, meta, application.TerraformModuleName)
 	rand.Seed(time.Now().UnixNano())
 
@@ -177,7 +177,7 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 		return err
 	}
 
-	path := filepath.Join(location, meta.WorkDirectory)
+	path := location
 	// initialize the body of the new file object
 	rootBody := hclFile.Body()
 

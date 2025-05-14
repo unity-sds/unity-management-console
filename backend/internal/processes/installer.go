@@ -138,7 +138,7 @@ func runPostInstall(appConfig *config.AppConfig, meta *marketplace.MarketplaceMe
 
 	if meta.PostInstall != "" {
 		//TODO UNPIN ME
-		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.WorkDirectory, meta.PostInstall)
+		path := filepath.Join(appConfig.Workdir, "terraform", "modules", meta.Name, meta.Version, meta.PostInstall)
 		log.Infof("Post install command path: %s", path)
 		cmd := exec.Command(path)
 		cmd.Env = os.Environ()
