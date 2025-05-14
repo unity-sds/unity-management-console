@@ -282,18 +282,10 @@ func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context)
 			return
 		}
 
-		log.Info("Metadata %v", metadata)
-		dependencies := map[string]string{
-			"shared_services_account": "/unity/shared-services/aws/account",
-			"shared_services_region":  "/unity/shared-services/aws/account/region",
-			"venue_proxy_baseurl":     "/unity/${PROJ}/${VENUE}/management/httpd/loadbalancer-url",
-			"venue_subnet_list":       "/unity/account/network/subnet_list",
-		}
-
-		log.Info("Dependencies %v", dependencies)
+		log.Info("Dependencies %v", metadata.Dependencies)
 		errors := false
 		results := make(map[string]string)
-		for label, ssmParam := range dependencies {
+		for label, ssmParam := range metadata.Dependencies {
 			formattedParam := strings.Replace(ssmParam, "${PROJ}", appConfig.Project, -1)
 			formattedParam = strings.Replace(formattedParam, "${VENUE}", appConfig.Venue, -1)
 

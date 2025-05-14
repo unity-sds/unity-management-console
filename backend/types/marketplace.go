@@ -40,6 +40,7 @@ type MarketplaceMetadata struct {
 	PreInstall          string                 `json:"preInstall"`
 	PostInstall         string                 `json:"postInstall"`
 	Package             string                 `json:"package"`
+	Dependencies		map[string]string	   `json:"Dependencies"`
 }
 
 type MarketplaceVariable struct {
