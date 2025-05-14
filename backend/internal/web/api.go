@@ -282,7 +282,7 @@ func handleCheckAppDependencies(appConfig config.AppConfig) func(c *gin.Context)
 			return
 		}
 
-log.Info("Metadata %v", metadata)
+		log.Info("Metadata %v", metadata)
 		dependencies := map[string]string{
 			"shared_services_account": "/unity/shared-services/aws/account",
 			"shared_services_region":  "/unity/shared-services/aws/account/region",
@@ -312,8 +312,8 @@ log.Info("Metadata %v", metadata)
 
 		if errors {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":   "Missing SSM Parameters",
-				"params":  results,
+				"error":  "Missing SSM Parameters",
+				"params": results,
 			})
 			return
 		}
@@ -321,8 +321,8 @@ log.Info("Metadata %v", metadata)
 		log.Info("Checking dependencies for %s, version %s", appName, version)
 
 		c.JSON(http.StatusOK, gin.H{
-			"error":   "asdfsdfs",
-			"params":  results,
+			"error":  "asdfsdfs",
+			"params": results,
 		})
 		return
 	}

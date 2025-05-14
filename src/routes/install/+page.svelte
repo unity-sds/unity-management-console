@@ -328,10 +328,12 @@
               >
               <hr />
               {#each Object.entries(product.Apps).filter(([key, value]) => !$installedApplications.find((installedApp) => installedApp.Name === key && installedApp.Version !== value.MinimumVersion)) as [key, value]}
-                <span
+                <a
                   class="st-typography-label"
-                  href={`./?name=${key}&version=${value.MinimumVersion}`}>{key}</span
+                  href={`./?name=${key}&version=${value.MinimumVersion}`}
                 >
+                  {key}
+                </a>
               {/each}
             {/if}
           {/await}
