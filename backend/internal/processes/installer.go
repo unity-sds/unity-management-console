@@ -128,6 +128,15 @@ func executeTerraformInstall(db database.Datastore, appConfig *config.AppConfig,
 		fetchAllApplications(db)
 		return err
 	}
+
+	// Check to make sure the required output SSM params have been populated
+	results, err := checkInstalledDependencies(*meta, appConfig)
+	if err != nil {
+		application.Status = "OUTPUT SSM PARAM CHECK FAILED"
+		db.UpdateInstalledMarketplaceApplication(application)
+		return fmt.Errorf("Error getting required SSM params: %v", results)
+	}
+
 	application.Status = "COMPLETE"
 	db.UpdateInstalledMarketplaceApplication(application)
 	fetchAllApplications(db)
