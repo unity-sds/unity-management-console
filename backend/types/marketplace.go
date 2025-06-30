@@ -9,6 +9,16 @@ type ApplicationInstallParams struct {
 	DeploymentName string
 	Variables      map[string]string
 	AdvancedValues AdvancedValue
+	ModuleReferences []ModuleReference `json:"moduleReferences,omitempty"`
+}
+
+// ModuleReference represents a reference to a module in the registry
+type ModuleReference struct {
+	Name      string                 `json:"name"`
+	Version   string                 `json:"version"`
+	Alias     string                 `json:"alias,omitempty"`
+	Config    map[string]interface{} `json:"config"`
+	DependsOn []string               `json:"depends_on,omitempty"`
 }
 
 
@@ -22,4 +32,5 @@ type InstalledMarketplaceApplication struct {
 	TerraformModuleName string
 	Variables    map[string]string
 	AdvancedValues    AdvancedValue
+	ModuleReferences []ModuleReference `json:"moduleReferences,omitempty"`
 }

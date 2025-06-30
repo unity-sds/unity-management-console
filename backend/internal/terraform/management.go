@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/unity-sds/unity-cs-manager/marketplace"
 	"github.com/unity-sds/unity-management-console/backend/internal/application/config"
+	"github.com/unity-sds/unity-management-console/backend/internal/application/registry"
 	"github.com/unity-sds/unity-management-console/backend/internal/database"
 	"github.com/unity-sds/unity-management-console/backend/types"
 	"github.com/zclconf/go-cty/cty"
@@ -170,6 +171,24 @@ func AddApplicationToStack(appConfig *config.AppConfig, location string, meta *m
 	log.Errorf("Application name: %s", application.Name)
 	filename := fmt.Sprintf("%v-%v.tf", application.Name, application.DeploymentName)
 
+	// Handle module references if present
+	if len(application.ModuleReferences) > 0 {
+		log.Info("Application has module references, initializing module resolver")
+		resolver, err := registry.NewModuleResolver(appConfig)
+		if err != nil {
+			log.WithError(err).Warn("Failed to initialize module resolver, continuing without modules")
+		} else if resolver.HasRegistry() {
+			// Add modules to the Terraform configuration
+			if err := AddModulesToTerraform(appConfig, application.ModuleReferences, resolver, hclFile, directory); err != nil {
+				log.WithError(err).Error("Failed to add modules to Terraform configuration")
+				return err
+			}
+			log.Infof("Successfully added %d module references", len(application.ModuleReferences))
+		} else {
+			log.Warn("Module references found but no registry available, skipping modules")
+		}
+	}
+
 	log.Errorf("Creating file with the name: %s", filename)
 	tfFile, err := createFile(directory, filename, 0755)
 	if err != nil {
@@ -253,4 +272,69 @@ func lookUpFromDependencies(element string, inst *marketplace.Install_Applicatio
 
 	return "", nil
 
+}
+
+// AddModulesToTerraform adds module references to the Terraform configuration
+func AddModulesToTerraform(appConfig *config.AppConfig, moduleRefs []types.ModuleReference, resolver *registry.ModuleResolver, tfFile *hclwrite.File, terraformDir string) error {
+	if len(moduleRefs) == 0 {
+		return nil
+	}
+
+	rootBody := tfFile.Body()
+
+	for _, moduleRef := range moduleRefs {
+		// Resolve the module
+		resolvedModule, err := resolver.ResolveModule(&registry.ModuleReference{
+			Name:      moduleRef.Name,
+			Version:   moduleRef.Version,
+			Alias:     moduleRef.Alias,
+			Config:    moduleRef.Config,
+			DependsOn: moduleRef.DependsOn,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to resolve module %s: %w", moduleRef.Name, err)
+		}
+
+		// Validate module configuration
+		if err := resolver.ValidateModuleConfig(resolvedModule); err != nil {
+			return fmt.Errorf("invalid configuration for module %s: %w", moduleRef.Name, err)
+		}
+
+		// Cache the module locally
+		if err := resolver.CacheModule(resolvedModule); err != nil {
+			return fmt.Errorf("failed to cache module %s: %w", moduleRef.Name, err)
+		}
+
+		// Determine module name for Terraform
+		moduleName := moduleRef.Alias
+		if moduleName == "" {
+			moduleName = fmt.Sprintf("%s_%s", moduleRef.Name, GenerateRandomString(5))
+		}
+
+		// Convert config to cty.Value attributes
+		attributes := map[string]cty.Value{
+			"source": cty.StringVal(resolvedModule.CachePath),
+		}
+
+		// Add module configuration
+		for key, value := range moduleRef.Config {
+			attributes[key] = convertToCty(value)
+		}
+
+		// Add default attributes from app config
+		attributes["project"] = cty.StringVal(appConfig.Project)
+		attributes["venue"] = cty.StringVal(appConfig.Venue)
+		attributes["installprefix"] = cty.StringVal(appConfig.InstallPrefix)
+
+		// Append module block
+		appendBlockToBody(rootBody, "module", []string{moduleName}, resolvedModule.CachePath, attributes)
+
+		// Handle depends_on if specified
+		if len(moduleRef.DependsOn) > 0 {
+			// Note: This would need more sophisticated handling for proper depends_on syntax
+			log.Infof("Module %s depends on: %v", moduleName, moduleRef.DependsOn)
+		}
+	}
+
+	return nil
 }

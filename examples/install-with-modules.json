@@ -1,0 +1,60 @@
+{
+  "name": "my-application",
+  "version": "1.0.0",
+  "displayName": "My Application",
+  "deploymentName": "my-app-prod",
+  "variables": {
+    "environment": "production",
+    "region": "us-west-2"
+  },
+  "moduleReferences": [
+    {
+      "name": "unity-vpc",
+      "version": "1.1.0",
+      "alias": "main_vpc",
+      "config": {
+        "vpc_cidr": "10.0.0.0/16",
+        "name_prefix": "unity-prod",
+        "availability_zones": ["us-west-2a", "us-west-2b", "us-west-2c"],
+        "enable_nat_gateway": true,
+        "enable_vpn_gateway": false
+      }
+    },
+    {
+      "name": "unity-rds",
+      "version": "latest",
+      "alias": "app_database",
+      "config": {
+        "identifier": "my-app-db",
+        "engine_version": "14.6",
+        "instance_class": "db.t3.medium",
+        "allocated_storage": 100,
+        "db_name": "myapp",
+        "username": "dbadmin",
+        "vpc_id": "${module.main_vpc.vpc_id}",
+        "subnet_ids": "${module.main_vpc.private_subnet_ids}"
+      },
+      "depends_on": ["main_vpc"]
+    },
+    {
+      "name": "unity-s3",
+      "version": "1.0.0",
+      "alias": "data_bucket",
+      "config": {
+        "bucket_name": "unity-myapp-data-prod",
+        "versioning_enabled": true,
+        "encryption_enabled": true,
+        "lifecycle_rules": [
+          {
+            "id": "archive-old-data",
+            "enabled": true,
+            "transition": {
+              "days": 90,
+              "storage_class": "GLACIER"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

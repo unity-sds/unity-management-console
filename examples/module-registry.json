@@ -1,0 +1,225 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "name": "Unity Terraform Modules",
+    "description": "Official Unity Management Console Terraform module registry",
+    "last_updated": "2025-06-30T10:00:00Z"
+  },
+  "modules": {
+    "unity-vpc": {
+      "description": "Standard Unity VPC with public/private subnets",
+      "source": "github.com/unity-sds/terraform-modules//modules/vpc",
+      "documentation": "https://github.com/unity-sds/terraform-modules/tree/main/modules/vpc",
+      "versions": {
+        "1.0.0": {
+          "ref": "v1.0.0",
+          "terraform_version": ">= 1.0",
+          "providers": {
+            "aws": ">= 4.0"
+          }
+        },
+        "1.1.0": {
+          "ref": "v1.1.0",
+          "terraform_version": ">= 1.0",
+          "providers": {
+            "aws": ">= 5.0"
+          }
+        },
+        "latest": {
+          "ref": "main"
+        }
+      },
+      "inputs": {
+        "vpc_cidr": {
+          "description": "CIDR block for the VPC",
+          "type": "string",
+          "required": true
+        },
+        "name_prefix": {
+          "description": "Name prefix for all resources",
+          "type": "string",
+          "required": true
+        },
+        "availability_zones": {
+          "description": "List of availability zones",
+          "type": "list(string)",
+          "required": true
+        },
+        "enable_nat_gateway": {
+          "description": "Enable NAT Gateway for private subnets",
+          "type": "bool",
+          "default": true
+        },
+        "enable_vpn_gateway": {
+          "description": "Enable VPN Gateway",
+          "type": "bool",
+          "default": false
+        }
+      },
+      "outputs": {
+        "vpc_id": "The ID of the VPC",
+        "public_subnet_ids": "List of public subnet IDs",
+        "private_subnet_ids": "List of private subnet IDs",
+        "nat_gateway_ids": "List of NAT Gateway IDs"
+      }
+    },
+    "unity-eks": {
+      "description": "Unity EKS cluster with managed node groups",
+      "source": "github.com/unity-sds/terraform-modules//modules/eks",
+      "documentation": "https://github.com/unity-sds/terraform-modules/tree/main/modules/eks",
+      "versions": {
+        "2.0.0": {
+          "ref": "v2.0.0",
+          "terraform_version": ">= 1.0",
+          "providers": {
+            "aws": ">= 5.0",
+            "kubernetes": ">= 2.0"
+          }
+        },
+        "latest": {
+          "ref": "main"
+        }
+      },
+      "inputs": {
+        "cluster_name": {
+          "description": "Name of the EKS cluster",
+          "type": "string",
+          "required": true
+        },
+        "cluster_version": {
+          "description": "Kubernetes version to use for the EKS cluster",
+          "type": "string",
+          "default": "1.27"
+        },
+        "vpc_id": {
+          "description": "VPC ID where the cluster will be deployed",
+          "type": "string",
+          "required": true
+        },
+        "subnet_ids": {
+          "description": "List of subnet IDs for the EKS cluster",
+          "type": "list(string)",
+          "required": true
+        },
+        "node_groups": {
+          "description": "Map of node group configurations",
+          "type": "map(object)",
+          "required": false
+        }
+      },
+      "outputs": {
+        "cluster_id": "The name/id of the EKS cluster",
+        "cluster_endpoint": "Endpoint for EKS control plane",
+        "cluster_security_group_id": "Security group ID attached to the EKS cluster"
+      }
+    },
+    "unity-rds": {
+      "description": "Unity RDS PostgreSQL database instance",
+      "source": "github.com/unity-sds/terraform-modules//modules/rds",
+      "documentation": "https://github.com/unity-sds/terraform-modules/tree/main/modules/rds",
+      "versions": {
+        "1.0.0": {
+          "ref": "v1.0.0",
+          "terraform_version": ">= 1.0",
+          "providers": {
+            "aws": ">= 4.0"
+          }
+        },
+        "latest": {
+          "ref": "main"
+        }
+      },
+      "inputs": {
+        "identifier": {
+          "description": "The name of the RDS instance",
+          "type": "string",
+          "required": true
+        },
+        "engine_version": {
+          "description": "PostgreSQL engine version",
+          "type": "string",
+          "default": "14.6"
+        },
+        "instance_class": {
+          "description": "Instance type of the RDS instance",
+          "type": "string",
+          "default": "db.t3.micro"
+        },
+        "allocated_storage": {
+          "description": "The allocated storage in gigabytes",
+          "type": "number",
+          "default": 20
+        },
+        "db_name": {
+          "description": "The name of the database to create",
+          "type": "string",
+          "required": true
+        },
+        "username": {
+          "description": "Username for the master DB user",
+          "type": "string",
+          "default": "admin"
+        },
+        "vpc_id": {
+          "description": "VPC ID for the DB subnet group",
+          "type": "string",
+          "required": true
+        },
+        "subnet_ids": {
+          "description": "List of subnet IDs for the DB subnet group",
+          "type": "list(string)",
+          "required": true
+        }
+      },
+      "outputs": {
+        "db_instance_endpoint": "The connection endpoint",
+        "db_instance_id": "The RDS instance ID",
+        "db_instance_port": "The database port"
+      }
+    },
+    "unity-s3": {
+      "description": "Unity S3 bucket with standard configurations",
+      "source": "github.com/unity-sds/terraform-modules//modules/s3",
+      "documentation": "https://github.com/unity-sds/terraform-modules/tree/main/modules/s3",
+      "versions": {
+        "1.0.0": {
+          "ref": "v1.0.0",
+          "terraform_version": ">= 1.0",
+          "providers": {
+            "aws": ">= 4.0"
+          }
+        },
+        "latest": {
+          "ref": "main"
+        }
+      },
+      "inputs": {
+        "bucket_name": {
+          "description": "Name of the S3 bucket",
+          "type": "string",
+          "required": true
+        },
+        "versioning_enabled": {
+          "description": "Enable versioning on the bucket",
+          "type": "bool",
+          "default": true
+        },
+        "encryption_enabled": {
+          "description": "Enable server-side encryption",
+          "type": "bool",
+          "default": true
+        },
+        "lifecycle_rules": {
+          "description": "List of lifecycle rules",
+          "type": "list(object)",
+          "required": false
+        }
+      },
+      "outputs": {
+        "bucket_id": "The name of the bucket",
+        "bucket_arn": "The ARN of the bucket",
+        "bucket_domain_name": "The bucket domain name"
+      }
+    }
+  }
+}

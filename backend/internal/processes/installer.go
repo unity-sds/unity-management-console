@@ -63,6 +63,8 @@ func InstallMarketplaceApplication(appConfig *config.AppConfig, location string,
 			Status:                   "STAGED",
 			TerraformModuleName:      terraformModuleName,
 			Variables:                installParams.Variables,
+			AdvancedValues:           installParams.AdvancedValues,
+			ModuleReferences:         installParams.ModuleReferences,
 		}
 
 		db.StoreInstalledMarketplaceApplication(application)
