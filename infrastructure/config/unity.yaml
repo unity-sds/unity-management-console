@@ -1,0 +1,64 @@
+# Unity Configuration for ECS Fargate Deployment
+# This file will be mounted into the container at /data/config/unity.yaml
+
+# AWS Configuration
+awsregion: "us-west-2"
+bucketname: "unity-myproject-dev-terraform-state"
+
+# Project Configuration
+project: "myproject"
+venue: "dev"
+installprefix: "unity"
+
+# Console Configuration
+consolehost: "http://localhost:8080"
+basepath: "http://localhost:8080"
+
+# Working Directory (EFS mount)
+workdir: "/data/workdir"
+
+# Marketplace Configuration
+marketplacebaseurl: "https://raw.githubusercontent.com/"
+marketplaceowner: "unity-sds"
+marketplacerepo: "unity-marketplace"
+
+# Core Applications for Bootstrap
+MarketplaceItems:
+  - name: unity-proxy
+    version: "0.5.0"
+  - name: unity-apigateway
+    version: "0.3.0"
+  - name: unity-cs-monitoring-lambda
+    version: "1.1.0"
+  - name: unity-portal
+    version: "0.1.0"
+
+# SSM Parameters (optional)
+defaultssmparameters:
+  - name: "/unity/project"
+    value: "myproject"
+  - name: "/unity/venue"
+    value: "dev"
+  - name: "/unity/installprefix"
+    value: "unity"
+
+# Database Configuration (EFS mount)
+database:
+  path: "/data/database/test.db"
+  
+# Logging Configuration
+logging:
+  level: "info"
+  format: "json"
+  
+# Feature Flags
+features:
+  enableModuleRegistry: true
+  enableScheduledOperations: false
+  enableWebsocketMonitoring: true
+  
+# Security Configuration
+security:
+  enableCSRF: true
+  sessionTimeout: 3600  # 1 hour
+  maxLoginAttempts: 5

@@ -1,0 +1,46 @@
+# Docker Compose file for local development and testing
+# This simulates the ECS Fargate environment locally
+
+version: '3.8'
+
+services:
+  unity-console:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - UNITY_WORKDIR=/data/workdir
+      - UNITY_DATABASE_PATH=/data/database
+      - UNITY_CONFIG_PATH=/data/config/unity.yaml
+      - UNITY_AWSREGION=us-west-2
+      - UNITY_PROJECT=myproject
+      - UNITY_VENUE=dev
+      - UNITY_INSTALLPREFIX=unity
+      - UNITY_BUCKETNAME=unity-myproject-dev-terraform-state
+      - UNITY_MARKETPLACEOWNER=unity-sds
+      - UNITY_MARKETPLACEREPO=unity-marketplace
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
+    volumes:
+      - unity-data:/data
+      - ./config/unity.yaml:/data/config/unity.yaml
+    networks:
+      - unity-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  unity-data:
+    driver: local
+
+networks:
+  unity-network:
+    driver: bridge

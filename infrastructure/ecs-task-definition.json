@@ -1,0 +1,125 @@
+{
+  "family": "unity-management-console",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/unity-dev-ecs-task-execution",
+  "taskRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/unity-dev-ecs-task",
+  "containerDefinitions": [
+    {
+      "name": "unity-console",
+      "image": "<ACCOUNT_ID>.dkr.ecr.us-west-2.amazonaws.com/unity-dev-console:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "UNITY_WORKDIR",
+          "value": "/data/workdir"
+        },
+        {
+          "name": "UNITY_DATABASE_PATH",
+          "value": "/data/database"
+        },
+        {
+          "name": "UNITY_CONFIG_PATH",
+          "value": "/data/config/unity.yaml"
+        },
+        {
+          "name": "UNITY_AWSREGION",
+          "value": "us-west-2"
+        },
+        {
+          "name": "UNITY_PROJECT",
+          "value": "myproject"
+        },
+        {
+          "name": "UNITY_VENUE",
+          "value": "dev"
+        },
+        {
+          "name": "UNITY_INSTALLPREFIX",
+          "value": "unity"
+        },
+        {
+          "name": "UNITY_BUCKETNAME",
+          "value": "unity-myproject-dev-terraform-state"
+        },
+        {
+          "name": "UNITY_MARKETPLACEOWNER",
+          "value": "unity-sds"
+        },
+        {
+          "name": "UNITY_MARKETPLACEREPO",
+          "value": "unity-marketplace"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "efs-storage",
+          "containerPath": "/data",
+          "readOnly": false
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/unity-management-console",
+          "awslogs-region": "us-west-2",
+          "awslogs-stream-prefix": "ecs"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8080/health || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 30
+      },
+      "stopTimeout": 30,
+      "startTimeout": 120
+    }
+  ],
+  "volumes": [
+    {
+      "name": "efs-storage",
+      "efsVolumeConfiguration": {
+        "fileSystemId": "<EFS_FILE_SYSTEM_ID>",
+        "rootDirectory": "/",
+        "transitEncryption": "ENABLED",
+        "transitEncryptionPort": 2049,
+        "authorizationConfig": {
+          "iam": "ENABLED"
+        }
+      }
+    }
+  ],
+  "placementConstraints": [],
+  "tags": [
+    {
+      "key": "Project",
+      "value": "unity"
+    },
+    {
+      "key": "Environment",
+      "value": "dev"
+    },
+    {
+      "key": "ManagedBy",
+      "value": "terraform"
+    },
+    {
+      "key": "Application",
+      "value": "unity-management-console"
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+# Unity Management Console ECS Fargate Deployment Configuration
+# Copy this file to terraform.tfvars and customize the values
+
+# Basic Configuration
+project_name = "unity"
+environment  = "dev"
+region      = "us-west-2"
+
+# Networking Configuration
+vpc_cidr = "10.0.0.0/16"
+availability_zones = ["us-west-2a", "us-west-2b"]
+
+# ECS Configuration
+desired_count = 1
+max_capacity  = 3
+cpu          = 512    # 256, 512, 1024, 2048, 4096
+memory       = 1024   # See AWS documentation for valid CPU/memory combinations
+
+# Domain Configuration (optional - leave empty for ALB DNS only)
+domain_name = ""  # e.g., "unity-console.yourdomain.com"
+certificate_arn = ""  # e.g., "arn:aws:acm:us-west-2:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+
+# Unity Application Configuration
+unity_config = {
+  awsregion           = "us-west-2"
+  project             = "myproject"
+  venue               = "dev"
+  installprefix       = "unity"
+  bucketname          = "unity-myproject-dev-terraform-state"
+  marketplaceowner    = "unity-sds"
+  marketplacerepo     = "unity-marketplace"
+}
+
+# EFS Configuration
+efs_throughput_mode = "provisioned"  # or "bursting"
+efs_provisioned_throughput = 10      # MiB/s (only for provisioned mode)
+enable_efs_backup = true
+
+# Monitoring Configuration
+enable_container_insights = true
+log_retention_days = 30
+
+# Auto Scaling Configuration
+deployment_configuration = {
+  maximum_percent                = 200
+  minimum_healthy_percent        = 100
+  deployment_circuit_breaker_enable = true
+  deployment_circuit_breaker_rollback = true
+}
+
+# Security Configuration
+enable_execute_command = false  # Set to true for debugging
+ssl_policy = "ELBSecurityPolicy-TLS-1-2-2017-01"
+
+# Load Balancer Configuration
+enable_deletion_protection = false  # Set to true for production
+deregistration_delay = 300
+
+# Health Check Configuration
+health_check_interval = 30
+health_check_timeout = 5
+health_check_healthy_threshold = 2
+health_check_unhealthy_threshold = 2
+health_check_path = "/"
+health_check_matcher = "200"
+
+# Scheduled Start/Stop (optional)
+enable_scheduling = false
+schedule_start_time = "0 8 * * MON-FRI"  # 8 AM on weekdays
+schedule_stop_time = "0 18 * * MON-FRI"  # 6 PM on weekdays
+
+# ECR Configuration
+ecr_scan_on_push = true
+ecr_image_tag_mutability = "MUTABLE"
+
+# Platform Configuration
+platform_version = "1.4.0"
+assign_public_ip = false  # Set to true if using public subnets only
+
+# Additional Tags
+additional_tags = {
+  Owner = "DevOps Team"
+  CostCenter = "Engineering"
+  Backup = "Required"
+}
+
+# Backup Schedule
+backup_schedule = "cron(0 2 * * ? *)"  # Daily at 2 AM UTC

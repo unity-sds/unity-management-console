@@ -61,6 +61,7 @@ The Unity Management Console follows a modular architecture designed for managin
 
 - **Local Development**: Run directly on developer machines
 - **EC2 Deployment**: Production deployment on AWS EC2 instances (see [EC2 Deployment Guide](documentation/ec2-deployment-guide.md))
+- **ECS Fargate Deployment**: Containerized deployment on AWS ECS Fargate with EFS storage (see [ECS Fargate Deployment Guide](documentation/ecs-fargate-deployment-guide.md))
 - **Container Deployment**: Docker support for containerized environments
 - **Systemd Service**: Run as a system service on Linux
 

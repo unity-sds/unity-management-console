@@ -2,6 +2,17 @@
 
 This guide provides step-by-step instructions for manually deploying the Unity Management Console on an AWS EC2 instance.
 
+## Installation Directory Structure
+
+Throughout this guide, we use the following placeholder paths:
+- `<INSTALL_DIR>`: The directory where Unity Management Console is installed (default: `/home/ubuntu/unity-management-console`)
+- `<WORKDIR>`: The working directory for Unity operations (configurable via `~/.unity/unity.yaml`, default: `/home/ubuntu/unity-workdir`)
+
+**Important Path Behavior Notes:**
+- **Configurable paths**: Working directory (`<WORKDIR>`), user config directory (`~/.unity`)
+- **Fixed relative paths**: Database file (`test.db`) is created in the directory where the service starts (typically `<INSTALL_DIR>`)
+- **Hardcoded system paths**: The systemd service file contains absolute paths that must match your actual installation location
+
 ## Prerequisites
 
 - AWS Account with appropriate permissions
@@ -75,6 +86,9 @@ aws configure
 git clone https://github.com/unity-sds/unity-management-console.git
 cd unity-management-console
 
+# Build all
+npm run build-all
+
 # Build the backend
 cd backend
 go build -o management-console cmd/web/main.go
@@ -112,7 +126,7 @@ consolehost: "http://your-ec2-instance-ip:8080"
 basepath: "http://your-ec2-instance-ip"
 
 # Working Directory
-workdir: "/home/ubuntu/unity-workdir"
+workdir: "<WORKDIR>"
 
 # Marketplace Configuration
 marketplacebaseurl: "https://raw.githubusercontent.com/"
@@ -141,7 +155,7 @@ defaultssmparameters:
 ### 8. Create Working Directory
 
 ```bash
-mkdir -p /home/ubuntu/unity-workdir
+mkdir -p <WORKDIR>
 ```
 
 ### 9. Set Up as a System Service
@@ -157,8 +171,8 @@ After=network.target
 [Service]
 Type=simple
 User=ubuntu
-WorkingDirectory=/home/ubuntu/unity-management-console
-ExecStart=/home/ubuntu/unity-management-console/backend/management-console webapp
+WorkingDirectory=<INSTALL_DIR>
+ExecStart=<INSTALL_DIR>/backend/management-console webapp
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
@@ -173,6 +187,8 @@ Environment="HOME=/home/ubuntu"
 WantedBy=multi-user.target
 EOF
 ```
+
+**Important**: Replace `<INSTALL_DIR>` with your actual installation path (e.g., `/home/ubuntu/unity-management-console`). The systemd service file requires absolute paths and cannot use placeholder variables.
 
 ### 10. Start the Service
 
@@ -195,7 +211,7 @@ sudo systemctl status unity-management-console
 On first run, bootstrap the environment:
 
 ```bash
-cd /home/ubuntu/unity-management-console/backend
+cd <INSTALL_DIR>/backend
 ./management-console webapp --bootstrap
 ```
 
@@ -253,7 +269,7 @@ The Unity Management Console supports a Module Registry that provides reusable T
 Create a `module-registry.json` file in your workdir:
 
 ```bash
-sudo -u ubuntu tee /home/ubuntu/unity-workdir/module-registry.json << 'EOF'
+sudo -u ubuntu tee <WORKDIR>/module-registry.json << 'EOF'
 {
   "version": "1.0",
   "metadata": {
@@ -342,10 +358,12 @@ Installation logs are stored in:
 
 ### Database Location
 
-The SQLite database is created at:
+The SQLite database is created as `test.db` in the working directory where the service starts:
 ```
-/home/ubuntu/unity-management-console/backend/test.db
+<INSTALL_DIR>/backend/test.db
 ```
+
+**Note**: The database filename `test.db` is hardcoded in the application. If you change the service's working directory, the database location will change accordingly.
 
 ## Security Considerations
 
@@ -396,7 +414,7 @@ The SQLite database is created at:
 
 3. Check permissions:
    ```bash
-   ls -la /home/ubuntu/unity-workdir
+   ls -la <WORKDIR>
    ```
 
 ### Bootstrap Fails
@@ -415,7 +433,7 @@ The SQLite database is created at:
 1. Registry not loading:
    ```bash
    # Check if registry file exists
-   ls -la /home/ubuntu/unity-workdir/module-registry.json
+   ls -la <WORKDIR>/module-registry.json
    
    # Check logs for registry loading errors
    sudo journalctl -u unity-management-console | grep -i "registry"
@@ -427,7 +445,7 @@ The SQLite database is created at:
    which git
    
    # Check module cache directory
-   ls -la /home/ubuntu/unity-workdir/module_cache/
+   ls -la <WORKDIR>/module_cache/
    ```
 
 3. Module not found:
@@ -453,7 +471,7 @@ The SQLite database is created at:
 
 1. Database:
    ```bash
-   cp /home/ubuntu/unity-management-console/backend/test.db ~/backup/
+   cp <INSTALL_DIR>/backend/test.db ~/backup/
    ```
 
 2. Configuration:
@@ -463,7 +481,7 @@ The SQLite database is created at:
 
 3. Module Registry (if using local):
    ```bash
-   cp /home/ubuntu/unity-workdir/module-registry.json ~/backup/
+   cp <WORKDIR>/module-registry.json ~/backup/
    ```
 
 4. Terraform state (automatically in S3)
@@ -477,7 +495,7 @@ The SQLite database is created at:
 ## Updating the Console
 
 ```bash
-cd /home/ubuntu/unity-management-console
+cd <INSTALL_DIR>
 git pull origin main
 cd backend
 go build -o management-console cmd/web/main.go
@@ -487,8 +505,19 @@ npm run build
 sudo systemctl restart unity-management-console
 ```
 
+## Alternative Deployment Options
+
+For containerized deployments that don't require constant operation, consider the **ECS Fargate deployment option** which provides:
+- On-demand scaling (start/stop as needed)
+- Persistent storage with EFS
+- No server management
+- Cost-effective pay-per-use model
+
+See the [ECS Fargate Deployment Guide](ecs-fargate-deployment-guide.md) for detailed instructions.
+
 ## Additional Resources
 
 - [Unity SDS Documentation](https://unity-sds.gitbook.io/docs/)
 - [Unity Marketplace](https://github.com/unity-sds/unity-marketplace)
 - [Management Console Repository](https://github.com/unity-sds/unity-management-console)
+- [ECS Fargate Deployment Guide](ecs-fargate-deployment-guide.md)

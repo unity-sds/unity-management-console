@@ -1,50 +1,85 @@
-#
-# svelte-builder
-#
+# Multi-stage build for Unity Management Console
 
-FROM node:alpine as app-builder
-
+# Backend builder stage
+FROM golang:1.21-alpine AS backend-builder
 WORKDIR /app
-COPY . /app
+COPY backend/ .
+RUN go mod download
+RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o management-console cmd/web/main.go
 
-RUN npm install --package-lock-only
-RUN npm prune
+# Frontend builder stage  
+FROM node:18-alpine AS frontend-builder
+WORKDIR /app
+COPY ui/ .
+RUN npm ci --only=production
 RUN npm run build
 
-#
-# server-builder (CGO is required; do not use CGO_ENABLED=0)
-#
+# Final runtime stage
+FROM alpine:3.18
+LABEL maintainer="Unity SDS Team"
+LABEL description="Unity Management Console - Containerized deployment"
 
-FROM golang:alpine as server-builder
+# Install system dependencies
+RUN apk --no-cache add \
+    ca-certificates \
+    tzdata \
+    curl \
+    wget \
+    unzip \
+    git \
+    bash \
+    sqlite \
+    && rm -rf /var/cache/apk/*
 
-RUN apk add build-base
+# Install Terraform
+ARG TERRAFORM_VERSION=1.5.7
+RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
+    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
+    mv terraform /usr/local/bin/ && \
+    chmod +x /usr/local/bin/terraform && \
+    rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 
+# Install AWS CLI v2
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install && \
+    rm -rf awscliv2.zip aws
+
+# Create non-root user
+RUN addgroup -g 1001 unity && \
+    adduser -D -u 1001 -G unity unity
+
+# Create application directories
+RUN mkdir -p /app /data/workdir /data/database /data/config && \
+    chown -R unity:unity /app /data
+
+# Set working directory
 WORKDIR /app
 
-COPY backend /app/backend
-COPY go.* /app
-COPY *.go /app
+# Copy built applications
+COPY --from=backend-builder /app/management-console ./
+COPY --from=frontend-builder /app/build ./ui/build
 
-# Get version from package.json
-COPY package.json /app/
-RUN apk add --no-cache nodejs npm
-RUN VERSION=$(node -e "console.log(require('./package.json').version)")
-RUN mkdir -p bin
-RUN go build -buildvcs=false -mod=readonly -v -o bin/management-console-${VERSION}
-RUN ln -sf management-console-${VERSION} bin/management-console
+# Set ownership
+RUN chown -R unity:unity /app
 
-#
-# deploy
-#
+# Switch to non-root user
+USER unity
 
-FROM alpine as deployment
+# Create Unity config directory in container
+RUN mkdir -p /home/unity/.unity
 
-WORKDIR /app
+# Set environment variables
+ENV UNITY_WORKDIR=/data/workdir
+ENV UNITY_CONFIG_PATH=/data/config/unity.yaml
+ENV PATH="/usr/local/bin:${PATH}"
 
-COPY db /app/db
-COPY --from=app-builder /app/build /app/build
-COPY --from=server-builder /app/bin /app/bin
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
 
+# Expose port
 EXPOSE 8080
 
-CMD ./bin/management-console -docker
+# Default command
+CMD ["./management-console", "webapp"]
