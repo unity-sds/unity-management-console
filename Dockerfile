@@ -38,14 +38,18 @@ RUN apt-get update && apt-get install -y \
 
 # Install Terraform
 ARG TERRAFORM_VERSION=1.5.7
-RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
-    unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
+ARG TARGETARCH
+RUN ARCH=${TARGETARCH:-amd64} && \
+    wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_${ARCH}.zip && \
+    unzip terraform_${TERRAFORM_VERSION}_linux_${ARCH}.zip && \
     mv terraform /usr/local/bin/ && \
     chmod +x /usr/local/bin/terraform && \
-    rm terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+    rm terraform_${TERRAFORM_VERSION}_linux_${ARCH}.zip
 
 # Install AWS CLI v2
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+RUN ARCH=${TARGETARCH:-amd64} && \
+    if [ "$ARCH" = "amd64" ]; then ARCH_NAME="x86_64"; elif [ "$ARCH" = "arm64" ]; then ARCH_NAME="aarch64"; fi && \
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-${ARCH_NAME}.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
     ./aws/install && \
     rm -rf awscliv2.zip aws
