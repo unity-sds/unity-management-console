@@ -52,7 +52,16 @@ curl -X POST http://localhost:8080/api/applications/install \
 Use `unity-config-with-modules.yaml` as a starting point for your Unity configuration:
 
 ```bash
+# Copy to default location
 cp unity-config-with-modules.yaml ~/.unity/unity.yaml
+
+# Or specify custom location with --config flag:
+# ./unity webapp --config ./unity-config-with-modules.yaml
+
+# Or set environment variable:
+# export UNITY_CONFIG_PATH=./unity-config-with-modules.yaml
+# ./unity webapp
+
 # Edit the file to match your environment
 ```
 

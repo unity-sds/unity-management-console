@@ -99,77 +99,33 @@ After deployment, the console will be available at:
 
 ### 1. Build the Docker Image
 
-Create a Dockerfile in the project root:
-
-```dockerfile
-FROM golang:1.21-alpine AS backend-builder
-WORKDIR /app
-COPY backend/ .
-RUN go mod download
-RUN go build -o management-console cmd/web/main.go
-
-FROM node:18-alpine AS frontend-builder
-WORKDIR /app
-COPY ui/ .
-RUN npm install
-RUN npm run build
-
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates tzdata
-WORKDIR /root/
-
-# Install required tools
-RUN apk add --no-cache \
-    curl \
-    wget \
-    unzip \
-    git \
-    bash
-
-# Install Terraform
-RUN wget https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip && \
-    unzip terraform_1.5.7_linux_amd64.zip && \
-    mv terraform /usr/local/bin/ && \
-    rm terraform_1.5.7_linux_amd64.zip
-
-# Install AWS CLI
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
-    unzip awscliv2.zip && \
-    ./aws/install && \
-    rm -rf awscliv2.zip aws
-
-# Copy built applications
-COPY --from=backend-builder /app/management-console .
-COPY --from=frontend-builder /app/build ./ui/build
-
-# Create directories
-RUN mkdir -p /data/workdir
-RUN mkdir -p /data/database
-
-# Expose port
-EXPOSE 8080
-
-# Set environment variables
-ENV UNITY_WORKDIR=/data/workdir
-ENV UNITY_DATABASE_PATH=/data/database
-
-CMD ["./management-console", "webapp"]
-```
-
-### 2. Build and Push Image
+Build the container in the root of this repository.
 
 ```bash
 # Build the image
 docker build -t unity-management-console .
+```
 
-# Tag for ECR
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-west-2.amazonaws.com
+### 2. Tag and Push Image to ECR
+
+Create a repository named `unity-management-console` in your AWS account, or use the CLI.
+
+```bash
 
 # Create ECR repository
 aws ecr create-repository --repository-name unity-management-console --region us-west-2
 
-# Tag and push
+```
+
+Then tag and push the image.
+
+```bash
 docker tag unity-management-console:latest <account-id>.dkr.ecr.us-west-2.amazonaws.com/unity-management-console:latest
+
+# Login to ECR
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-west-2.amazonaws.com
+
+# Tag and push
 docker push <account-id>.dkr.ecr.us-west-2.amazonaws.com/unity-management-console:latest
 ```
 
@@ -272,7 +228,7 @@ The EFS file system will contain:
 
 ### Unity Configuration
 
-Create the Unity configuration file that will be mounted into the container:
+Create the Unity configuration file that will be mounted into the container. The container uses the `UNITY_CONFIG_PATH` environment variable to specify the custom config location:
 
 ```yaml
 # /data/config/unity.yaml

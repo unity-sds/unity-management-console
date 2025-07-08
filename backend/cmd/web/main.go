@@ -64,6 +64,9 @@ func main() {
 	// Add version flag to root command
 	rootCmd.PersistentFlags().BoolP("version", "v", false, "Show version information")
 	
+	// Add config flag to root command
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.unity/unity.yaml)")
+	
 	// Add custom pre-run function to check for version flag
 	oldPreRun := rootCmd.PersistentPreRun
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
@@ -118,9 +121,14 @@ func initConfig() {
 		}
 	}
 	path, err := os.Getwd()
-	if cfgFile != "" { //
+	
+	// Check for config file in order: CLI flag, environment variable, default location
+	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
+	} else if unityConfigPath := os.Getenv("UNITY_CONFIG_PATH"); unityConfigPath != "" {
+		// Use config file from environment variable
+		viper.SetConfigFile(unityConfigPath)
 	} else {
 		viper.AddConfigPath(configdir)
 		viper.SetConfigType("yaml")

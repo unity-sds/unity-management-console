@@ -28,10 +28,9 @@ type ModuleDefinition struct {
 
 // ModuleVersionInfo contains version-specific information
 type ModuleVersionInfo struct {
-	Ref               string            `json:"ref"`
-	TerraformVersion  string            `json:"terraform_version,omitempty"`
-	Providers         map[string]string `json:"providers,omitempty"`
-	MinManagementConsoleVersion string            `json:"min_mc_version,omitempty"`
+	Ref               string `json:"ref"`
+	TerraformVersion  string `json:"terraform_version,omitempty"`
+	MinManagementConsoleVersion string `json:"min_mc_version,omitempty"`
 }
 
 // ModuleInput describes an input variable for a module

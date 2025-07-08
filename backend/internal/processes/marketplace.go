@@ -16,10 +16,21 @@ import (
 	"errors"
 )
 
+// buildMarketplaceURL constructs the URL to fetch application metadata from marketplace
+func buildMarketplaceURL(name string, version string, appConfig *config.AppConfig) string {
+	return fmt.Sprintf("%s%s/%s/main/applications/%s/%s/metadata.json",
+		appConfig.MarketplaceBaseUrl,
+		appConfig.MarketplaceOwner,
+		appConfig.MarketplaceRepo,
+		name,
+		version,
+	)
+}
+
 func FetchMarketplaceMetadata(name string, version string, appConfig *config.AppConfig) (marketplace.MarketplaceMetadata, error) {
 
 	log.Infof("Fetching marketplace metadata for, %s, %s", name, version)
-	url := fmt.Sprintf("%sunity-sds/unity-marketplace/main/applications/%s/%s/metadata.json", appConfig.MarketplaceBaseUrl, name, version)
+	url := buildMarketplaceURL(name, version, appConfig)
 
 	log.Infof("Fetching marketplace metadata at: %s", url)
 	resp, err := http.Get(url)

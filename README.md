@@ -89,7 +89,12 @@ GITHUB_TOKEN
 
 ### Configuration File
 
-Create a configuration file at `~/.unity/unity.yaml`:
+The Unity Management Console looks for configuration in the following order:
+1. Path specified by `--config` CLI flag
+2. Path specified by `UNITY_CONFIG_PATH` environment variable  
+3. Default location: `~/.unity/unity.yaml`
+
+Create a configuration file (e.g., `~/.unity/unity.yaml`):
 
 ```yaml
 # AWS Configuration

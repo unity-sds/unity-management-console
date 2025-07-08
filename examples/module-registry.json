@@ -6,24 +6,19 @@
     "last_updated": "2025-06-30T10:00:00Z"
   },
   "modules": {
-    "unity-vpc": {
+    "infrastructure-vpc": {
       "description": "Standard Unity VPC with public/private subnets",
+      "provider": "unity",
       "source": "github.com/unity-sds/terraform-modules//modules/vpc",
       "documentation": "https://github.com/unity-sds/terraform-modules/tree/main/modules/vpc",
       "versions": {
         "1.0.0": {
           "ref": "v1.0.0",
-          "terraform_version": ">= 1.0",
-          "providers": {
-            "aws": ">= 4.0"
-          }
+          "terraform_version": ">= 1.0"
         },
         "1.1.0": {
           "ref": "v1.1.0",
-          "terraform_version": ">= 1.0",
-          "providers": {
-            "aws": ">= 5.0"
-          }
+          "terraform_version": ">= 1.0"
         },
         "latest": {
           "ref": "main"
@@ -63,18 +58,15 @@
         "nat_gateway_ids": "List of NAT Gateway IDs"
       }
     },
-    "unity-eks": {
+    "infrastructure-eks": {
       "description": "Unity EKS cluster with managed node groups",
+      "provider": "unity",
       "source": "github.com/unity-sds/terraform-modules//modules/eks",
       "documentation": "https://github.com/unity-sds/terraform-modules/tree/main/modules/eks",
       "versions": {
         "2.0.0": {
           "ref": "v2.0.0",
-          "terraform_version": ">= 1.0",
-          "providers": {
-            "aws": ">= 5.0",
-            "kubernetes": ">= 2.0"
-          }
+          "terraform_version": ">= 1.0"
         },
         "latest": {
           "ref": "main"
@@ -113,8 +105,9 @@
         "cluster_security_group_id": "Security group ID attached to the EKS cluster"
       }
     },
-    "unity-rds": {
+    "infrastructure-rds": {
       "description": "Unity RDS PostgreSQL database instance",
+      "provider": "unity",
       "source": "github.com/unity-sds/terraform-modules//modules/rds",
       "documentation": "https://github.com/unity-sds/terraform-modules/tree/main/modules/rds",
       "versions": {
@@ -177,8 +170,9 @@
         "db_instance_port": "The database port"
       }
     },
-    "unity-s3": {
+    "infrastructure-s3": {
       "description": "Unity S3 bucket with standard configurations",
+      "provider": "unity",
       "source": "github.com/unity-sds/terraform-modules//modules/s3",
       "documentation": "https://github.com/unity-sds/terraform-modules/tree/main/modules/s3",
       "versions": {

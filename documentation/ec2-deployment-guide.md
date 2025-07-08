@@ -109,7 +109,7 @@ mkdir -p ~/.unity
 
 ### 7. Configure the Management Console
 
-Create the configuration file `~/.unity/unity.yaml`:
+Create the configuration file (default location: `~/.unity/unity.yaml`, or use `--config` flag or `UNITY_CONFIG_PATH` environment variable for custom locations):
 
 ```yaml
 # AWS Configuration
@@ -308,7 +308,7 @@ https://raw.githubusercontent.com/unity-sds/unity-marketplace/main/module-regist
 
 #### Using Modules in Applications
 
-Applications can reference modules during installation by including a `moduleReferences` section in their installation parameters. See the [Module Registry Guide](module-registry-guide.md) for detailed usage instructions.
+Applications can reference modules directly in their Terraform code using standard Terraform module syntax. The Management Console acts as a Terraform module registry. See the [Module Registry Guide](module-registry-guide.md) for detailed usage instructions.
 
 ### AWS Configuration
 

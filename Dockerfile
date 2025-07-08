@@ -1,26 +1,31 @@
 # Multi-stage build for Unity Management Console
 
 # Backend builder stage
-FROM golang:1.21-alpine AS backend-builder
+FROM golang:1.21 AS backend-builder
 WORKDIR /app
-COPY backend/ .
+COPY go.mod go.sum ./
+COPY backend/ ./backend/
+COPY package.json ./
 RUN go mod download
-RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o management-console cmd/web/main.go
+RUN CGO_ENABLED=1 GOOS=linux go build -buildvcs=false -a -ldflags '-extldflags "-static"' -o management-console ./backend/cmd/web
 
 # Frontend builder stage  
 FROM node:18-alpine AS frontend-builder
 WORKDIR /app
-COPY ui/ .
-RUN npm ci --only=production
+COPY package*.json ./
+COPY src/ ./src/
+COPY static/ ./static/
+COPY svelte.config.js vite.config.ts tsconfig.json tailwind.config.js postcss.config.js ./
+RUN npm ci
 RUN npm run build
 
 # Final runtime stage
-FROM alpine:3.18
+FROM debian:bullseye-slim
 LABEL maintainer="Unity SDS Team"
 LABEL description="Unity Management Console - Containerized deployment"
 
 # Install system dependencies
-RUN apk --no-cache add \
+RUN apt-get update && apt-get install -y \
     ca-certificates \
     tzdata \
     curl \
@@ -28,8 +33,8 @@ RUN apk --no-cache add \
     unzip \
     git \
     bash \
-    sqlite \
-    && rm -rf /var/cache/apk/*
+    sqlite3 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Terraform
 ARG TERRAFORM_VERSION=1.5.7
@@ -46,8 +51,8 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     rm -rf awscliv2.zip aws
 
 # Create non-root user
-RUN addgroup -g 1001 unity && \
-    adduser -D -u 1001 -G unity unity
+RUN groupadd -g 1001 unity && \
+    useradd -u 1001 -g unity -m -s /bin/bash unity
 
 # Create application directories
 RUN mkdir -p /app /data/workdir /data/database /data/config && \
@@ -58,7 +63,7 @@ WORKDIR /app
 
 # Copy built applications
 COPY --from=backend-builder /app/management-console ./
-COPY --from=frontend-builder /app/build ./ui/build
+COPY --from=frontend-builder /app/build ./build
 
 # Set ownership
 RUN chown -R unity:unity /app

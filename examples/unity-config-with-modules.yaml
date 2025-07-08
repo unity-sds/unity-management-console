@@ -25,31 +25,20 @@ marketplacerepo: "unity-marketplace"
 MarketplaceItems:
   - name: unity-proxy
     version: "0.5.0"
-  - name: unity-apigateway
-    version: "0.3.0"
-  - name: unity-cs-monitoring-lambda
-    version: "1.1.0"
-  - name: unity-portal
-    version: "0.1.0"
+#  - name: unity-apigateway
+#    version: "0.3.0"
+#  - name: unity-cs-monitoring-lambda
+#    version: "1.1.0"
+#  - name: unity-portal
+#    version: "0.1.0"
 
 # SSM Parameters (optional)
-defaultssmparameters:
-  - name: "/unity/project"
-    value: "myproject"
-  - name: "/unity/venue"
-    value: "dev"
-  - name: "/unity/cognito/app_client_id"
-    value: "your-cognito-client-id"
-  - name: "/unity/shared_services_api_key"
-    value: "your-api-key"
-
-# Module Registry Configuration
-# The module registry can be provided in two ways:
-# 1. Local file: {workdir}/module-registry.json
-# 2. Remote file: Downloaded from marketplace repository
-#
-# If using a custom module repository:
-# moduleregistryurl: "https://raw.githubusercontent.com/your-org/your-modules/main/registry.json"
-#
-# The module registry enables applications to reference reusable Terraform modules
-# during installation, promoting consistency and best practices across deployments.
+#defaultssmparameters:
+#  - name: "/unity/project"
+#    value: "myproject"
+#  - name: "/unity/venue"
+#    value: "dev"
+#  - name: "/unity/cognito/app_client_id"
+#    value: "your-cognito-client-id"
+#  - name: "/unity/shared_services_api_key"
+#    value: "your-api-key"

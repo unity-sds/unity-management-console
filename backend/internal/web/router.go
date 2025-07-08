@@ -116,6 +116,19 @@ func DefineRoutes(appConfig config.AppConfig) *gin.Engine {
 		api.GET("/config", gin.HandlerFunc(handleConfigRequest(appConfig, store)))
 		api.POST("/update-management-console", gin.HandlerFunc(handleUpdateManagementConsole(appConfig)))
 	}
+
+	// Terraform Registry Protocol endpoints (standard paths required by Terraform)
+	router.GET("/.well-known/terraform.json", handleRegistryDiscovery())
+	
+	v1 := router.Group("/v1")
+	{
+		modules := v1.Group("/modules")
+		{
+			modules.GET("/:namespace/:name/:provider/versions", handleModuleVersions(appConfig))
+			modules.GET("/:namespace/:name/:provider/:version/download", handleModuleDownload(appConfig))
+			modules.GET("/:namespace/:name/:provider/:version/archive", handleModuleArchive(appConfig))
+		}
+	}
 	router.GET("/debug/pprof/*profile", gin.WrapF(pprof.Index))
 
 	//router.Use(EnsureTrailingSlash())
