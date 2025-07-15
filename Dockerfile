@@ -36,6 +36,8 @@ RUN apt-get update && apt-get install -y \
     sqlite3 \
     python3 \
     python3-pip \
+    nfs-common \
+    gosu \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Terraform
@@ -74,11 +76,15 @@ WORKDIR /app
 COPY --from=backend-builder /app/management-console ./
 COPY --from=frontend-builder /app/build ./build
 
-# Set ownership
-RUN chown -R unity:unity /app
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
 
-# Switch to non-root user
-USER unity
+# Set ownership and permissions
+RUN chown -R unity:unity /app && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Note: We don't switch to unity user here because we need root for NFS mounting
+# The entrypoint script will handle proper permissions
 
 # Create Unity config directory in container
 RUN mkdir -p /home/unity/.unity
@@ -94,6 +100,9 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 
 # Expose port
 EXPOSE 8080
+
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 # Default command
 CMD ["./management-console", "webapp"]
