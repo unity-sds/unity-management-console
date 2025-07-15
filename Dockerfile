@@ -54,6 +54,9 @@ RUN ARCH=${TARGETARCH:-amd64} && \
     ./aws/install && \
     rm -rf awscliv2.zip aws
 
+# Install Botocore
+RUN pip3 install botocore
+
 # Create non-root user
 RUN groupadd -g 1001 unity && \
     useradd -u 1001 -g unity -m -s /bin/bash unity
