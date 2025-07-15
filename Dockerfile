@@ -34,6 +34,8 @@ RUN apt-get update && apt-get install -y \
     git \
     bash \
     sqlite3 \
+    python3 \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Terraform
@@ -54,7 +56,7 @@ RUN ARCH=${TARGETARCH:-amd64} && \
     ./aws/install && \
     rm -rf awscliv2.zip aws
 
-# Install Botocore
+# Install botocore
 RUN pip3 install botocore
 
 # Create non-root user
